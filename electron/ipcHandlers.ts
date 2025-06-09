@@ -1,7 +1,7 @@
 // ipcHandlers.ts
 
 import { ipcMain, shell } from "electron"
-// import { createClient } from "@supabase/supabase-js" // Temporarily disabled
+import { createClient } from "@supabase/supabase-js"
 import { randomBytes } from "crypto"
 import { IIpcHandlerDeps } from "./main"
 

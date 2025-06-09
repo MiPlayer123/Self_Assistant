@@ -8,22 +8,7 @@ import {
   useQueryClient
 } from "@tanstack/react-query"
 import { useEffect, useState, useCallback } from "react"
-// import { User } from "@supabase/supabase-js" // Temporarily disabled - using mock type
-type User = {
-  id: string
-  email?: string
-  created_at: string
-  confirmed_at?: string
-  email_confirmed_at?: string
-  phone_confirmed_at?: string
-  last_sign_in_at?: string
-  role?: string
-  updated_at: string
-  identities?: any[]
-  factors?: any[]
-  user_metadata?: any
-  app_metadata?: any
-}
+import { User } from "@supabase/supabase-js"
 import {
   Toast,
   ToastDescription,
@@ -94,15 +79,6 @@ function App() {
     },
     []
   )
-
-  // Clean up any callback URLs to prevent routing errors
-  useEffect(() => {
-    // Remove any callback parameters from URL that might cause routing issues
-    if (window.location.pathname.includes('/callback') || window.location.pathname.includes('/auth')) {
-      console.log("Mock: Cleaning up callback URL to prevent routing errors")
-      window.history.replaceState({}, document.title, window.location.origin)
-    }
-  }, [])
 
   // Listen for PKCE code callback
   useEffect(() => {
@@ -300,8 +276,7 @@ function AuthForm() {
             email,
             password,
             options: {
-              // Mock: disabled redirect for testing
-              emailRedirectTo: window.location.origin
+              emailRedirectTo: `${window.location.origin}/auth/callback`
             }
           })
         if (signUpError) throw signUpError
@@ -362,11 +337,10 @@ function AuthForm() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          // Mock: disabled callback redirects for testing
           redirectTo: import.meta.env.DEV
-            ? "http://localhost:54321"
-            : window.location.origin,
-          skipBrowserRedirect: true // Skip browser redirects in mock mode
+            ? "http://localhost:54321/callback"
+            : "interview-coder://callback",
+          skipBrowserRedirect: false
         }
       })
 

@@ -1,21 +1,6 @@
 import { useState, useRef, useEffect } from "react"
 import { supabase } from "../lib/supabase"
-// import { User } from "@supabase/supabase-js" // Temporarily disabled - using mock type
-type User = {
-  id: string
-  email?: string
-  created_at: string
-  confirmed_at?: string
-  email_confirmed_at?: string
-  phone_confirmed_at?: string
-  last_sign_in_at?: string
-  role?: string
-  updated_at: string
-  identities?: any[]
-  factors?: any[]
-  user_metadata?: any
-  app_metadata?: any
-}
+import { User } from "@supabase/supabase-js"
 
 interface SubscribePageProps {
   user: User
