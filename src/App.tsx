@@ -50,11 +50,16 @@ const queryClient = new QueryClient({
 
 // Root component that provides the QueryClient
 function App() {
-  const [toastState, setToastState] = useState({
+  const [toastState, setToastState] = useState<{
+    open: boolean
+    title: string
+    description: string
+    variant: "neutral" | "success" | "error"
+  }>({
     open: false,
     title: "",
     description: "",
-    variant: "neutral" as const
+    variant: "neutral"
   })
   const [credits, setCredits] = useState<number>(0)
   const [currentLanguage, setCurrentLanguage] = useState<string>("python")
@@ -642,21 +647,20 @@ function AppContent({ isInitialized }: { isInitialized: boolean }) {
     )
   }
 
-  // If not logged in, show auth form
-  if (!user) {
-    return <AuthForm />
-  }
+  // MIGRATION: Temporarily disable auth and subscription checks - keep for reference
+  // TODO: Re-enable auth system for Wagoo
+  // if (!user) {
+  //   return <AuthForm />
+  // }
+  // if (!isSubscribed) {
+  //   return <SubscribePage user={user} />
+  // }
 
-  // If logged in but not subscribed, show subscribe page
-  if (!isSubscribed) {
-    return <SubscribePage user={user} />
-  }
-
-  // If logged in and subscribed with credits loaded, show the app
+  // For local development, always show the app regardless of auth/subscription
   return (
     <SubscribedApp
-      credits={credits!}
-      currentLanguage={currentLanguage}
+      credits={999} // Default to high credits for local development
+      currentLanguage={currentLanguage || "python"}
       setLanguage={setCurrentLanguage}
     />
   )

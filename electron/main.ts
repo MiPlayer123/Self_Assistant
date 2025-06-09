@@ -1,7 +1,7 @@
 import { app, BrowserWindow, screen, shell, ipcMain } from "electron"
 import path from "path"
 import { initializeIpcHandlers } from "./ipcHandlers"
-import { ProcessingHelper } from "./ProcessingHelper"
+import { LocalProcessingHelper } from "./LocalProcessingHelper"
 import { ScreenshotHelper } from "./ScreenshotHelper"
 import { ShortcutsHelper } from "./shortcuts"
 import { initAutoUpdater } from "./autoUpdater"
@@ -26,7 +26,7 @@ const state = {
   // Application helpers
   screenshotHelper: null as ScreenshotHelper | null,
   shortcutsHelper: null as ShortcutsHelper | null,
-  processingHelper: null as ProcessingHelper | null,
+  processingHelper: null as LocalProcessingHelper | null,
 
   // View and state management
   view: "queue" as "queue" | "solutions" | "debug",
@@ -74,7 +74,7 @@ export interface IShortcutsHelperDeps {
   getMainWindow: () => BrowserWindow | null
   takeScreenshot: () => Promise<string>
   getImagePreview: (filepath: string) => Promise<string>
-  processingHelper: ProcessingHelper | null
+  processingHelper: LocalProcessingHelper | null
   clearQueues: () => void
   setView: (view: "queue" | "solutions" | "debug") => void
   isVisible: () => boolean
@@ -94,7 +94,7 @@ export interface IIpcHandlerDeps {
     path: string
   ) => Promise<{ success: boolean; error?: string }>
   getImagePreview: (filepath: string) => Promise<string>
-  processingHelper: ProcessingHelper | null
+  processingHelper: LocalProcessingHelper | null
   PROCESSING_EVENTS: typeof state.PROCESSING_EVENTS
   takeScreenshot: () => Promise<string>
   getView: () => "queue" | "solutions" | "debug"
@@ -110,7 +110,7 @@ export interface IIpcHandlerDeps {
 // Initialize helpers
 function initializeHelpers() {
   state.screenshotHelper = new ScreenshotHelper(state.view)
-  state.processingHelper = new ProcessingHelper({
+  state.processingHelper = new LocalProcessingHelper({
     getScreenshotHelper,
     getMainWindow,
     getView,
