@@ -5,7 +5,7 @@ export interface ChatMessage {
   content: string
   timestamp: Date
   context?: ContextData
-  status: 'sending' | 'complete' | 'error'
+  status: 'sending' | 'streaming' | 'complete' | 'error'
   metadata?: MessageMetadata
 }
 

@@ -15,6 +15,14 @@ export abstract class BaseChatModel {
     conversationHistory?: ChatMessage[]
   ): Promise<ModelResponse<string>>
 
+  // Streaming version of sendMessage
+  abstract sendMessageStream(
+    message: string,
+    context?: ContextData,
+    conversationHistory?: ChatMessage[],
+    onChunk?: (chunk: string) => void
+  ): Promise<ModelResponse<string>>
+
   // Optional: Analyze screenshot without specific structure
   abstract analyzeImage(
     imageData: string,

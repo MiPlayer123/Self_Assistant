@@ -20,8 +20,8 @@ export function ChatMessage({ message }: ChatMessageProps) {
   }
 
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-      <div className="max-w-[70%]">
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} px-4`}>
+      <div className="max-w-[85%]">
         {/* Message bubble */}
         <div
           className={isUser ? 'wagoo-message-user' : 'wagoo-message-assistant'}
@@ -56,7 +56,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
         </div>
 
         {/* Timestamp and status */}
-        <div className={`wagoo-timestamp ${isUser ? 'text-right' : 'text-left'}`}>
+        <div className={`wagoo-timestamp mt-2 ${isUser ? 'text-right' : 'text-left'}`}>
           {message.timestamp.toLocaleTimeString([], { 
             hour: '2-digit', 
             minute: '2-digit' 
@@ -64,6 +64,15 @@ export function ChatMessage({ message }: ChatMessageProps) {
           {message.status === 'sending' && (
             <span className="ml-1">
               <div className="inline-block w-2 h-2 wagoo-text-muted rounded-full wagoo-pulse"></div>
+            </span>
+          )}
+          {message.status === 'streaming' && (
+            <span className="ml-1 wagoo-text-accent">
+              <div className="inline-flex items-center gap-1">
+                <div className="inline-block w-1 h-1 bg-current rounded-full wagoo-pulse"></div>
+                <div className="inline-block w-1 h-1 bg-current rounded-full wagoo-pulse" style={{ animationDelay: '0.2s' }}></div>
+                <div className="inline-block w-1 h-1 bg-current rounded-full wagoo-pulse" style={{ animationDelay: '0.4s' }}></div>
+              </div>
             </span>
           )}
           {message.status === 'error' && (

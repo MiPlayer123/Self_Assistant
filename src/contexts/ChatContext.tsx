@@ -5,7 +5,9 @@ import { v4 as uuidv4 } from 'uuid'
 // Actions
 type ChatAction =
   | { type: 'ADD_MESSAGE'; payload: Omit<ChatMessage, 'id' | 'timestamp'> }
+  | { type: 'ADD_MESSAGE_WITH_ID'; payload: ChatMessage }
   | { type: 'UPDATE_MESSAGE'; payload: { id: string; updates: Partial<ChatMessage> } }
+  | { type: 'APPEND_TO_MESSAGE'; payload: { id: string; content: string } }
   | { type: 'SET_PROCESSING'; payload: boolean }
   | { type: 'SET_CONTEXT'; payload: ContextData | undefined }
   | { type: 'SET_MODEL'; payload: string }
@@ -35,12 +37,31 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         ]
       }
 
+    case 'ADD_MESSAGE_WITH_ID':
+      return {
+        ...state,
+        messages: [
+          ...state.messages,
+          action.payload
+        ]
+      }
+
     case 'UPDATE_MESSAGE':
       return {
         ...state,
         messages: state.messages.map(msg =>
           msg.id === action.payload.id
             ? { ...msg, ...action.payload.updates }
+            : msg
+        )
+      }
+
+    case 'APPEND_TO_MESSAGE':
+      return {
+        ...state,
+        messages: state.messages.map(msg =>
+          msg.id === action.payload.id
+            ? { ...msg, content: msg.content + action.payload.content }
             : msg
         )
       }
@@ -78,7 +99,9 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
 interface ChatContextType {
   state: ChatState
   addMessage: (message: Omit<ChatMessage, 'id' | 'timestamp'>) => void
+  addMessageWithId: (message: ChatMessage) => void
   updateMessage: (id: string, updates: Partial<ChatMessage>) => void
+  appendToMessage: (id: string, content: string) => void
   setProcessing: (isProcessing: boolean) => void
   setContext: (context: ContextData | undefined) => void
   setModel: (model: string) => void
@@ -98,7 +121,9 @@ export function ChatProvider({ children }: ChatProviderProps) {
   const contextValue: ChatContextType = {
     state,
     addMessage: (message) => dispatch({ type: 'ADD_MESSAGE', payload: message }),
+    addMessageWithId: (message) => dispatch({ type: 'ADD_MESSAGE_WITH_ID', payload: message }),
     updateMessage: (id, updates) => dispatch({ type: 'UPDATE_MESSAGE', payload: { id, updates } }),
+    appendToMessage: (id, content) => dispatch({ type: 'APPEND_TO_MESSAGE', payload: { id, content } }),
     setProcessing: (isProcessing) => dispatch({ type: 'SET_PROCESSING', payload: isProcessing }),
     setContext: (context) => dispatch({ type: 'SET_CONTEXT', payload: context }),
     setModel: (model) => dispatch({ type: 'SET_MODEL', payload: model }),

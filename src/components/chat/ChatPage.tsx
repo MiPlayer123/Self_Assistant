@@ -12,7 +12,7 @@ interface ChatPageProps {
 }
 
 export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps) {
-  const { state, addMessage, updateMessage, setProcessing, setContext } = useChat()
+  const { state, addMessage, addMessageWithId, updateMessage, appendToMessage, setProcessing, setContext } = useChat()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const chatModelRef = useRef<OpenAIChatModel | null>(null)
   const welcomeMessageAddedRef = useRef<boolean>(false)
@@ -88,19 +88,40 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
       })
     }
 
+    // Generate a unique ID for the streaming message
+    const streamingMessageId = `streaming-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    
+    // Create empty assistant message for streaming with our own ID
+    const streamingMessage = {
+      id: streamingMessageId,
+      role: 'assistant' as const,
+      content: '',
+      timestamp: new Date(),
+      status: 'streaming' as const,
+      metadata: {
+        model: state.selectedModel,
+        hasImageAnalysis: !!state.currentContext?.screenshot
+      }
+    }
+    
+    addMessageWithId(streamingMessage)
+
     try {
-      // Send to AI model (this now handles the two-step image analysis internally)
-      const response = await chatModelRef.current.sendMessage(
+      // Send to AI model with streaming
+      const response = await chatModelRef.current!.sendMessageStream(
         message,
         state.currentContext,
-        state.messages
+        state.messages, // Use current state messages (the addMessage above will update this)
+        (chunk: string) => {
+          // This callback is called for each streaming chunk
+          // Find the streaming message by checking for streaming status and empty/partial content
+          appendToMessage(streamingMessageId, chunk)
+        }
       )
 
-      if (response.success && response.data) {
-        // Add successful assistant response
-        addMessage({
-          role: 'assistant',
-          content: response.data,
+      if (response.success) {
+        // Mark message as complete and add metadata
+        updateMessage(streamingMessageId, {
           status: 'complete',
           metadata: {
             model: state.selectedModel,
@@ -109,17 +130,15 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
           }
         })
       } else {
-        // Add error message
-        addMessage({
-          role: 'assistant',
+        // Update message with error
+        updateMessage(streamingMessageId, {
           content: `Error: ${response.error || 'Failed to get response'}`,
           status: 'error'
         })
       }
     } catch (error: any) {
-      // Add error message
-      addMessage({
-        role: 'assistant',
+      // Update message with error
+      updateMessage(streamingMessageId, {
         content: `Error: ${error.message || 'Something went wrong'}`,
         status: 'error'
       })
@@ -197,7 +216,7 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
 
       {/* Messages */}
       <div className="wagoo-chat-messages">
-        <div className="space-y-4">
+        <div className="space-y-6 py-4">
           {state.messages.map((message) => (
             <ChatMessage key={message.id} message={message} />
           ))}
