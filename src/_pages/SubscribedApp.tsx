@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from "react"
 import Queue from "../_pages/Queue"
 import Solutions from "../_pages/Solutions"
 import { useToast } from "../contexts/toast"
+import { ChatPage } from "../components/chat/ChatPage"
+import { SimpleChatPage } from "../components/chat/SimpleChatPage"
+import { ChatProvider } from "../contexts/ChatContext"
 
 interface SubscribedAppProps {
   credits: number
@@ -17,9 +20,12 @@ const SubscribedApp: React.FC<SubscribedAppProps> = ({
   setLanguage
 }) => {
   const queryClient = useQueryClient()
-  const [view, setView] = useState<"queue" | "solutions" | "debug">("queue")
+  const [view, setView] = useState<"queue" | "solutions" | "debug" | "chat">("chat")
   const containerRef = useRef<HTMLDivElement>(null)
   const { showToast } = useToast()
+
+  // Debug logging
+  console.log('SubscribedApp render - current view:', view)
 
   // Let's ensure we reset queries etc. if some electron signals happen
   useEffect(() => {
@@ -124,8 +130,42 @@ const SubscribedApp: React.FC<SubscribedAppProps> = ({
     return () => cleanupFunctions.forEach((fn) => fn())
   }, [view])
 
+  // Screenshot handlers for chat
+  const handleTakeScreenshot = async (): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      // Set up listener for screenshot taken event
+      const cleanup = window.electronAPI?.onScreenshotTaken((data) => {
+        cleanup()
+        resolve(data.path)
+      })
+
+      // Trigger screenshot
+      window.electronAPI?.triggerScreenshot()
+        .then((result) => {
+          if (!result.success) {
+            cleanup()
+            reject(new Error(result.error || 'Failed to take screenshot'))
+          }
+        })
+        .catch((error) => {
+          cleanup()
+          reject(error)
+        })
+    })
+  }
+
+  const handleGetImagePreview = async (path: string): Promise<string> => {
+    // Use the existing IPC handler to get image preview
+    try {
+      return await window.electronAPI.getImagePreview(path)
+    } catch (error) {
+      console.error('Failed to get image preview:', error)
+      throw error
+    }
+  }
+
   return (
-    <div ref={containerRef} className="min-h-0">
+    <div ref={containerRef} className="h-screen w-full">
       {view === "queue" ? (
         <Queue
           setView={setView}
@@ -140,7 +180,14 @@ const SubscribedApp: React.FC<SubscribedAppProps> = ({
           currentLanguage={currentLanguage}
           setLanguage={setLanguage}
         />
-      ) : null}
+              ) : view === "chat" ? (
+          <ChatProvider>
+            <ChatPage
+              onTakeScreenshot={handleTakeScreenshot}
+              onGetImagePreview={handleGetImagePreview}
+            />
+          </ChatProvider>
+        ) : null}
     </div>
   )
 }

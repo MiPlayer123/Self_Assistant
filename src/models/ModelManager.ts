@@ -69,16 +69,21 @@ export function getModelManager(): ModelManager {
   return modelManagerInstance
 }
 
-// Helper function to get API key from environment
-export function getOpenAIApiKey(): string {
-  // Try different sources for the API key
-  const apiKey = process.env.OPENAI_API_KEY || 
-                 process.env.VITE_OPENAI_API_KEY ||
-                 process.env.REACT_APP_OPENAI_API_KEY
-
-  if (!apiKey) {
-    throw new Error('OpenAI API key not found. Please set OPENAI_API_KEY environment variable.')
+// Helper function to get API key from environment  
+export async function getOpenAIApiKey(): Promise<string> {
+  // In renderer process, try to get from global object set by preload script
+  if (typeof window !== 'undefined' && (window as any).electronAPI?.getEnvVar) {
+    try {
+      const apiKey = await (window as any).electronAPI.getEnvVar('VITE_OPENAI_API_KEY') || 
+                     await (window as any).electronAPI.getEnvVar('OPENAI_API_KEY')
+      if (apiKey) {
+        return apiKey
+      }
+    } catch (error) {
+      console.error('Failed to get API key from IPC:', error)
+    }
   }
-
-  return apiKey
+  
+  // Fallback error message
+  throw new Error('OpenAI API key not found. Please set VITE_OPENAI_API_KEY in your .env file.')
 } 

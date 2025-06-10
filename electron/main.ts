@@ -231,8 +231,10 @@ async function createWindow(): Promise<void> {
   state.currentY = 50
 
   const windowSettings: Electron.BrowserWindowConstructorOptions = {
+    width: 800,
     height: 600,
-
+    minWidth: 400,
+    minHeight: 300,
     x: state.currentX,
     y: 50,
     alwaysOnTop: true,
@@ -256,7 +258,8 @@ async function createWindow(): Promise<void> {
     paintWhenInitiallyHidden: true,
     titleBarStyle: "hidden",
     enableLargerThanScreen: true,
-    movable: true
+    movable: true,
+    resizable: true
   }
 
   state.mainWindow = new BrowserWindow(windowSettings)
@@ -623,11 +626,10 @@ function clearQueues(): void {
 
 async function takeScreenshot(): Promise<string> {
   if (!state.mainWindow) throw new Error("No main window available")
+  // Since window is invisible to screenshots, use noop functions
+  const noop = () => {}
   return (
-    state.screenshotHelper?.takeScreenshot(
-      () => hideMainWindow(),
-      () => showMainWindow()
-    ) || ""
+    state.screenshotHelper?.takeScreenshot(noop, noop) || ""
   )
 }
 

@@ -35,6 +35,8 @@ interface ElectronAPI {
   onUnauthorized: (callback: () => void) => () => void
   onDebugError: (callback: (error: string) => void) => () => void
   openExternal: (url: string) => void
+  getEnvVar: (varName: string) => Promise<string | undefined>
+  getImagePreview: (path: string) => Promise<string>
   toggleMainWindow: () => Promise<{ success: boolean; error?: string }>
   triggerScreenshot: () => Promise<{ success: boolean; error?: string }>
   triggerProcessScreenshots: () => Promise<{ success: boolean; error?: string }>
@@ -198,6 +200,8 @@ const electronAPI = {
     }
   },
   openExternal: (url: string) => shell.openExternal(url),
+  getEnvVar: (varName: string) => ipcRenderer.invoke("get-env-var", varName),
+  getImagePreview: (path: string) => ipcRenderer.invoke("get-image-preview", path),
   triggerScreenshot: () => ipcRenderer.invoke("trigger-screenshot"),
   triggerProcessScreenshots: () =>
     ipcRenderer.invoke("trigger-process-screenshots"),

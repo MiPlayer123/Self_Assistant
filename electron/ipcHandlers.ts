@@ -176,6 +176,11 @@ export function initializeIpcHandlers(deps: IIpcHandlerDeps): void {
     }
   })
 
+  // Environment variable handler
+  ipcMain.handle("get-env-var", (event, varName: string) => {
+    return process.env[varName]
+  })
+
   // Window management handlers
   ipcMain.handle("toggle-window", () => {
     try {

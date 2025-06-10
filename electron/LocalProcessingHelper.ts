@@ -26,7 +26,12 @@ export class LocalProcessingHelper {
 
   private async initializeModel() {
     try {
-      const apiKey = getOpenAIApiKey()
+      // For Electron main process, use process.env directly
+      const apiKey = process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY
+      if (!apiKey) {
+        throw new Error('OpenAI API key not found in environment variables')
+      }
+      
       this.modelManager = initializeModelManager({
         provider: 'openai',
         config: {

@@ -546,7 +546,7 @@ function AppContent({ isInitialized }: { isInitialized: boolean }) {
           .from("subscriptions")
           .select("*, credits, preferred_language")
           .eq("user_id", user.id)
-          .maybeSingle()
+          .single()
 
         setIsSubscribed(!!subscription)
         setCredits(subscription?.credits ?? 0)
@@ -589,7 +589,7 @@ function AppContent({ isInitialized }: { isInitialized: boolean }) {
               .from("subscriptions")
               .select("*, credits, preferred_language")
               .eq("user_id", user?.id)
-              .maybeSingle()
+              .single()
 
             console.log("Current subscription check result:", subscription)
             setIsSubscribed(!!subscription)
