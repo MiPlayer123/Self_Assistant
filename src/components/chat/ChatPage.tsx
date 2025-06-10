@@ -15,6 +15,7 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
   const { state, addMessage, updateMessage, setProcessing, setContext } = useChat()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const chatModelRef = useRef<OpenAIChatModel | null>(null)
+  const welcomeMessageAddedRef = useRef<boolean>(false)
 
   // Initialize chat model (only once)
   useEffect(() => {
@@ -31,7 +32,7 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
       } catch (error) {
         console.error('Failed to initialize chat model:', error)
         addMessage({
-          role: 'system',
+          role: 'assistant',
           content: '❌ Error: Could not initialize AI model. Please set your OpenAI API key in the .env file:\n\nVITE_OPENAI_API_KEY=your_api_key_here\n\nThen restart the application.',
           status: 'error'
         })
@@ -48,19 +49,20 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
 
   // Add welcome message on first load (only once)
   useEffect(() => {
-    if (state.messages.length === 0) {
+    if (state.messages.length === 0 && !welcomeMessageAddedRef.current) {
+      welcomeMessageAddedRef.current = true
       addMessage({
         role: 'assistant',
         content: "Hi! I'm Wagoo, your AI assistant. 👋\n\nI can help you with anything - ask questions, analyze screenshots, or just have a conversation.\n\n🔧 **To get started:**\n1. Create a `.env` file in the project root\n2. Add: `VITE_OPENAI_API_KEY=your_api_key_here`\n3. Restart the app\n\nTry sending me a message!",
         status: 'complete'
       })
     }
-  }, []) // Remove dependencies to prevent infinite loops
+  }, [state.messages.length, addMessage])
 
   const handleSendMessage = async (message: string) => {
     if (!chatModelRef.current) {
       addMessage({
-        role: 'system',
+        role: 'assistant',
         content: 'Error: AI model not available',
         status: 'error'
       })
@@ -77,8 +79,17 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
 
     setProcessing(true)
 
+    // Show different processing message if image is included
+    if (state.currentContext?.screenshot) {
+      addMessage({
+        role: 'assistant',
+        content: '🔍 Analyzing image and processing your request...',
+        status: 'complete'
+      })
+    }
+
     try {
-      // Send to AI model
+      // Send to AI model (this now handles the two-step image analysis internally)
       const response = await chatModelRef.current.sendMessage(
         message,
         state.currentContext,
@@ -93,7 +104,8 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
           status: 'complete',
           metadata: {
             model: state.selectedModel,
-            tokenUsage: response.usage
+            tokenUsage: response.usage,
+            hasImageAnalysis: !!state.currentContext?.screenshot
           }
         })
       } else {
@@ -144,14 +156,14 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
       })
 
       addMessage({
-        role: 'system',
-        content: '📸 Screenshot captured! It will be included with your next message for AI analysis.',
+        role: 'assistant',
+        content: '📸 Screenshot captured! It will be analyzed in detail when you send your next message.',
         status: 'complete'
       })
     } catch (error: any) {
       console.error('Screenshot error:', error)
       addMessage({
-        role: 'system',
+        role: 'assistant',
         content: `Failed to take screenshot: ${error.message}`,
         status: 'error'
       })
@@ -161,21 +173,21 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
   console.log('ChatPage rendering...')
   
   return (
-    <div className="flex flex-col h-full w-full bg-white min-h-[400px]">
+    <div className="wagoo-chat-container wagoo-fade-in">
       {/* Chat header */}
-      <div className="flex-shrink-0 border-b border-gray-200 p-4">
+      <div className="wagoo-chat-header">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">Wagoo</h1>
-            <p className="text-sm text-gray-500">Your AI Personal Assistant</p>
+            <h1 className="text-xl font-semibold wagoo-text-primary">Wagoo</h1>
+            <p className="text-sm wagoo-text-secondary">Your AI Personal Assistant</p>
           </div>
           <div className="flex items-center gap-2">
-            <div className="text-sm text-gray-500">
+            <div className="text-sm wagoo-text-muted">
               Model: {state.selectedModel}
             </div>
             {state.currentContext?.screenshot && (
-              <div className="flex items-center gap-1 text-sm text-green-600">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+              <div className="wagoo-context-indicator">
+                <span className="wagoo-status-dot"></span>
                 Screenshot ready
               </div>
             )}
@@ -184,7 +196,7 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 min-h-0">
+      <div className="wagoo-chat-messages">
         <div className="space-y-4">
           {state.messages.map((message) => (
             <ChatMessage key={message.id} message={message} />

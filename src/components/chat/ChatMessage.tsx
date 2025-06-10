@@ -12,7 +12,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
   if (isSystem) {
     return (
       <div className="flex justify-center my-4">
-        <div className="bg-gray-100 text-gray-600 text-sm px-3 py-1 rounded-full">
+        <div className="wagoo-message-system">
           {message.content}
         </div>
       </div>
@@ -21,14 +21,10 @@ export function ChatMessage({ message }: ChatMessageProps) {
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-      <div className={`max-w-[70%] ${isUser ? 'order-2' : 'order-1'}`}>
+      <div className="max-w-[70%]">
         {/* Message bubble */}
         <div
-          className={`px-4 py-3 rounded-2xl ${
-            isUser
-              ? 'bg-blue-500 text-white rounded-br-sm'
-              : 'bg-gray-100 text-gray-900 rounded-bl-sm'
-          }`}
+          className={isUser ? 'wagoo-message-user' : 'wagoo-message-assistant'}
         >
           <div className="whitespace-pre-wrap break-words">
             {message.content}
@@ -43,7 +39,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
               <img
                 src={message.context.screenshot.preview}
                 alt="Screenshot"
-                className="max-w-full max-h-64 h-auto rounded-lg border border-gray-200 cursor-pointer hover:shadow-lg transition-shadow"
+                className="max-w-full max-h-64 h-auto rounded-lg wagoo-border cursor-pointer hover:shadow-lg transition-shadow"
                 onClick={() => {
                   // Open screenshot in new window for full view
                   const newWindow = window.open()
@@ -52,7 +48,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
                   }
                 }}
               />
-              <div className="text-xs opacity-60 mt-1">
+              <div className="text-xs wagoo-text-muted mt-1">
                 Click to view full size
               </div>
             </div>
@@ -60,29 +56,20 @@ export function ChatMessage({ message }: ChatMessageProps) {
         </div>
 
         {/* Timestamp and status */}
-        <div className={`text-xs text-gray-500 mt-1 ${isUser ? 'text-right' : 'text-left'}`}>
+        <div className={`wagoo-timestamp ${isUser ? 'text-right' : 'text-left'}`}>
           {message.timestamp.toLocaleTimeString([], { 
             hour: '2-digit', 
             minute: '2-digit' 
           })}
           {message.status === 'sending' && (
             <span className="ml-1">
-              <div className="inline-block w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
+              <div className="inline-block w-2 h-2 wagoo-text-muted rounded-full wagoo-pulse"></div>
             </span>
           )}
           {message.status === 'error' && (
-            <span className="ml-1 text-red-500">Failed</span>
+            <span className="ml-1" style={{ color: 'var(--wagoo-accent-error)' }}>Failed</span>
           )}
         </div>
-      </div>
-
-      {/* Avatar */}
-      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-        isUser 
-          ? 'bg-blue-500 text-white order-1 mr-3' 
-          : 'bg-gray-300 text-gray-700 order-2 ml-3'
-      }`}>
-        {isUser ? 'U' : 'W'}
       </div>
     </div>
   )

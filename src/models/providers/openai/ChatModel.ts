@@ -14,17 +14,7 @@ export class OpenAIChatModel extends BaseChatModel {
     })
   }
 
-  private messageNeedsVisualContext(message: string): boolean {
-    const visualKeywords = [
-      'see', 'look', 'show', 'visible', 'screen', 'display', 'image', 'picture',
-      'what', 'where', 'how', 'describe', 'explain', 'analyze', 'read',
-      'interface', 'button', 'click', 'element', 'page', 'website', 'app',
-      'error', 'problem', 'issue', 'help', 'guide', 'tutorial', 'navigate'
-    ]
-    
-    const lowerMessage = message.toLowerCase()
-    return visualKeywords.some(keyword => lowerMessage.includes(keyword))
-  }
+
 
   async sendMessage(
     message: string,
@@ -35,19 +25,16 @@ export class OpenAIChatModel extends BaseChatModel {
       const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
         {
           role: "system",
-          content: `You are Wagoo, a helpful AI assistant that can help with any task and respond to any queries. You will also be given a screenshot of the user's screen for context to aid your response. 
+          content: `You are Wagoo, a helpful AI assistant that can help with any task and respond to any queries. You may be provided with an image analysis summary to help provide context for your response.
           
           You can:
           - Answer questions about anything
-          - Analyze screenshots and describe what you see
+          - Use image analysis summaries to understand what the user is seeing
           - Help with coding, writing, problem-solving
           - Provide explanations and guidance
           
           Be helpful, concise, and friendly. 
-          Provide a reposne that answers the question. 
-          Use the screenshot to help answer the question or proide a useful response. Not all messages will have screenshots or are relevant to the question.
-          
-          The context in the screnshot might be reated to the text in the screenshot as well, so read the text in the screenshot to help answer the question.
+          Provide a response that answers the question using any provided image analysis as context.
           `
         }
       ]
@@ -58,73 +45,52 @@ export class OpenAIChatModel extends BaseChatModel {
         const recentHistory = conversationHistory.slice(-25)
         for (const msg of recentHistory) {
           if (msg.role !== 'system') {
-            // Check if message has screenshot context
-            if (msg.context?.screenshot && msg.role === 'user') {
-              messages.push({
-                role: 'user',
-                content: [
-                  {
-                    type: "text",
-                    text: msg.content
-                  },
-                  {
-                    type: "image_url",
-                    image_url: {
-                      url: `data:image/png;base64,${msg.context.screenshot.base64}`,
-                      detail: "high"
-                    }
-                  }
-                ]
-              })
-            } else {
-              messages.push({
-                role: msg.role as 'user' | 'assistant',
-                content: msg.content
-              })
-            }
+            // For conversation history, just include text content without re-analyzing images
+            messages.push({
+              role: msg.role as 'user' | 'assistant',
+              content: msg.content
+            })
           }
         }
       }
 
-      // Determine if we should include screenshot with current message
-      let userMessage: OpenAI.Chat.Completions.ChatCompletionMessageParam
+      // Handle current message with potential image analysis
+      let userMessageContent = message
 
       if (context?.screenshot) {
-        // Check if the message seems to need visual context
-        const needsVisualContext = this.messageNeedsVisualContext(message)
+        // Step 1: Analyze the image separately first
+        console.log('Analyzing uploaded image...')
+        const imageAnalysisPrompt = `Analyze this image in detail. Describe:
+1. What type of content or interface is shown
+2. Key visual elements, text, and components - transcribe any text you see
+3. Any errors, issues, or important details visible
+4. Overall context and purpose of what's displayed
+
+Provide a comprehensive but concise analysis that will help an AI assistant understand what the user is seeing.`
+
+        const analysisResponse = await this.analyzeImage(context.screenshot.base64, imageAnalysisPrompt)
         
-        if (needsVisualContext) {
-          userMessage = {
-            role: "user",
-            content: [
-              {
-                type: "text", 
-                text: message
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: `data:image/png;base64,${context.screenshot.base64}`,
-                  detail: "high"
-                }
-              }
-            ]
-          }
+        if (analysisResponse.success && analysisResponse.data) {
+          // Step 2: Include the analysis summary with the user's message
+          userMessageContent = `${message}
+
+[IMAGE ANALYSIS CONTEXT]
+${analysisResponse.data}
+[END IMAGE ANALYSIS]
+
+Please use the image analysis above to help answer my question or provide relevant assistance.`
+          
+          console.log('Image analysis complete, proceeding with main response...')
         } else {
-          // Include screenshot but mention it's available
-          userMessage = {
-            role: "user",
-            content: `${message}\n\n(Note: I have a screenshot available if you need to see what's on my screen to help answer this)`
-          }
-        }
-      } else {
-        userMessage = {
-          role: "user",
-          content: message
+          console.warn('Image analysis failed:', analysisResponse.error)
+          userMessageContent = `${message}\n\n(Note: I tried to analyze an uploaded image but the analysis failed. Please respond based on the text message only.)`
         }
       }
 
-      messages.push(userMessage)
+      messages.push({
+        role: "user",
+        content: userMessageContent
+      })
 
       const response = await this.openai.chat.completions.create({
         model: this.config.model || "gpt-4o",

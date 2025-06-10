@@ -2,43 +2,390 @@
 @tailwind components;
 @tailwind utilities;
 
-.frosted-glass {
-  background: rgba(26, 26, 26, 0.8);
-  backdrop-filter: blur(8px);
+/* =============================================
+   WAGOO THEME - CSS CUSTOM PROPERTIES
+   ============================================= */
+
+:root {
+  /* Core Colors - Dark Translucent Theme */
+  --wagoo-bg-primary: rgba(15, 15, 15, 0.92);
+  --wagoo-bg-secondary: rgba(25, 25, 25, 0.85);
+  --wagoo-bg-tertiary: rgba(35, 35, 35, 0.8);
+  --wagoo-bg-glass: rgba(20, 20, 20, 0.88);
+  
+  /* Text Colors */
+  --wagoo-text-primary: rgba(255, 255, 255, 0.95);
+  --wagoo-text-secondary: rgba(255, 255, 255, 0.75);
+  --wagoo-text-muted: rgba(255, 255, 255, 0.55);
+  --wagoo-text-inverse: rgba(20, 20, 20, 0.9);
+  
+  /* Accent Colors */
+  --wagoo-accent-primary: rgba(79, 172, 254, 0.9);
+  --wagoo-accent-primary-hover: rgba(99, 182, 255, 1);
+  --wagoo-accent-success: rgba(34, 197, 94, 0.9);
+  --wagoo-accent-warning: rgba(251, 191, 36, 0.9);
+  --wagoo-accent-error: rgba(239, 68, 68, 0.9);
+  
+  /* Border Colors */
+  --wagoo-border-primary: rgba(255, 255, 255, 0.15);
+  --wagoo-border-secondary: rgba(255, 255, 255, 0.08);
+  --wagoo-border-focus: rgba(79, 172, 254, 0.6);
+  
+  /* Shadows & Effects */
+  --wagoo-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --wagoo-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --wagoo-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+  --wagoo-backdrop-blur: blur(12px);
+  
+  /* Animations */
+  --wagoo-transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --wagoo-transition-normal: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --wagoo-transition-slow: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* =============================================
+   BASE STYLING & OVERRIDES
+   ============================================= */
+
+body {
+  background: transparent !important;
+  color: var(--wagoo-text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-weight: 400;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* =============================================
+   UTILITY CLASSES - BACKGROUNDS
+   ============================================= */
+
+.wagoo-bg-primary {
+  background: var(--wagoo-bg-primary);
+  backdrop-filter: var(--wagoo-backdrop-blur);
+}
+
+.wagoo-bg-secondary {
+  background: var(--wagoo-bg-secondary);
+  backdrop-filter: var(--wagoo-backdrop-blur);
+}
+
+.wagoo-bg-glass {
+  background: var(--wagoo-bg-glass);
+  backdrop-filter: var(--wagoo-backdrop-blur);
+}
+
+.wagoo-bg-transparent {
+  background: transparent;
+}
+
+/* =============================================
+   UTILITY CLASSES - TEXT
+   ============================================= */
+
+.wagoo-text-primary {
+  color: var(--wagoo-text-primary);
+}
+
+.wagoo-text-secondary {
+  color: var(--wagoo-text-secondary);
+}
+
+.wagoo-text-muted {
+  color: var(--wagoo-text-muted);
+}
+
+.wagoo-text-inverse {
+  color: var(--wagoo-text-inverse);
+}
+
+/* =============================================
+   UTILITY CLASSES - BORDERS
+   ============================================= */
+
+.wagoo-border {
+  border: 1px solid var(--wagoo-border-primary);
+}
+
+.wagoo-border-secondary {
+  border: 1px solid var(--wagoo-border-secondary);
+}
+
+.wagoo-border-t {
+  border-top: 1px solid var(--wagoo-border-primary);
+}
+
+.wagoo-border-b {
+  border-bottom: 1px solid var(--wagoo-border-primary);
+}
+
+/* =============================================
+   COMPONENT CLASSES - CHAT
+   ============================================= */
+
+.wagoo-chat-container {
+  @apply flex flex-col h-full w-full min-h-[400px];
+  background: var(--wagoo-bg-primary);
+  backdrop-filter: var(--wagoo-backdrop-blur);
+}
+
+.wagoo-chat-header {
+  @apply flex-shrink-0 p-4;
+  background: var(--wagoo-bg-secondary);
+  border-bottom: 1px solid var(--wagoo-border-primary);
+}
+
+.wagoo-chat-messages {
+  @apply flex-1 overflow-y-auto p-4 min-h-0;
+  background: transparent;
+}
+
+.wagoo-chat-input-container {
+  @apply p-4 flex-shrink-0;
+  background: var(--wagoo-bg-secondary);
+  border-top: 1px solid var(--wagoo-border-primary);
+}
+
+/* =============================================
+   COMPONENT CLASSES - MESSAGES
+   ============================================= */
+
+.wagoo-message-user {
+  @apply px-4 py-3 rounded-2xl max-w-[70%];
+  background: var(--wagoo-accent-primary);
+  color: var(--wagoo-text-primary);
+  border-bottom-right-radius: 4px;
+  box-shadow: var(--wagoo-shadow-sm);
+}
+
+.wagoo-message-assistant {
+  @apply px-4 py-3 rounded-2xl max-w-[70%];
+  background: var(--wagoo-bg-tertiary);
+  color: var(--wagoo-text-primary);
+  border-bottom-left-radius: 4px;
+  box-shadow: var(--wagoo-shadow-sm);
+  backdrop-filter: var(--wagoo-backdrop-blur);
+}
+
+.wagoo-message-system {
+  @apply px-3 py-1 rounded-full text-sm;
+  background: var(--wagoo-bg-secondary);
+  color: var(--wagoo-text-secondary);
+  border: 1px solid var(--wagoo-border-secondary);
+}
+
+.wagoo-avatar {
+  @apply w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium;
+  background: var(--wagoo-bg-tertiary);
+  color: var(--wagoo-text-primary);
+  box-shadow: var(--wagoo-shadow-sm);
+}
+
+.wagoo-avatar-user {
+  background: var(--wagoo-accent-primary);
+  color: var(--wagoo-text-primary);
+}
+
+/* =============================================
+   COMPONENT CLASSES - INPUTS & BUTTONS
+   ============================================= */
+
+.wagoo-input {
+  @apply w-full px-3 py-2 rounded-lg resize-none;
+  background: var(--wagoo-bg-tertiary);
+  border: 1px solid var(--wagoo-border-secondary);
+  color: var(--wagoo-text-primary);
+  transition: var(--wagoo-transition-fast);
+  backdrop-filter: var(--wagoo-backdrop-blur);
+}
+
+.wagoo-input:focus {
+  outline: none;
+  border-color: var(--wagoo-border-focus);
+  box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.15);
+}
+
+.wagoo-input::placeholder {
+  color: var(--wagoo-text-muted);
+}
+
+.wagoo-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.wagoo-button {
+  @apply flex items-center justify-center rounded-lg font-medium transition-colors;
+  background: var(--wagoo-accent-primary);
+  color: var(--wagoo-text-primary);
+  border: 1px solid transparent;
+  transition: var(--wagoo-transition-fast);
+  box-shadow: var(--wagoo-shadow-sm);
+}
+
+.wagoo-button:hover:not(:disabled) {
+  background: var(--wagoo-accent-primary-hover);
+  box-shadow: var(--wagoo-shadow-md);
+}
+
+.wagoo-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.wagoo-button-secondary {
+  background: var(--wagoo-bg-tertiary);
+  border-color: var(--wagoo-border-primary);
+  color: var(--wagoo-text-primary);
+}
+
+.wagoo-button-secondary:hover:not(:disabled) {
+  background: var(--wagoo-bg-secondary);
+  border-color: var(--wagoo-border-focus);
+}
+
+.wagoo-button-ghost {
+  background: transparent;
+  border-color: var(--wagoo-border-secondary);
+  color: var(--wagoo-text-secondary);
+}
+
+.wagoo-button-ghost:hover:not(:disabled) {
+  background: var(--wagoo-bg-tertiary);
+  color: var(--wagoo-text-primary);
+}
+
+/* =============================================
+   COMPONENT CLASSES - SPECIAL ELEMENTS
+   ============================================= */
+
+.wagoo-screenshot-button {
+  @apply flex-shrink-0 w-10 h-10 rounded-lg border-2 border-dashed transition-colors flex items-center justify-center;
+  border-color: var(--wagoo-border-primary);
+  color: var(--wagoo-text-muted);
+  background: transparent;
+}
+
+.wagoo-screenshot-button:hover:not(:disabled) {
+  border-color: var(--wagoo-border-focus);
+  color: var(--wagoo-text-secondary);
+  background: var(--wagoo-bg-tertiary);
+}
+
+.wagoo-screenshot-button.active {
+  border-color: var(--wagoo-accent-success);
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--wagoo-accent-success);
+}
+
+.wagoo-context-indicator {
+  @apply text-sm flex items-center gap-1;
+  color: var(--wagoo-accent-success);
+}
+
+.wagoo-status-dot {
+  @apply w-2 h-2 rounded-full;
+  background: var(--wagoo-accent-success);
+}
+
+.wagoo-timestamp {
+  @apply text-xs mt-1;
+  color: var(--wagoo-text-muted);
+}
+
+/* =============================================
+   ANIMATIONS & EFFECTS
+   ============================================= */
+
+.wagoo-pulse {
+  animation: wagoo-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes wagoo-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.wagoo-fade-in {
+  animation: wagoo-fade-in 0.3s ease-out;
+}
+
+@keyframes wagoo-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.wagoo-slide-up {
+  animation: wagoo-slide-up 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes wagoo-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =============================================
+   LEGACY CLASSES (TO BE MIGRATED)
+   ============================================= */
+
+/* Keep existing frosted-glass for backward compatibility */
+.frosted-glass {
+  background: var(--wagoo-bg-glass);
+  backdrop-filter: var(--wagoo-backdrop-blur);
+}
+
+/* Updated auth button to match theme */
 .auth-button {
-  background: rgba(252, 252, 252, 0.98);
-  color: rgba(60, 60, 60, 0.9);
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  background: var(--wagoo-accent-primary);
+  color: var(--wagoo-text-primary);
+  transition: var(--wagoo-transition-normal);
   position: relative;
   z-index: 2;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--wagoo-shadow-sm);
+  border: 1px solid var(--wagoo-border-secondary);
 }
 
 .auth-button:hover {
-  background: rgba(255, 255, 255, 1);
+  background: var(--wagoo-accent-primary-hover);
+  box-shadow: var(--wagoo-shadow-md);
 }
 
 .auth-button::before {
   content: "";
   position: absolute;
   inset: -8px;
-  background: linear-gradient(45deg, #ff000000, #0000ff00);
+  background: transparent;
   z-index: -1;
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--wagoo-transition-normal);
   border-radius: inherit;
   filter: blur(24px);
   opacity: 0;
 }
 
 .auth-button:hover::before {
-  background: linear-gradient(
-    45deg,
-    rgba(255, 0, 0, 0.4),
-    rgba(0, 0, 255, 0.4)
+  background: radial-gradient(
+    circle,
+    rgba(79, 172, 254, 0.3),
+    transparent 70%
   );
-  filter: blur(48px);
-  inset: -16px;
+  filter: blur(32px);
+  inset: -12px;
   opacity: 1;
 }

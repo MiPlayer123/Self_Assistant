@@ -5,7 +5,6 @@ import Queue from "../_pages/Queue"
 import Solutions from "../_pages/Solutions"
 import { useToast } from "../contexts/toast"
 import { ChatPage } from "../components/chat/ChatPage"
-import { SimpleChatPage } from "../components/chat/SimpleChatPage"
 import { ChatProvider } from "../contexts/ChatContext"
 
 interface SubscribedAppProps {
@@ -50,9 +49,9 @@ const SubscribedApp: React.FC<SubscribedAppProps> = ({
     }
   }, [])
 
-  // Dynamically update the window size
+  // Dynamically update the window size (disabled for chat view to allow manual resizing)
   useEffect(() => {
-    if (!containerRef.current) return
+    if (!containerRef.current || view === "chat") return
 
     const updateDimensions = () => {
       if (!containerRef.current) return
@@ -157,7 +156,7 @@ const SubscribedApp: React.FC<SubscribedAppProps> = ({
   const handleGetImagePreview = async (path: string): Promise<string> => {
     // Use the existing IPC handler to get image preview
     try {
-      return await window.electronAPI.getImagePreview(path)
+      return await (window.electronAPI as any).getImagePreview(path)
     } catch (error) {
       console.error('Failed to get image preview:', error)
       throw error

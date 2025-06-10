@@ -228,15 +228,21 @@ async function createWindow(): Promise<void> {
   state.screenWidth = workArea.width
   state.screenHeight = workArea.height
   state.step = 60
-  state.currentY = 50
+  
+  // Position window at bottom-right corner
+  const windowWidth = 800
+  const windowHeight = 600
+  const margin = 20 // Margin from screen edges
+  state.currentX = workArea.width - windowWidth - margin
+  state.currentY = workArea.height - windowHeight - margin
 
   const windowSettings: Electron.BrowserWindowConstructorOptions = {
-    width: 800,
-    height: 600,
+    width: windowWidth,
+    height: windowHeight,
     minWidth: 400,
     minHeight: 300,
     x: state.currentX,
-    y: 50,
+    y: state.currentY,
     alwaysOnTop: true,
     webPreferences: {
       nodeIntegration: false,
@@ -454,20 +460,13 @@ function moveWindowVertical(updateFn: (y: number) => number): void {
   }
 }
 
-// Window dimension functions
+// Window dimension functions (disabled for chat view to prevent resizing interference)
 function setWindowDimensions(width: number, height: number): void {
   if (!state.mainWindow?.isDestroyed()) {
-    const [currentX, currentY] = state.mainWindow.getPosition()
-    const primaryDisplay = screen.getPrimaryDisplay()
-    const workArea = primaryDisplay.workAreaSize
-    const maxWidth = Math.floor(workArea.width * 0.5)
-
-    state.mainWindow.setBounds({
-      x: Math.min(currentX, workArea.width - maxWidth),
-      y: currentY,
-      width: Math.min(width + 32, maxWidth),
-      height: Math.ceil(height)
-    })
+    // Skip automatic dimension updates to allow manual resizing
+    // This prevents interference with user-initiated window resizing
+    console.log('setWindowDimensions called but skipped to preserve manual resizing')
+    return
   }
 }
 

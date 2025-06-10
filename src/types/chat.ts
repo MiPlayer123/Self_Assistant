@@ -30,6 +30,7 @@ export interface MessageMetadata {
     totalTokens: number
   }
   processingTime?: number
+  hasImageAnalysis?: boolean
 }
 
 export interface ChatState {

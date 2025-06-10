@@ -39,16 +39,16 @@ const toastVariants: Record<
   { icon: React.ReactNode; bgColor: string }
 > = {
   neutral: {
-    icon: <Info className="h-3 w-3 text-amber-700" />,
-    bgColor: "bg-amber-100"
+    icon: <Info className="h-3 w-3" style={{ color: 'var(--wagoo-accent-warning)' }} />,
+    bgColor: "wagoo-bg-secondary"
   },
   success: {
-    icon: <CheckCircle2 className="h-3 w-3 text-emerald-700" />,
-    bgColor: "bg-emerald-100"
+    icon: <CheckCircle2 className="h-3 w-3" style={{ color: 'var(--wagoo-accent-success)' }} />,
+    bgColor: "wagoo-bg-secondary"
   },
   error: {
-    icon: <AlertCircle className="h-3 w-3 text-red-700" />,
-    bgColor: "bg-red-100"
+    icon: <AlertCircle className="h-3 w-3" style={{ color: 'var(--wagoo-accent-error)' }} />,
+    bgColor: "wagoo-bg-secondary"
   }
 }
 
@@ -60,15 +60,16 @@ const Toast = React.forwardRef<
     ref={ref}
     duration={4000}
     className={cn(
-      "group pointer-events-auto relative flex w-full items-center space-x-2 overflow-hidden rounded-md p-2",
+      "group pointer-events-auto relative flex w-full items-center space-x-2 overflow-hidden rounded-md p-2 wagoo-border",
       toastVariants[variant].bgColor,
       className
     )}
+    style={{ backdropFilter: 'var(--wagoo-backdrop-blur)' }}
     {...props}
   >
     {toastVariants[variant].icon}
     <div className="flex-1">{props.children}</div>
-    <ToastPrimitive.Close className="absolute right-1 top-1 rounded-md p-0.5 text-zinc-500 opacity-0 transition-opacity hover:text-zinc-700 group-hover:opacity-100">
+    <ToastPrimitive.Close className="absolute right-1 top-1 rounded-md p-0.5 wagoo-text-muted opacity-0 transition-opacity hover:wagoo-text-secondary group-hover:opacity-100">
       <X className="h-2 w-2" />
     </ToastPrimitive.Close>
   </ToastPrimitive.Root>
@@ -82,7 +83,7 @@ const ToastAction = React.forwardRef<
   <ToastPrimitive.Action
     ref={ref}
     className={cn(
-      "text-[0.65rem] font-medium text-zinc-600 hover:text-zinc-900",
+      "text-[0.65rem] font-medium wagoo-text-secondary hover:wagoo-text-primary",
       className
     )}
     {...props}
@@ -96,7 +97,7 @@ const ToastTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ToastPrimitive.Title
     ref={ref}
-    className={cn("text-[0.7rem] font-medium text-zinc-900", className)}
+    className={cn("text-[0.7rem] font-medium wagoo-text-primary", className)}
     {...props}
   />
 ))
@@ -108,7 +109,7 @@ const ToastDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ToastPrimitive.Description
     ref={ref}
-    className={cn("text-[0.65rem] text-zinc-600", className)}
+    className={cn("text-[0.65rem] wagoo-text-secondary", className)}
     {...props}
   />
 ))
