@@ -3,85 +3,142 @@ import { IShortcutsHelperDeps } from "./main"
 
 export class ShortcutsHelper {
   private deps: IShortcutsHelperDeps
+  private shortcutsRegistered: boolean = false
 
   constructor(deps: IShortcutsHelperDeps) {
     this.deps = deps
   }
 
+  private getModifierKey(): string {
+    // Use Ctrl on Mac instead of Cmd, Alt on Windows/Linux
+    return process.platform === "darwin" ? "Ctrl" : "Alt"
+  }
+
+  private getWindowMovementModifier(): string {
+    // Use Cmd on Mac for window movement, Alt on Windows/Linux
+    return process.platform === "darwin" ? "Cmd" : "Alt"
+  }
+
+  private isWindowHidden(): boolean {
+    return !this.deps.isVisible()
+  }
+
+  private executeIfWindowVisible(callback: () => void | Promise<void>): void {
+    if (this.isWindowHidden()) {
+      console.log("Shortcut ignored - window is hidden")
+      return
+    }
+    callback()
+  }
+
   public registerGlobalShortcuts(): void {
-    globalShortcut.register("CommandOrControl+H", async () => {
-      const mainWindow = this.deps.getMainWindow()
-      if (mainWindow) {
-        console.log("Taking screenshot...")
-        try {
-          const screenshotPath = await this.deps.takeScreenshot()
-          const preview = await this.deps.getImagePreview(screenshotPath)
-          mainWindow.webContents.send("screenshot-taken", {
-            path: screenshotPath,
-            preview
-          })
-        } catch (error) {
-          console.error("Error capturing screenshot:", error)
+    if (this.shortcutsRegistered) {
+      this.unregisterShortcuts()
+    }
+
+    const modifier = this.getModifierKey()
+    const windowMovementModifier = this.getWindowMovementModifier()
+
+    // Screenshot shortcut
+    globalShortcut.register(`${modifier}+H`, async () => {
+      this.executeIfWindowVisible(async () => {
+        const mainWindow = this.deps.getMainWindow()
+        if (mainWindow) {
+          console.log("Taking screenshot...")
+          try {
+            const screenshotPath = await this.deps.takeScreenshot()
+            const preview = await this.deps.getImagePreview(screenshotPath)
+            mainWindow.webContents.send("screenshot-taken", {
+              path: screenshotPath,
+              preview
+            })
+          } catch (error) {
+            console.error("Error capturing screenshot:", error)
+          }
         }
-      }
+      })
     })
 
-    globalShortcut.register("CommandOrControl+Enter", async () => {
-      await this.deps.processingHelper?.processScreenshots()
+    // Process screenshots shortcut
+    globalShortcut.register(`${modifier}+Enter`, async () => {
+      this.executeIfWindowVisible(async () => {
+        await this.deps.processingHelper?.processScreenshots()
+      })
     })
 
-    globalShortcut.register("CommandOrControl+R", () => {
-      console.log(
-        "Command + R pressed. Canceling requests and resetting queues..."
-      )
+    // Reset shortcut
+    globalShortcut.register(`${modifier}+R`, () => {
+      this.executeIfWindowVisible(() => {
+        console.log(`${modifier} + R pressed. Canceling requests and resetting queues...`)
 
-      // Cancel ongoing API requests
-      this.deps.processingHelper?.cancelOngoingRequests()
+        // Cancel ongoing API requests
+        this.deps.processingHelper?.cancelOngoingRequests()
 
-      // Clear both screenshot queues
-      this.deps.clearQueues()
+        // Clear both screenshot queues
+        this.deps.clearQueues()
 
-      console.log("Cleared queues.")
+        console.log("Cleared queues.")
 
-      // Update the view state to 'queue'
-      this.deps.setView("queue")
+        // Update the view state to 'queue'
+        this.deps.setView("queue")
 
-      // Notify renderer process to switch view to 'queue'
-      const mainWindow = this.deps.getMainWindow()
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send("reset-view")
-        mainWindow.webContents.send("reset")
-      }
+        // Notify renderer process to switch view to 'queue'
+        const mainWindow = this.deps.getMainWindow()
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send("reset-view")
+          mainWindow.webContents.send("reset")
+        }
+      })
     })
 
-    // New shortcuts for moving the window
-    globalShortcut.register("CommandOrControl+Left", () => {
-      console.log("Command/Ctrl + Left pressed. Moving window left.")
-      this.deps.moveWindowLeft()
+    // Window movement shortcuts
+    globalShortcut.register(`${windowMovementModifier}+Left`, () => {
+      this.executeIfWindowVisible(() => {
+        console.log(`${windowMovementModifier} + Left pressed. Moving window left.`)
+        this.deps.moveWindowLeft()
+      })
     })
 
-    globalShortcut.register("CommandOrControl+Right", () => {
-      console.log("Command/Ctrl + Right pressed. Moving window right.")
-      this.deps.moveWindowRight()
+    globalShortcut.register(`${windowMovementModifier}+Right`, () => {
+      this.executeIfWindowVisible(() => {
+        console.log(`${windowMovementModifier} + Right pressed. Moving window right.`)
+        this.deps.moveWindowRight()
+      })
     })
 
-    globalShortcut.register("CommandOrControl+Down", () => {
-      console.log("Command/Ctrl + down pressed. Moving window down.")
-      this.deps.moveWindowDown()
+    globalShortcut.register(`${windowMovementModifier}+Down`, () => {
+      this.executeIfWindowVisible(() => {
+        console.log(`${windowMovementModifier} + Down pressed. Moving window down.`)
+        this.deps.moveWindowDown()
+      })
     })
 
-    globalShortcut.register("CommandOrControl+Up", () => {
-      console.log("Command/Ctrl + Up pressed. Moving window Up.")
-      this.deps.moveWindowUp()
+    globalShortcut.register(`${windowMovementModifier}+Up`, () => {
+      this.executeIfWindowVisible(() => {
+        console.log(`${windowMovementModifier} + Up pressed. Moving window up.`)
+        this.deps.moveWindowUp()
+      })
     })
 
-    globalShortcut.register("CommandOrControl+B", () => {
+    // Toggle window visibility shortcut (this one should work even when hidden)
+    globalShortcut.register(`${modifier}+B`, () => {
+      console.log(`${modifier} + B pressed. Toggling window visibility.`)
       this.deps.toggleMainWindow()
     })
 
+    this.shortcutsRegistered = true
+
     // Unregister shortcuts when quitting
     app.on("will-quit", () => {
-      globalShortcut.unregisterAll()
+      this.unregisterShortcuts()
     })
+  }
+
+  public unregisterShortcuts(): void {
+    if (this.shortcutsRegistered) {
+      globalShortcut.unregisterAll()
+      this.shortcutsRegistered = false
+      console.log("All shortcuts unregistered")
+    }
   }
 }

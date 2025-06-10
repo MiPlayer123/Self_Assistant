@@ -1,0 +1,105 @@
+# Wagoo Keyboard Shortcuts
+
+This document provides a comprehensive list of all keyboard shortcuts available in Wagoo, organized by function and platform.
+
+## Platform-Specific Modifiers
+
+| Platform | General Actions | Window Movement | Toggle Window |
+|----------|-----------------|-----------------|---------------|
+| **macOS** | `Ctrl` | `Cmd` | `Ctrl` |
+| **Windows/Linux** | `Alt` | `Alt` | `Alt` |
+
+## Shortcut Categories
+
+### 📸 Screenshot Management
+
+| Action | macOS | Windows/Linux | Description |
+|--------|-------|---------------|-------------|
+| **Take Screenshot** | `Ctrl + H` | `Alt + H` | Captures a screenshot and adds it to the queue for analysis |
+| **Process Screenshots** | `Ctrl + Enter` | `Alt + Enter` | Processes all queued screenshots and generates solutions |
+
+### 🔄 Application Control
+
+| Action | macOS | Windows/Linux | Description |
+|--------|-------|---------------|-------------|
+| **Reset/Clear** | `Ctrl + R` | `Alt + R` | Cancels ongoing requests and clears all screenshot queues |
+| **Toggle Window** | `Ctrl + B` | `Alt + B` | Shows/hides the Wagoo window (works even when hidden) |
+
+### 🪟 Window Movement
+
+| Action | macOS | Windows/Linux | Description |
+|--------|-------|---------------|-------------|
+| **Move Left** | `Cmd + ←` | `Alt + ←` | Moves the window to the left |
+| **Move Right** | `Cmd + →` | `Alt + →` | Moves the window to the right |
+| **Move Up** | `Cmd + ↑` | `Alt + ↑` | Moves the window up |
+| **Move Down** | `Cmd + ↓` | `Alt + ↓` | Moves the window down |
+
+## Behavior Rules
+
+### 🔍 Window Visibility
+- **When Window is Visible**: All shortcuts are active and functional
+- **When Window is Hidden**: All shortcuts are disabled except for `Toggle Window`
+- **Exception**: `Ctrl/Alt + B` (Toggle Window) always works to bring back the window
+
+### 🎯 Quick Reference
+
+#### Most Common Actions
+```
+Take Screenshot:     Ctrl+H (Mac) / Alt+H (Win/Linux)
+Process & Analyze:   Ctrl+Enter (Mac) / Alt+Enter (Win/Linux)
+Toggle Window:       Ctrl+B (Mac) / Alt+B (Win/Linux)
+Reset Everything:    Ctrl+R (Mac) / Alt+R (Win/Linux)
+```
+
+#### Window Positioning
+```
+Move Window:  Cmd+Arrow Keys (Mac) / Alt+Arrow Keys (Win/Linux)
+```
+
+## Workflow Examples
+
+### Basic Screenshot Analysis
+1. `Ctrl/Alt + H` - Take a screenshot
+2. `Ctrl/Alt + Enter` - Process and analyze the screenshot
+3. Review the AI-generated solution in the chat
+
+### Quick Window Management
+1. `Ctrl/Alt + B` - Hide the window when not needed
+2. `Ctrl/Alt + B` - Show the window again
+3. `Cmd/Alt + Arrow Keys` - Position the window where you want it
+
+### Reset and Start Over
+1. `Ctrl/Alt + R` - Clear all queues and reset the application
+2. Start fresh with new screenshots
+
+## Technical Notes
+
+- **Global Shortcuts**: All shortcuts work system-wide, even when Wagoo is not the active application
+- **Window Focus**: Shortcuts automatically bring Wagoo to focus when executed (except when hidden)
+- **Screenshot Queue**: Multiple screenshots can be taken before processing
+- **Instant Reset**: The reset command immediately cancels any ongoing AI processing
+- **Platform Detection**: Modifiers are automatically detected based on your operating system
+
+## Troubleshooting
+
+### Shortcuts Not Working
+1. **Check Window State**: Most shortcuts only work when the window is visible
+2. **Try Toggle**: Use `Ctrl/Alt + B` to ensure the window is shown
+3. **Restart Application**: If shortcuts stop responding, restart Wagoo
+
+### Conflicts with Other Applications
+- If shortcuts conflict with other apps, you can temporarily disable them by hiding the Wagoo window
+- The only global shortcut that remains active when hidden is the toggle command
+
+## Chat Interface
+
+In addition to global shortcuts, the chat interface supports:
+- **Enter**: Send message
+- **Shift + Enter**: New line in message
+- **📸 Button**: Take screenshot (same as `Ctrl/Alt + H`)
+- **↑ Button**: Send message
+
+---
+
+*Last updated: 2024-12-19*
+*Wagoo Version: 1.0.18* 
