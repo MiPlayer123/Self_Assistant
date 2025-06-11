@@ -53,7 +53,7 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
       welcomeMessageAddedRef.current = true
       addMessage({
         role: 'assistant',
-        content: "Hi! I'm Wagoo, your AI assistant. 👋",
+        content: "Wagoo here, what can I do for you?",
         status: 'complete'
       })
     }

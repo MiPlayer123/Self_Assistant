@@ -238,7 +238,7 @@ async function createWindow(): Promise<void> {
   state.step = 60
   
   // Position window at bottom-right corner, but leave space for button window
-  const windowWidth = 800
+  const windowWidth = 400
   const windowHeight = 600
   const margin = 20 // Margin from screen edges
   const buttonSpace = 68 + 20 // Button size + extra margin

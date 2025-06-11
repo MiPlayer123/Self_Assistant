@@ -9,6 +9,12 @@ export function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === 'user'
   const isSystem = message.role === 'system'
 
+  // Adjust the opacity of message bubbles
+  const messageStyle = {
+    opacity: 0.7, // Reduce this to 0.2-0.3
+    // ... other styles ...
+  };
+
   if (isSystem) {
     return (
       <div className="flex justify-center my-4">

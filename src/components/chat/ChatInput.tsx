@@ -45,6 +45,12 @@ export function ChatInput({
     }
   }
 
+  // Adjust the opacity of the bottom bar
+  const inputBarStyle = {
+    opacity: 0.7, // Reduce this to 0.2-0.3
+    // ... other styles ...
+  };
+
   return (
     <div className="wagoo-chat-input-container">
       <form onSubmit={handleSubmit} className="flex items-end gap-3">
