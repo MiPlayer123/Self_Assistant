@@ -8,13 +8,6 @@ export abstract class BaseChatModel {
     this.config = config
   }
 
-  // General chat method - send message with optional context
-  abstract sendMessage(
-    message: string, 
-    context?: ContextData,
-    conversationHistory?: ChatMessage[]
-  ): Promise<ModelResponse<string>>
-
   // Streaming version of sendMessage
   abstract sendMessageStream(
     message: string,

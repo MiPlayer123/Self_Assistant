@@ -12,7 +12,7 @@ interface ChatPageProps {
 }
 
 export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps) {
-  const { state, addMessage, addMessageWithId, updateMessage, appendToMessage, setProcessing, setContext } = useChat()
+  const { state, addMessage, addMessageWithId, updateMessage, appendToMessage, setProcessing, setContext, clearMessages } = useChat()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const chatModelRef = useRef<OpenAIChatModel | null>(null)
   const welcomeMessageAddedRef = useRef<boolean>(false)
@@ -149,6 +149,15 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
     }
   }
 
+  const handleResetChat = () => {
+    clearMessages()
+    addMessage({
+      role: 'assistant',
+      content: "Wagoo here, what can I do for you?",
+      status: 'complete'
+    })
+  }
+
   const handleTakeScreenshot = async () => {
     try {
       console.log('Taking screenshot...')
@@ -201,6 +210,14 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
             <p className="text-sm wagoo-text-secondary">Your AI Personal Assistant</p>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleResetChat}
+              className="p-1 rounded-md hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-label="Reset Chat History"
+              title="Reset Chat History"
+            >
+              <span className="text-lg">↺</span>
+            </button>
             <div className="text-sm wagoo-text-muted">
               Model: {state.selectedModel}
             </div>

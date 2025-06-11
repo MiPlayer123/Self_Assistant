@@ -16,7 +16,7 @@ export class ShortcutsHelper {
 
   private getWindowMovementModifier(): string {
     // Use Cmd on Mac for window movement, Alt on Windows/Linux
-    return process.platform === "darwin" ? "Cmd" : "Alt"
+    return process.platform === "darwin" ? "Ctrl" : "Alt"
   }
 
   private isWindowHidden(): boolean {
