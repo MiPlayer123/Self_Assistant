@@ -24,6 +24,7 @@ This document provides a comprehensive list of all keyboard shortcuts available 
 |--------|-------|---------------|-------------|
 | **Reset/Clear** | `Ctrl + R` | `Alt + R` | Cancels ongoing requests and clears all screenshot queues |
 | **Toggle Window** | `Ctrl + B` | `Alt + B` | Shows/hides the Wagoo window (works even when hidden) |
+| **Hide Floating Button** | `Ctrl + Shift + B` | `Alt + Shift + B` | Toggles floating glass button visibility |
 
 ### 🪟 Window Movement
 
@@ -48,6 +49,7 @@ This document provides a comprehensive list of all keyboard shortcuts available 
 Take Screenshot:     Ctrl+H (Mac) / Alt+H (Win/Linux)
 Process & Analyze:   Ctrl+Enter (Mac) / Alt+Enter (Win/Linux)
 Toggle Window:       Ctrl+B (Mac) / Alt+B (Win/Linux)
+Hide Float Button:   Ctrl+Shift+B (Mac) / Alt+Shift+B (Win/Linux)
 Reset Everything:    Ctrl+R (Mac) / Alt+R (Win/Linux)
 ```
 

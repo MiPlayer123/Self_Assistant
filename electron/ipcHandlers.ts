@@ -192,6 +192,49 @@ export function initializeIpcHandlers(deps: IIpcHandlerDeps): void {
     }
   })
 
+  // New window state management handlers
+  ipcMain.handle("set-window-state", (event, state: 'full' | 'button-only' | 'hidden') => {
+    try {
+      const mainWindow = deps.getMainWindow()
+      if (!mainWindow) return { error: "No main window available" }
+
+      switch (state) {
+        case 'full':
+          if (mainWindow.isVisible()) {
+            mainWindow.show()
+          }
+          break
+        case 'button-only':
+          // For button-only mode, we don't actually hide the window in Electron
+          // The UI handles this by only showing the floating button
+          break
+        case 'hidden':
+          mainWindow.hide()
+          break
+      }
+
+      // Send state update to renderer
+      mainWindow.webContents.send("window-state-changed", state)
+      return { success: true }
+    } catch (error) {
+      console.error("Error setting window state:", error)
+      return { error: "Failed to set window state" }
+    }
+  })
+
+  ipcMain.handle("hide-floating-button", () => {
+    try {
+      const mainWindow = deps.getMainWindow()
+      if (mainWindow) {
+        mainWindow.webContents.send("hide-floating-button")
+      }
+      return { success: true }
+    } catch (error) {
+      console.error("Error hiding floating button:", error)
+      return { error: "Failed to hide floating button" }
+    }
+  })
+
   ipcMain.handle("reset-queues", async () => {
     try {
       deps.clearQueues()

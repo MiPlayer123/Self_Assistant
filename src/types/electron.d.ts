@@ -29,6 +29,8 @@ export interface ElectronAPI {
   onSolutionSuccess: (callback: (data: any) => void) => () => void
   onUnauthorized: (callback: () => void) => () => void
   onDebugError: (callback: (error: string) => void) => () => void
+  onKeyboardToggleWindow: (callback: () => void) => () => void
+  onKeyboardToggleButton: (callback: () => void) => () => void
   openExternal: (url: string) => void
   toggleMainWindow: () => Promise<{ success: boolean; error?: string }>
   triggerScreenshot: () => Promise<{ success: boolean; error?: string }>

@@ -14,7 +14,9 @@ const isDev = !app.isPackaged
 const state = {
   // Window management properties
   mainWindow: null as BrowserWindow | null,
+  buttonWindow: null as BrowserWindow | null,
   isWindowVisible: false,
+  isButtonVisible: true,
   windowPosition: null as { x: number; y: number } | null,
   windowSize: null as { width: number; height: number } | null,
   screenWidth: 0,
@@ -72,6 +74,7 @@ export interface IProcessingHelperDeps {
 
 export interface IShortcutsHelperDeps {
   getMainWindow: () => BrowserWindow | null
+  getButtonWindow: () => BrowserWindow | null
   takeScreenshot: () => Promise<string>
   getImagePreview: (filepath: string) => Promise<string>
   processingHelper: LocalProcessingHelper | null
@@ -79,6 +82,7 @@ export interface IShortcutsHelperDeps {
   setView: (view: "queue" | "solutions" | "debug") => void
   isVisible: () => boolean
   toggleMainWindow: () => void
+  toggleButtonWindow: () => void
   moveWindowLeft: () => void
   moveWindowRight: () => void
   moveWindowUp: () => void
@@ -87,6 +91,7 @@ export interface IShortcutsHelperDeps {
 
 export interface IIpcHandlerDeps {
   getMainWindow: () => BrowserWindow | null
+  getButtonWindow: () => BrowserWindow | null
   setWindowDimensions: (width: number, height: number) => void
   getScreenshotQueue: () => string[]
   getExtraScreenshotQueue: () => string[]
@@ -99,6 +104,7 @@ export interface IIpcHandlerDeps {
   takeScreenshot: () => Promise<string>
   getView: () => "queue" | "solutions" | "debug"
   toggleMainWindow: () => void
+  toggleButtonWindow: () => void
   clearQueues: () => void
   setView: (view: "queue" | "solutions" | "debug") => void
   moveWindowLeft: () => void
@@ -129,6 +135,7 @@ function initializeHelpers() {
   } as IProcessingHelperDeps)
   state.shortcutsHelper = new ShortcutsHelper({
     getMainWindow,
+    getButtonWindow,
     takeScreenshot,
     getImagePreview,
     processingHelper: state.processingHelper,
@@ -136,6 +143,7 @@ function initializeHelpers() {
     setView,
     isVisible: () => state.isWindowVisible,
     toggleMainWindow,
+    toggleButtonWindow,
     moveWindowLeft: () =>
       moveWindowHorizontal((x) =>
         Math.max(-(state.windowSize?.width || 0) / 2, x - state.step)
@@ -229,11 +237,12 @@ async function createWindow(): Promise<void> {
   state.screenHeight = workArea.height
   state.step = 60
   
-  // Position window at bottom-right corner
+  // Position window at bottom-right corner, but leave space for button window
   const windowWidth = 800
   const windowHeight = 600
   const margin = 20 // Margin from screen edges
-  state.currentX = workArea.width - windowWidth - margin
+  const buttonSpace = 68 + 20 // Button size + extra margin
+  state.currentX = workArea.width - windowWidth - margin - buttonSpace
   state.currentY = workArea.height - windowHeight - margin
 
   const windowSettings: Electron.BrowserWindowConstructorOptions = {
@@ -497,6 +506,7 @@ async function initializeApp() {
     initializeHelpers()
     initializeIpcHandlers({
       getMainWindow,
+      getButtonWindow,
       setWindowDimensions,
       getScreenshotQueue,
       getExtraScreenshotQueue,
@@ -507,6 +517,7 @@ async function initializeApp() {
       takeScreenshot,
       getView,
       toggleMainWindow,
+      toggleButtonWindow,
       clearQueues,
       setView,
       moveWindowLeft: () =>
@@ -524,6 +535,7 @@ async function initializeApp() {
       moveWindowDown: () => moveWindowVertical((y) => y + state.step)
     })
     await createWindow()
+    await createButtonWindow()
     state.shortcutsHelper?.registerGlobalShortcuts()
 
     // Initialize auto-updater regardless of environment
@@ -582,6 +594,134 @@ app.on("activate", () => {
     createWindow()
   }
 })
+
+// Button window functions
+async function createButtonWindow(): Promise<void> {
+  if (state.buttonWindow) {
+    return
+  }
+
+  const primaryDisplay = screen.getPrimaryDisplay()
+  const workArea = primaryDisplay.workAreaSize
+  
+  // Small window for just the button (68x68 pixels)
+  const buttonSize = 68
+  const margin = 20
+  
+  const windowSettings: Electron.BrowserWindowConstructorOptions = {
+    width: buttonSize,
+    height: buttonSize,
+    x: workArea.width - buttonSize - margin,
+    y: workArea.height - buttonSize - 10, // Position very close to bottom of screen
+    alwaysOnTop: true,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: isDev
+        ? path.join(__dirname, "../dist-electron/preload.js")
+        : path.join(__dirname, "preload.js"),
+      scrollBounce: true
+    },
+    show: state.isButtonVisible,
+    frame: false,
+    transparent: true,
+    fullscreenable: false,
+    hasShadow: false,
+    backgroundColor: "#00000000",
+    focusable: false,
+    skipTaskbar: true,
+    type: "panel",
+    paintWhenInitiallyHidden: true,
+    titleBarStyle: "hidden",
+    enableLargerThanScreen: true,
+    resizable: false,
+    movable: false
+  }
+
+  state.buttonWindow = new BrowserWindow(windowSettings)
+
+  // Load the button-specific route
+  if (isDev) {
+    state.buttonWindow.loadURL("http://localhost:54321/?button=true").catch((error) => {
+      console.error("Failed to load button window:", error)
+    })
+  } else {
+    // For production, load the main page with a query parameter to identify it as button window
+    state.buttonWindow.loadFile(path.join(__dirname, "../dist/index.html"))
+    // Add the button parameter after loading
+    state.buttonWindow.webContents.once('did-finish-load', () => {
+      state.buttonWindow?.webContents.executeJavaScript(`
+        window.history.replaceState({}, '', '/?button=true');
+      `)
+    })
+  }
+
+  // Configure button window behavior with screen capture resistance
+  state.buttonWindow.webContents.setZoomFactor(1)
+  if (isDev) {
+    // Don't open dev tools for button window to keep it clean
+  }
+  
+  // Enhanced screen capture resistance
+  state.buttonWindow.setContentProtection(true)
+  
+  state.buttonWindow.setVisibleOnAllWorkspaces(true, {
+    visibleOnFullScreen: true
+  })
+  state.buttonWindow.setAlwaysOnTop(true, "screen-saver", 2) // Higher level than main window
+
+  // Additional screen capture resistance settings and transparency
+  if (process.platform === "darwin") {
+    // Prevent window from being captured in screenshots
+    state.buttonWindow.setHiddenInMissionControl(true)
+    state.buttonWindow.setWindowButtonVisibility(false)
+    state.buttonWindow.setBackgroundColor("#00000000")
+
+    // Prevent window from being included in window switcher
+    state.buttonWindow.setSkipTaskbar(true)
+
+    // Disable window shadow
+    state.buttonWindow.setHasShadow(false)
+  }
+
+  // Ensure complete transparency across all platforms
+
+  // Prevent the window from being captured by screen recording
+  state.buttonWindow.webContents.setBackgroundThrottling(false)
+  state.buttonWindow.webContents.setFrameRate(60)
+
+  state.buttonWindow.on("closed", () => {
+    state.buttonWindow = null
+  })
+
+  // The button click handling is done in the React component via IPC
+}
+
+function getButtonWindow(): BrowserWindow | null {
+  return state.buttonWindow
+}
+
+function showButtonWindow(): void {
+  if (state.buttonWindow && !state.buttonWindow.isDestroyed()) {
+    state.buttonWindow.show()
+    state.isButtonVisible = true
+  }
+}
+
+function hideButtonWindow(): void {
+  if (state.buttonWindow && !state.buttonWindow.isDestroyed()) {
+    state.buttonWindow.hide()
+    state.isButtonVisible = false
+  }
+}
+
+function toggleButtonWindow(): void {
+  if (state.isButtonVisible) {
+    hideButtonWindow()
+  } else {
+    showButtonWindow()
+  }
+}
 
 // State getter/setter functions
 function getMainWindow(): BrowserWindow | null {
@@ -659,9 +799,14 @@ function getHasDebugged(): boolean {
 export {
   state,
   createWindow,
+  createButtonWindow,
   hideMainWindow,
   showMainWindow,
   toggleMainWindow,
+  getButtonWindow,
+  showButtonWindow,
+  hideButtonWindow,
+  toggleButtonWindow,
   setWindowDimensions,
   moveWindowHorizontal,
   moveWindowVertical,

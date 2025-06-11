@@ -13,6 +13,7 @@ interface SubscribedAppProps {
   setLanguage: (language: string) => void
 }
 
+// Main component
 const SubscribedApp: React.FC<SubscribedAppProps> = ({
   credits,
   currentLanguage,
@@ -165,6 +166,7 @@ const SubscribedApp: React.FC<SubscribedAppProps> = ({
 
   return (
     <div ref={containerRef} className="h-screen w-full">
+      {/* Main application content - always visible since button is in separate window */}
       {view === "queue" ? (
         <Queue
           setView={setView}
@@ -179,14 +181,14 @@ const SubscribedApp: React.FC<SubscribedAppProps> = ({
           currentLanguage={currentLanguage}
           setLanguage={setLanguage}
         />
-              ) : view === "chat" ? (
-          <ChatProvider>
-            <ChatPage
-              onTakeScreenshot={handleTakeScreenshot}
-              onGetImagePreview={handleGetImagePreview}
-            />
-          </ChatProvider>
-        ) : null}
+      ) : view === "chat" ? (
+        <ChatProvider>
+          <ChatPage
+            onTakeScreenshot={handleTakeScreenshot}
+            onGetImagePreview={handleGetImagePreview}
+          />
+        </ChatProvider>
+      ) : null}
     </div>
   )
 }

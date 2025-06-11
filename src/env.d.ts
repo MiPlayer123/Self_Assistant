@@ -54,6 +54,8 @@ interface ElectronAPI {
   triggerMoveDown: () => Promise<{ success: boolean; error?: string }>
   onSubscriptionUpdated: (callback: () => void) => () => void
   onSubscriptionPortalClosed: (callback: () => void) => () => void
+  onKeyboardToggleWindow: (callback: () => void) => () => void
+  onKeyboardToggleButton: (callback: () => void) => () => void
   // Add update-related methods
   startUpdate: () => Promise<{ success: boolean; error?: string }>
   installUpdate: () => void

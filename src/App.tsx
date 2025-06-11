@@ -2,6 +2,7 @@ import { supabase } from "./lib/supabase"
 import SubscribedApp from "./_pages/SubscribedApp"
 import SubscribePage from "./_pages/SubscribePage"
 import { UpdateNotification } from "./components/UpdateNotification"
+import { ButtonWindow } from "./components/ui/ButtonWindow"
 import {
   QueryClient,
   QueryClientProvider,
@@ -50,6 +51,19 @@ const queryClient = new QueryClient({
 
 // Root component that provides the QueryClient
 function App() {
+  // Check if this is the button window by looking at the URL query parameter or window size
+  const isButtonWindow = new URLSearchParams(window.location.search).has('button') || 
+                         (window.innerWidth === 68 && window.innerHeight === 68)
+
+  // If this is the button window, render just the button
+  if (isButtonWindow) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <ButtonWindow />
+      </QueryClientProvider>
+    )
+  }
+
   const [toastState, setToastState] = useState<{
     open: boolean
     title: string

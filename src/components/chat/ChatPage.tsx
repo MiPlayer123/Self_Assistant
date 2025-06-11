@@ -53,7 +53,7 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
       welcomeMessageAddedRef.current = true
       addMessage({
         role: 'assistant',
-        content: "Hi! I'm Wagoo, your AI assistant. 👋\n\nI can help you with anything - ask questions, analyze screenshots, or just have a conversation.\n\n🔧 **To get started:**\n1. Create a `.env` file in the project root\n2. Add: `VITE_OPENAI_API_KEY=your_api_key_here`\n3. Restart the app\n\nTry sending me a message!",
+        content: "Hi! I'm Wagoo, your AI assistant. 👋",
         status: 'complete'
       })
     }

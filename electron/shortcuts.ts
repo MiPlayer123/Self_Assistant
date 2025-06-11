@@ -122,8 +122,14 @@ export class ShortcutsHelper {
 
     // Toggle window visibility shortcut (this one should work even when hidden)
     globalShortcut.register(`${modifier}+B`, () => {
-      console.log(`${modifier} + B pressed. Toggling window visibility.`)
+      console.log(`${modifier} + B pressed. Toggling main window visibility.`)
       this.deps.toggleMainWindow()
+    })
+
+    // Toggle floating button shortcut (Ctrl+Shift+B / Alt+Shift+B)
+    globalShortcut.register(`${modifier}+Shift+B`, () => {
+      console.log(`${modifier} + Shift + B pressed. Toggling floating button visibility.`)
+      this.deps.toggleButtonWindow()
     })
 
     this.shortcutsRegistered = true
