@@ -14,7 +14,7 @@ export const ButtonWindow: React.FC = () => {
     const style = document.createElement('style')
     style.textContent = `
       * {
-        background: transparent !important;
+        background: rgba(0, 0, 0, 0.3) !important;
       }
       html, body {
         background: transparent !important;
