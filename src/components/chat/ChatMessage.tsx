@@ -60,9 +60,10 @@ export function ChatMessage({ message }: ChatMessageProps) {
                   const match = /language-(\w+)/.exec(className || '')
                   return !inline && match ? (
                     <SyntaxHighlighter
-                      style={coldarkDark}
+                      style={coldarkDark as { [key: string]: React.CSSProperties }}
                       language={match[1]}
                       PreTag="div"
+                      wrapLongLines={true}
                       {...rest}
                     >
                       {String(children).replace(/\n$/, '')}

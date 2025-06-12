@@ -159,7 +159,6 @@ body {
   box-shadow: var(--wagoo-shadow-sm);
   line-height: 1.6;
   word-wrap: break-word;
-  width: fit-content;
   min-width: 50px;
 }
 
@@ -172,7 +171,6 @@ body {
   backdrop-filter: var(--wagoo-backdrop-blur);
   line-height: 1.6;
   word-wrap: break-word;
-  width: fit-content;
   min-width: 50px;
 }
 
