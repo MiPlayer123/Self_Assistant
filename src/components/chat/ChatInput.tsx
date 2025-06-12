@@ -106,14 +106,6 @@ export function ChatInput({
           )}
         </button>
       </form>
-
-      {/* Context indicator */}
-      {hasScreenshot && (
-        <div className="mt-2 text-sm wagoo-context-indicator">
-          <span className="wagoo-status-dot"></span>
-          Screenshot ready - AI will use it for visual context if needed
-        </div>
-      )}
     </div>
   )
 } 
