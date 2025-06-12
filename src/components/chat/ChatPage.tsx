@@ -2,9 +2,14 @@ import React, { useEffect, useRef } from 'react'
 import { useChat } from '../../contexts/ChatContext'
 import { ChatMessage } from './ChatMessage'
 import { ChatInput } from './ChatInput'
-import { OpenAIChatModel } from '../../models/providers/openai/ChatModel'
+// Assuming OpenAIChatModel is the class we modified, which should be OpenAIModel
+// If OpenAIChatModel is a different, simpler class, this import needs to change
+// For now, proceeding with the assumption it's the correct, updated model class.
+import { OpenAIModel as OpenAIChatModel } from '../../models/providers/openai/OpenAIModel'
 import { getOpenAIApiKey } from '../../models/ModelManager'
 import { ContextData } from '../../types/chat'
+import { ToolRegistry } from '../../tools/ToolRegistry'
+import { ScreenshotTool } from '../../tools/ScreenshotTool'
 
 interface ChatPageProps {
   onTakeScreenshot: () => Promise<string>
@@ -15,22 +20,33 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
   const { state, addMessage, addMessageWithId, updateMessage, appendToMessage, setProcessing, setContext, clearMessages } = useChat()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const chatModelRef = useRef<OpenAIChatModel | null>(null)
+  const toolRegistryRef = useRef<ToolRegistry | null>(null)
   const welcomeMessageAddedRef = useRef<boolean>(false)
 
-  // Initialize chat model (only once)
+  // Initialize chat model and tool registry (only once)
   useEffect(() => {
-    const initializeModel = async () => {
+    const initialize = async () => {
       try {
+        // Initialize Tool Registry
+        const registry = new ToolRegistry()
+        const screenshotTool = new ScreenshotTool()
+        registry.registerTool(screenshotTool)
+        toolRegistryRef.current = registry
+        console.log('Tool registry initialized and screenshot tool registered.')
+
+        // Initialize Model
         const apiKey = await getOpenAIApiKey()
+        // Ensure config matches what OpenAIModel expects (ModelConfig from '../../models/base/types')
         chatModelRef.current = new OpenAIChatModel({
           apiKey,
-          model: 'gpt-4o',
+          model: 'gpt-4o', // This should align with ModelConfig's model field
           temperature: 0.7,
-          maxTokens: 2000
-        })
+          maxTokens: 2000,
+          // Other fields from ModelConfig if needed, e.g. stream, etc.
+        } as any) // Using 'as any' for now if OpenAIChatModel constructor expects full ModelConfig
         console.log('Chat model initialized successfully')
       } catch (error) {
-        console.error('Failed to initialize chat model:', error)
+        console.error('Failed to initialize chat model or tool registry:', error)
         addMessage({
           role: 'assistant',
           content: '❌ Error: Could not initialize AI model. Please set your OpenAI API key in the .env file:\n\nVITE_OPENAI_API_KEY=your_api_key_here\n\nThen restart the application.',
@@ -111,33 +127,69 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
       const response = await chatModelRef.current!.sendMessageStream(
         message,
         state.currentContext,
-        state.messages, // Use current state messages (the addMessage above will update this)
-        (chunk: string) => {
-          // This callback is called for each streaming chunk
-          // Find the streaming message by checking for streaming status and empty/partial content
-          appendToMessage(streamingMessageId, chunk)
-        }
+        state.messages,
+        (chunk: string, isFunctionCall?: boolean, toolName?: string) => {
+          if (isFunctionCall && toolName) {
+            // Update the message to indicate tool usage
+            // Content will be temporarily overwritten, then final response will come
+            updateMessage(streamingMessageId, {
+              content: `Using tool: ${toolName}...`,
+              // We might want a new status like 'tool_calling' or keep 'streaming'
+            })
+          } else if (isFunctionCall === undefined && toolName === undefined && chunk === null) {
+            // This condition might occur if the model responds with only a tool call and no text part initially.
+            // The OpenAIModel's onChunk for tool call notification should ideally handle this.
+            // If the assistant's first message part is purely a tool call,
+            // the UI will show "Using tool: ..." from the specific onChunk call.
+            // If there's also text, that text will be streamed first.
+            // We ensure that the message content is not set to "null" or "undefined".
+            // If `updateMessage` was called with `Using tool: ...`, we might not want to overwrite it with an empty chunk here.
+            // Let's ensure we only append actual content.
+          }
+          else {
+            // If it's a regular text chunk, append it.
+            // If a "Using tool..." message was set, this will append to it.
+            // This might not be ideal if the tool message should be replaced by the actual response.
+            // Consider clearing the "Using tool..." message if a text chunk arrives *after* it for the same messageId.
+            // For now, simple append. The final response from the second API call (after tool execution)
+            // will create the definitive content.
+             const currentMessage = state.messages.find(m => m.id === streamingMessageId);
+             if (currentMessage?.content.startsWith("Using tool:") && !isFunctionCall) {
+               // If we were showing "Using tool..." and now get real content, replace it.
+               updateMessage(streamingMessageId, { content: chunk });
+             } else {
+               appendToMessage(streamingMessageId, chunk);
+             }
+          }
+        },
+        toolRegistryRef.current?.getToolDefinitions(),
+        toolRegistryRef.current!
       )
 
+      // The 'response' here is from OpenAIModel, which should be ModelResponse<string>
+      // It includes { success, data, usage?, error? }
       if (response.success) {
-        // Mark message as complete and add metadata
+        // The final content is in response.data
+        // The onChunk would have handled intermediate updates.
+        // We need to ensure the final message content is set correctly from response.data,
+        // especially if "Using tool..." was shown.
         updateMessage(streamingMessageId, {
+          content: response.data, // This is the final textual response from the LLM
           status: 'complete',
           metadata: {
-            model: state.selectedModel,
+            model: state.selectedModel, // Ensure selectedModel is the one used, or get from response
             tokenUsage: response.usage,
-            hasImageAnalysis: !!state.currentContext?.screenshot
+            hasImageAnalysis: !!state.currentContext?.screenshot,
+            // functionCall: response.functionCall // If OpenAIModel provides this in ModelResponse
           }
         })
       } else {
-        // Update message with error
         updateMessage(streamingMessageId, {
           content: `Error: ${response.error || 'Failed to get response'}`,
           status: 'error'
         })
       }
     } catch (error: any) {
-      // Update message with error
       updateMessage(streamingMessageId, {
         content: `Error: ${error.message || 'Something went wrong'}`,
         status: 'error'

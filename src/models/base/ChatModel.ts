@@ -1,5 +1,7 @@
 import { ModelConfig, ModelResponse } from './types'
 import { ChatMessage, ContextData } from '../../types/chat'
+import { Tool } from '../../types/tools'
+import { ToolRegistry } from '../../tools/ToolRegistry'
 
 export abstract class BaseChatModel {
   protected config: ModelConfig
@@ -13,6 +15,8 @@ export abstract class BaseChatModel {
     message: string,
     context?: ContextData,
     conversationHistory?: ChatMessage[],
-    onChunk?: (chunk: string) => void
+    onChunk?: (chunk: string, isFunctionCall?: boolean, toolName?: string) => void, // Added isFunctionCall and toolName
+    tools?: Tool[], // Changed from Tool[] to any[] to match OpenAI's type for now
+    toolRegistry?: ToolRegistry // Added toolRegistry
   ): Promise<ModelResponse<string>>
 } 

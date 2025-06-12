@@ -1,7 +1,12 @@
 import OpenAI from 'openai'
+import OpenAI from 'openai'
 import { BaseModel, ModelConfig, ModelResponse, ProblemInfo, GeneratedSolutions, DebugInfo } from '../../base/types'
+import { ChatMessage, ContextData } from '../../../types/chat'
+import { Tool, FunctionCall } from '../../../types/tools'
+import { ToolRegistry } from '../../../tools/ToolRegistry'
 import { zodResponseFormat } from "openai/helpers/zod"
 import { z } from "zod"
+import { countTokens } from '../../../utils/tokenizer'
 
 // Zod schemas for structured outputs
 const ProblemInfoSchema = z.object({
@@ -254,4 +259,213 @@ Help debug the issue shown in the screenshot(s):`
       }
     }
   }
-} 
+
+  async sendMessageStream(
+    message: string,
+    context?: ContextData, // ContextData might not be directly used if image data is handled differently
+    conversationHistory: ChatMessage[] = [],
+    onChunk?: (chunk: string, isFunctionCall?: boolean, toolName?: string) => void,
+    tools?: Tool[],
+    toolRegistry?: ToolRegistry,
+  ): Promise<ModelResponse<string>> {
+    const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [];
+
+    // Adapt conversation history to OpenAI's format
+    conversationHistory.forEach(msg => {
+      const openAIMsg: OpenAI.Chat.Completions.ChatCompletionMessageParam = {
+        role: msg.role as 'user' | 'assistant' | 'system',
+        content: msg.content,
+      };
+      if (msg.functionCall && msg.toolCallId) {
+        openAIMsg.tool_calls = [{
+          id: msg.toolCallId,
+          type: 'function',
+          function: {
+            name: msg.functionCall.tool_name,
+            arguments: JSON.stringify(msg.functionCall.arguments),
+          },
+        }];
+        openAIMsg.content = msg.content || null; // Ensure content is null if tool_calls are present and no text from assistant
+      } else if (msg.role === 'tool' && msg.toolCallId && msg.functionResult) {
+        // This is a slight deviation as OpenAI expects 'tool' role to have 'content' (result) and 'tool_call_id'
+        // The ChatMessage type stores this as functionResult, so we adapt it
+        messages.push({
+            role: 'tool',
+            tool_call_id: msg.toolCallId,
+            content: typeof msg.functionResult === 'string' ? msg.functionResult : JSON.stringify(msg.functionResult),
+        });
+        return; // Skip adding to messages directly as it's already added
+      }
+      messages.push(openAIMsg);
+    });
+
+    messages.push({ role: 'user', content: message });
+
+    // TODO: Handle context if it includes images or other specific data relevant to OpenAI call
+    // For now, assuming context.selectedText or applicationContext could be appended to the user message if needed.
+
+    try {
+      const requestOptions: OpenAI.Chat.Completions.ChatCompletionCreateParams = {
+        model: this.config.model || "gpt-4o", // Use model from config or default
+        messages: messages,
+        stream: true,
+        temperature: this.config.temperature || 0.7,
+        max_tokens: this.config.maxTokens || 1000,
+      };
+
+      if (tools && toolRegistry && tools.length > 0) {
+        requestOptions.tools = toolRegistry.getToolDefinitions() as any;
+      }
+
+      const stream = await this.openai.chat.completions.create(requestOptions);
+
+      let fullResponse = '';
+      let currentToolCalls: OpenAI.Chat.Completions.ChatCompletionMessageToolCall[] = [];
+      let assistantMessageContent: string | null = null; // To store text content from assistant when tool calls are also present
+
+      for await (const part of stream) {
+        const delta = part.choices[0]?.delta;
+        if (!delta) continue;
+
+        if (delta.content) {
+          assistantMessageContent = (assistantMessageContent || "") + delta.content;
+          if (onChunk) {
+            onChunk(delta.content, false);
+          }
+        }
+
+        if (delta.tool_calls) {
+          delta.tool_calls.forEach(tc => {
+            if (tc.index === undefined) return;
+            if (!currentToolCalls[tc.index]) {
+              currentToolCalls[tc.index] = {
+                id: tc.id || `call_${Date.now()}_${Math.random().toString(36).substring(2,10)}`,
+                type: 'function',
+                function: { name: tc.function?.name || '', arguments: tc.function?.arguments || '' }
+              };
+            } else {
+              if (tc.id) currentToolCalls[tc.index].id = tc.id;
+              if (tc.function?.name) currentToolCalls[tc.index].function.name += tc.function.name;
+              if (tc.function?.arguments) currentToolCalls[tc.index].function.arguments += tc.function.arguments;
+            }
+          });
+        }
+
+        if (part.choices[0]?.finish_reason) {
+          // Store assistant's message before handling tool calls or finishing
+          if (assistantMessageContent !== null || currentToolCalls.length > 0) {
+             messages.push({
+                role: 'assistant',
+                content: assistantMessageContent,
+                tool_calls: currentToolCalls.length > 0 ? currentToolCalls : undefined,
+             });
+          }
+          fullResponse = assistantMessageContent || ""; // Set base response to assistant's text
+          assistantMessageContent = null; // Reset
+          break;
+        }
+      }
+
+      if (currentToolCalls.length > 0 && toolRegistry) {
+        if (assistantMessageContent && onChunk) { // If there was text before tool call was fully parsed
+            // This should have been streamed already, but as a safeguard for any remainder
+        }
+
+        const toolResultMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [];
+        for (const toolCall of currentToolCalls) {
+          if (toolCall.type === 'function') {
+            const toolName = toolCall.function.name;
+            const toolArgs = toolCall.function.arguments;
+
+            if (onChunk) {
+              onChunk(`Using tool: ${toolName}...`, true, toolName);
+            }
+
+            const tool = toolRegistry.getTool(toolName);
+            let resultString: string;
+            if (tool) {
+              try {
+                const parsedArgs = JSON.parse(toolArgs);
+                const result = await tool.execute(parsedArgs);
+                resultString = typeof result === 'string' ? result : JSON.stringify(result);
+              } catch (e: any) {
+                console.error(`Error executing tool ${toolName}:`, e);
+                resultString = `Error: ${e.message}`;
+              }
+            } else {
+              console.warn(`Tool ${toolName} not found in registry.`);
+              resultString = `Error: Tool ${toolName} not found.`;
+            }
+            toolResultMessages.push({
+              role: 'tool',
+              tool_call_id: toolCall.id,
+              content: resultString,
+            });
+          }
+        }
+
+        messages.push(...toolResultMessages);
+
+        const secondStream = await this.openai.chat.completions.create({
+          model: this.config.model || "gpt-4o",
+          messages: messages, // Send the augmented history
+          stream: true,
+          temperature: this.config.temperature || 0.7,
+          max_tokens: this.config.maxTokens || 1000,
+        });
+
+        let finalResponseContent = '';
+        for await (const part of secondStream) {
+          const content = part.choices[0]?.delta?.content || '';
+          if (content) {
+            finalResponseContent += content;
+            if (onChunk) {
+              onChunk(content, false);
+            }
+          }
+        }
+        fullResponse = finalResponseContent;
+      } else if (assistantMessageContent !== null) {
+        // If there were no tool calls but there was content (e.g. finish_reason 'stop')
+        // fullResponse is already set from assistantMessageContent
+      }
+
+
+      // Calculate token usage (simplified)
+      const promptTokens = messages.reduce((acc, msg) => {
+        if (typeof msg.content === 'string') return acc + countTokens(msg.content);
+        // Add more sophisticated counting for image inputs or other types if necessary
+        return acc;
+      }, 0);
+      const completionTokens = countTokens(fullResponse);
+
+      return {
+        success: true, // Assuming ModelResponse needs a success field like others in this file
+        data: fullResponse,
+        usage: { // Assuming ModelResponse needs a usage field
+          promptTokens,
+          completionTokens,
+          totalTokens: promptTokens + completionTokens,
+        },
+        // metadata might be more appropriate if ModelResponse is generic
+        // metadata: {
+        //   promptTokens,
+        //   completionTokens,
+        //   totalTokens,
+        //   modelId: this.config.model || "gpt-4o",
+        // },
+      };
+    } catch (error: any) {
+      console.error('Error streaming OpenAI response:', error);
+      if (onChunk) {
+        onChunk(`OpenAI API error: ${error.message}`, false);
+      }
+      // Adapt to ModelResponse structure
+      return {
+        success: false,
+        error: `OpenAI API error: ${error.message}`,
+      }
+      // throw new Error(`OpenAI API error: ${error.message}`);
+    }
+  }
+}

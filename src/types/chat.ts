@@ -1,4 +1,6 @@
 // General chatbot types
+import { FunctionCall } from "./tools";
+
 export interface ChatMessage {
   id: string
   role: 'user' | 'assistant' | 'system'
@@ -7,6 +9,9 @@ export interface ChatMessage {
   context?: ContextData
   status: 'sending' | 'streaming' | 'complete' | 'error'
   metadata?: MessageMetadata
+  functionCall?: FunctionCall;
+  functionResult?: any;
+  toolCallId?: string;
 }
 
 export interface ContextData {

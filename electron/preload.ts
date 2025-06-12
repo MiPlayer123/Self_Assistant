@@ -57,6 +57,7 @@ interface ElectronAPI {
   onCreditsUpdated: (callback: (credits: number) => void) => () => void
   onOutOfCredits: (callback: () => void) => () => void
   getPlatform: () => string
+  takeScreenshotForTool: () => Promise<{ path: string; preview: string; error?: string }>
 }
 
 export const PROCESSING_EVENTS = {
@@ -271,7 +272,8 @@ const electronAPI = {
       ipcRenderer.removeListener("credits-updated", subscription)
     }
   },
-  getPlatform: () => process.platform
+  getPlatform: () => process.platform,
+  takeScreenshotForTool: () => ipcRenderer.invoke("take-screenshot"),
 } as ElectronAPI
 
 // Before exposing the API
