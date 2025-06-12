@@ -54,36 +54,26 @@ export class OpenAIChatModel extends BaseChatModel {
       }
 
       // Handle current message with potential image analysis
-      let userMessageContent = message
+      let userMessageContent: OpenAI.Chat.Completions.ChatCompletionContentPart[] = [{ type: 'text', text: message }];
 
       if (context?.screenshot) {
-        // Step 1: Analyze the image separately first (non-streaming for analysis)
-        console.log('Analyzing uploaded image...')
-        const imageAnalysisPrompt = `Analyze this image in detail. Describe:
-1. What type of content or interface is shown
-2. Key visual elements, text, and components - transcribe any text you see
-3. Any errors, issues, or important details visible
-4. Overall context and purpose of what's displayed
-
-Provide a comprehensive but concise analysis that will help an AI assistant understand what the user is seeing.`
-
-        const analysisResponse = await this.analyzeImage(context.screenshot.base64, imageAnalysisPrompt)
+        console.log('Attaching image for targeted analysis...');
         
-        if (analysisResponse.success && analysisResponse.data) {
-          // Step 2: Include the analysis summary with the user's message
-          userMessageContent = `${message}
-
-[IMAGE ANALYSIS CONTEXT]
-${analysisResponse.data}
-[END IMAGE ANALYSIS]
-
-Please use the image analysis above to help answer my question or provide relevant assistance.`
-          
-          console.log('Image analysis complete, proceeding with streaming response...')
-        } else {
-          console.warn('Image analysis failed:', analysisResponse.error)
-          userMessageContent = `${message}\n\n(Note: I tried to analyze an uploaded image but the analysis failed. Please respond based on the text message only.)`
-        }
+        userMessageContent = [
+          {
+            type: "text",
+            text: `Analyze the attached screenshot in the context of my query: "${message}". Please provide a direct and relevant response.`
+          },
+          {
+            type: "image_url",
+            image_url: {
+              url: `data:image/png;base64,${context.screenshot.base64}`,
+              detail: "high"
+            }
+          }
+        ];
+        
+        console.log('Image attached, proceeding with streaming response...');
       }
 
       messages.push({
@@ -148,60 +138,6 @@ Please use the image analysis above to help answer my question or provide releva
       return {
         success: false,
         error: error.message || 'Failed to send streaming message'
-      }
-    }
-  }
-
-  async analyzeImage(
-    imageData: string,
-    prompt: string = "What do you see in this image?"
-  ): Promise<ModelResponse<string>> {
-    try {
-      const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: prompt
-            },
-            {
-              type: "image_url",
-              image_url: {
-                url: `data:image/png;base64,${imageData}`,
-                detail: "high"
-              }
-            }
-          ]
-        }
-      ]
-
-      const response = await this.openai.chat.completions.create({
-        model: this.config.model || "gpt-4o",
-        messages,
-        temperature: this.config.temperature || 0.7,
-        max_tokens: this.config.maxTokens || 1000,
-      })
-
-      const content = response.choices[0]?.message?.content
-      if (!content) {
-        throw new Error('No content in OpenAI response')
-      }
-
-      return {
-        success: true,
-        data: content,
-        usage: {
-          promptTokens: response.usage?.prompt_tokens || 0,
-          completionTokens: response.usage?.completion_tokens || 0,
-          totalTokens: response.usage?.total_tokens || 0
-        }
-      }
-    } catch (error: any) {
-      console.error('OpenAI image analysis error:', error)
-      return {
-        success: false,
-        error: error.message || 'Failed to analyze image'
       }
     }
   }

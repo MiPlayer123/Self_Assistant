@@ -12,17 +12,22 @@ type ChatAction =
   | { type: 'SET_CONTEXT'; payload: ContextData | undefined }
   | { type: 'SET_MODEL'; payload: string }
   | { type: 'CLEAR_MESSAGES' }
+  | { type: 'SET_FIRST_MESSAGE'; payload: boolean }
 
 // Initial state
-const initialState: ChatState = {
+const initialState: ChatState & { isFirstMessage: boolean } = {
   messages: [],
   isProcessing: false,
   selectedModel: 'gpt-4o',
-  currentContext: undefined
+  currentContext: undefined,
+  isFirstMessage: true
 }
 
 // Reducer
-function chatReducer(state: ChatState, action: ChatAction): ChatState {
+function chatReducer(
+  state: ChatState & { isFirstMessage: boolean },
+  action: ChatAction
+): ChatState & { isFirstMessage: boolean } {
   switch (action.type) {
     case 'ADD_MESSAGE':
       return {
@@ -90,6 +95,12 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         messages: []
       }
 
+    case 'SET_FIRST_MESSAGE':
+      return {
+        ...state,
+        isFirstMessage: action.payload
+      }
+
     default:
       return state
   }
@@ -97,7 +108,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
 
 // Context
 interface ChatContextType {
-  state: ChatState
+  state: ChatState & { isFirstMessage: boolean }
   addMessage: (message: Omit<ChatMessage, 'id' | 'timestamp'>) => void
   addMessageWithId: (message: ChatMessage) => void
   updateMessage: (id: string, updates: Partial<ChatMessage>) => void
@@ -106,6 +117,7 @@ interface ChatContextType {
   setContext: (context: ContextData | undefined) => void
   setModel: (model: string) => void
   clearMessages: () => void
+  setFirstMessage: (isFirst: boolean) => void
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined)
@@ -127,7 +139,8 @@ export function ChatProvider({ children }: ChatProviderProps) {
     setProcessing: (isProcessing) => dispatch({ type: 'SET_PROCESSING', payload: isProcessing }),
     setContext: (context) => dispatch({ type: 'SET_CONTEXT', payload: context }),
     setModel: (model) => dispatch({ type: 'SET_MODEL', payload: model }),
-    clearMessages: () => dispatch({ type: 'CLEAR_MESSAGES' })
+    clearMessages: () => dispatch({ type: 'CLEAR_MESSAGES' }),
+    setFirstMessage: (isFirst) => dispatch({ type: 'SET_FIRST_MESSAGE', payload: isFirst })
   }
 
   return (
@@ -144,4 +157,4 @@ export function useChat() {
     throw new Error('useChat must be used within a ChatProvider')
   }
   return context
-} 
+}

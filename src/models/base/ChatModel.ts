@@ -15,10 +15,4 @@ export abstract class BaseChatModel {
     conversationHistory?: ChatMessage[],
     onChunk?: (chunk: string) => void
   ): Promise<ModelResponse<string>>
-
-  // Optional: Analyze screenshot without specific structure
-  abstract analyzeImage(
-    imageData: string,
-    prompt?: string
-  ): Promise<ModelResponse<string>>
 } 
