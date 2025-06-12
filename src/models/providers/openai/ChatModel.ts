@@ -141,4 +141,38 @@ export class OpenAIChatModel extends BaseChatModel {
       }
     }
   }
+
+  async isScreenshotRequired(message: string, screenshot: string): Promise<boolean> {
+    try {
+      const response = await this.openai.chat.completions.create({
+        model: this.config.model || "gpt-4o",
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: `Does the following query require the attached screenshot to be answered effectively? Respond with only "true" or "false".\n\nQuery: "${message}"`
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:image/png;base64,${screenshot}`,
+                  detail: "low" // Use low detail for faster processing
+                }
+              }
+            ]
+          }
+        ],
+        max_tokens: 10
+      });
+
+      const result = response.choices[0]?.message?.content?.trim().toLowerCase();
+      return result === "true";
+    } catch (error: any) {
+      console.error('OpenAI screenshot check error:', error);
+      // In case of error, assume screenshot is not required to avoid unnecessary processing
+      return false;
+    }
+  }
 } 

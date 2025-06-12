@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useChat } from '../../contexts/ChatContext'
 import { ChatMessage } from './ChatMessage'
 import { ChatInput } from './ChatInput'
@@ -12,10 +12,13 @@ interface ChatPageProps {
 }
 
 export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps) {
-  const { state, addMessage, addMessageWithId, updateMessage, appendToMessage, setProcessing, setContext, clearMessages } = useChat()
+  const { state, addMessage, addMessageWithId, updateMessage, appendToMessage, setProcessing, setContext, clearMessages, setFirstMessage } = useChat()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const chatModelRef = useRef<OpenAIChatModel | null>(null)
   const welcomeMessageAddedRef = useRef<boolean>(false)
+
+  // New state for controlling the 'Analyzing' message
+  const [isFirstMessageAnalyzing, setIsFirstMessageAnalyzing] = useState(false);
 
   // Initialize chat model (only once)
   useEffect(() => {
@@ -59,6 +62,36 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
     }
   }, [state.messages.length, addMessage])
 
+  // Helper to take screenshot without sending chat message, returns ContextData if successful
+  const takeScreenshotForCheck = async (): Promise<ContextData | null> => {
+    try {
+      console.log('Taking screenshot for check...');
+      const screenshotPath = await onTakeScreenshot();
+      if (!screenshotPath) return null;
+
+      const screenshotDataUrl = await onGetImagePreview(screenshotPath);
+      if (!screenshotDataUrl) return null;
+
+      const base64Data = screenshotDataUrl.replace(/^data:image\/[a-z]+;base64,/, '');
+
+      const newContextData: ContextData = {
+        screenshot: {
+          path: screenshotPath,
+          base64: base64Data,
+          preview: screenshotDataUrl,
+          timestamp: new Date()
+        }
+      };
+      // Do NOT set context here, only return it
+      return newContextData;
+    } catch (error) {
+      console.error('Screenshot for check error:', error);
+      // Ensure context is cleared if any error occurs during screenshot process
+      setContext(undefined); 
+      return null;
+    }
+  }
+
   const handleSendMessage = async (message: string) => {
     if (!chatModelRef.current) {
       addMessage({
@@ -69,21 +102,60 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
       return
     }
 
-    // Add user message
+    // Add user message immediately
     addMessage({
       role: 'user',
       content: message,
-      context: state.currentContext,
       status: 'complete'
     })
 
+    let currentMessageContext = state.currentContext;
+
+    if (state.isFirstMessage) {
+      console.log('First message, checking if screenshot is required...');
+      setIsFirstMessageAnalyzing(true); // Start showing analyzing message
+      const checkedContextData = await takeScreenshotForCheck();
+
+      if (checkedContextData && checkedContextData.screenshot && chatModelRef.current) {
+        const screenshotNeeded = await chatModelRef.current.isScreenshotRequired(message, checkedContextData.screenshot.base64);
+        if (screenshotNeeded) {
+          console.log('Screenshot IS required by the model.');
+          // Set context here only if screenshot is required
+          setContext(checkedContextData);
+          // Update the user message with the screenshot context
+          updateMessage(state.messages[state.messages.length - 1].id, {
+            context: checkedContextData
+          });
+          currentMessageContext = checkedContextData;
+          // Only show screenshot captured message after we know it's needed
+          addMessage({
+            role: 'assistant',
+            content: '📸 Screenshot detected and will be used for this query.',
+            status: 'complete'
+          });
+        } else {
+          console.log('Screenshot is NOT required by the model.');
+          // Clear context if it was set by takeScreenshotForCheck (not used)
+          setContext(undefined);
+          currentMessageContext = undefined;
+        }
+      } else {
+        console.log('Could not take screenshot for check, or model not available, or screenshot data missing.');
+        // Ensure context is cleared if takeScreenshotForCheck failed or didn't provide data
+        setContext(undefined);
+        currentMessageContext = undefined;
+      }
+      setFirstMessage(false);
+      setIsFirstMessageAnalyzing(false); // Stop showing analyzing message after check
+    }
+
     setProcessing(true)
 
-    // Show different processing message if image is included
-    if (state.currentContext?.screenshot) {
+    // Show processing message if image is included
+    if (currentMessageContext?.screenshot) {
       addMessage({
         role: 'assistant',
-        content: '🔍 Analyzing image and processing your request...',
+        content: '🖼️ Analyzing image and processing your request...',
         status: 'complete'
       })
     }
@@ -100,7 +172,7 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
       status: 'streaming' as const,
       metadata: {
         model: state.selectedModel,
-        hasImageAnalysis: !!state.currentContext?.screenshot
+        hasImageAnalysis: !!currentMessageContext?.screenshot
       }
     }
     
@@ -110,47 +182,43 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
       // Send to AI model with streaming
       const response = await chatModelRef.current!.sendMessageStream(
         message,
-        state.currentContext,
-        state.messages, // Use current state messages (the addMessage above will update this)
+        currentMessageContext,
+        state.messages,
         (chunk: string) => {
-          // This callback is called for each streaming chunk
-          // Find the streaming message by checking for streaming status and empty/partial content
           appendToMessage(streamingMessageId, chunk)
         }
       )
 
       if (response.success) {
-        // Mark message as complete and add metadata
         updateMessage(streamingMessageId, {
           status: 'complete',
           metadata: {
             model: state.selectedModel,
             tokenUsage: response.usage,
-            hasImageAnalysis: !!state.currentContext?.screenshot
+            hasImageAnalysis: !!currentMessageContext?.screenshot
           }
         })
       } else {
-        // Update message with error
         updateMessage(streamingMessageId, {
           content: `Error: ${response.error || 'Failed to get response'}`,
           status: 'error'
         })
       }
     } catch (error: any) {
-      // Update message with error
       updateMessage(streamingMessageId, {
         content: `Error: ${error.message || 'Something went wrong'}`,
         status: 'error'
       })
     } finally {
       setProcessing(false)
-      // Clear context after use
-      setContext(undefined)
+      setContext(undefined);
     }
   }
 
   const handleResetChat = () => {
     clearMessages()
+    setFirstMessage(true) // Reset the first message flag
+    setContext(undefined) // Clear any existing context like a screenshot
     addMessage({
       role: 'assistant',
       content: "Wagoo here, what can I do for you?",
@@ -166,28 +234,23 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
       
       const screenshotDataUrl = await onGetImagePreview(screenshotPath)
       console.log('Screenshot data URL length:', screenshotDataUrl.length)
-      console.log('Screenshot data URL start:', screenshotDataUrl.substring(0, 100))
       
-      // Extract base64 data from data URL (remove "data:image/png;base64," prefix)
+      // Extract base64 data from data URL
       const base64Data = screenshotDataUrl.replace(/^data:image\/[a-z]+;base64,/, '')
-      console.log('Extracted base64 length:', base64Data.length)
-      console.log('Base64 starts with:', base64Data.substring(0, 50))
       
       // Set the screenshot in context for the next message
-      setContext({
+      const newContextData: ContextData = {
         screenshot: {
           path: screenshotPath,
           base64: base64Data,
           preview: screenshotDataUrl,
           timestamp: new Date()
         }
-      })
+      };
+      setContext(newContextData);
 
-      addMessage({
-        role: 'assistant',
-        content: '📸 Screenshot captured! It will be analyzed in detail when you send your next message.',
-        status: 'complete'
-      })
+      // Don't show the screenshot captured message here anymore
+      // It will be shown after detection if needed
     } catch (error: any) {
       console.error('Screenshot error:', error)
       addMessage({
@@ -221,14 +284,20 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
             <div className="text-sm wagoo-text-muted">
               Model: {state.selectedModel}
             </div>
-            {state.currentContext?.screenshot && (
-              <div className="wagoo-context-indicator">
-                <span className="wagoo-status-dot"></span>
-                Screenshot ready
-              </div>
-            )}
           </div>
         </div>
+        {isFirstMessageAnalyzing && (
+          <div className="wagoo-context-indicator mt-1">
+            <span className="wagoo-status-dot animate-pulse"></span>
+            Analyzing...
+          </div>
+        )}
+        {state.currentContext?.screenshot && !isFirstMessageAnalyzing && (
+          <div className="wagoo-context-indicator mt-1">
+            <span className="wagoo-status-dot"></span>
+            Screenshot ready
+          </div>
+        )}
       </div>
 
       {/* Messages */}
