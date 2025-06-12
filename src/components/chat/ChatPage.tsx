@@ -59,8 +59,8 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
     }
   }, [state.messages.length, addMessage])
 
-  // Helper to take screenshot without sending chat message, returns base64 if successful
-  const takeScreenshotForCheck = async (): Promise<string | null> => {
+  // Helper to take screenshot without sending chat message, returns ContextData if successful
+  const takeScreenshotForCheck = async (): Promise<ContextData | null> => {
     try {
       console.log('Taking screenshot for check...');
       const screenshotPath = await onTakeScreenshot();
@@ -71,18 +71,20 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
 
       const base64Data = screenshotDataUrl.replace(/^data:image\/[a-z]+;base64,/, '');
 
-      // Set context temporarily for the check
-      setContext({
+      const newContextData: ContextData = {
         screenshot: {
           path: screenshotPath,
           base64: base64Data,
           preview: screenshotDataUrl,
           timestamp: new Date()
         }
-      });
-      return base64Data;
+      };
+      // Set context temporarily for the check
+      setContext(newContextData);
+      return newContextData;
     } catch (error) {
       console.error('Screenshot for check error:', error);
+      setContext(undefined); // Clear context if any error occurs during screenshot process
       return null;
     }
   }
@@ -101,28 +103,29 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
 
     if (state.isFirstMessage) {
       console.log('First message, checking if screenshot is required...');
-      const tempScreenshotBase64 = await takeScreenshotForCheck();
+      const checkedContextData = await takeScreenshotForCheck();
 
-      if (tempScreenshotBase64 && chatModelRef.current) {
-        const screenshotNeeded = await chatModelRef.current.isScreenshotRequired(message, tempScreenshotBase64);
+      if (checkedContextData && checkedContextData.screenshot && chatModelRef.current) {
+        const screenshotNeeded = await chatModelRef.current.isScreenshotRequired(message, checkedContextData.screenshot.base64);
         if (screenshotNeeded) {
           console.log('Screenshot IS required by the model.');
-          // Screenshot is already in context due to takeScreenshotForCheck, just keep it.
-          // Send a message to inform the user that the screenshot will be used.
           addMessage({
             role: 'assistant',
             content: '📸 Screenshot captured and will be used for this query.',
             status: 'complete'
           });
-          currentMessageContext = state.currentContext; // Ensure currentMessageContext has the screenshot
+          currentMessageContext = checkedContextData; // Use the context from the check
         } else {
           console.log('Screenshot is NOT required by the model.');
-          // Clear the context if screenshot is not needed
-          setContext(undefined);
+          setContext(undefined); // Clear global context as it's not needed
           currentMessageContext = undefined;
         }
       } else {
-        console.log('Could not take screenshot for check or model not available.');
+        console.log('Could not take screenshot for check, or model not available, or screenshot data missing.');
+        // Ensure context is cleared if takeScreenshotForCheck failed and might have left inconsistent state
+        // currentMessageContext would already be undefined or become undefined if setContext is called.
+        setContext(undefined);
+        currentMessageContext = undefined; // Explicitly ensure currentMessageContext is undefined here
       }
       setFirstMessage(false); // Mark first message as processed
     }
@@ -158,7 +161,7 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
       status: 'streaming' as const,
       metadata: {
         model: state.selectedModel,
-        hasImageAnalysis: !!state.currentContext?.screenshot
+        hasImageAnalysis: !!currentMessageContext?.screenshot // Corrected to use currentMessageContext
       }
     }
     
@@ -202,18 +205,20 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
       })
     } finally {
       setProcessing(false)
-      // Clear context after use ONLY if it wasn't cleared by the screenshot check logic
-      if (!state.isFirstMessage || (state.isFirstMessage && currentMessageContext?.screenshot)) {
-         // If it was the first message and screenshot was kept, it will be cleared here.
-         // If it was not the first message, clear context as usual.
-         // If it was the first message and screenshot was NOT kept, it's already cleared.
-        setContext(undefined)
-      }
+      // Clear context after use.
+      // If it was the first message:
+      // - and screenshot was used, currentMessageContext is defined, so it gets cleared.
+      // - and screenshot was NOT used, currentMessageContext is undefined, setContext(undefined) is safe.
+      // If it was NOT the first message:
+      // - state.currentContext (which would be currentMessageContext) is cleared as usual.
+      setContext(undefined);
     }
   }
 
   const handleResetChat = () => {
     clearMessages()
+    setFirstMessage(true) // Reset the first message flag
+    setContext(undefined) // Clear any existing context like a screenshot
     addMessage({
       role: 'assistant',
       content: "Wagoo here, what can I do for you?",
