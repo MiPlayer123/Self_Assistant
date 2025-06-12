@@ -152,7 +152,7 @@ body {
    ============================================= */
 
 .wagoo-message-user {
-  @apply px-5 py-4 rounded-2xl;
+  @apply px-3 py-2 rounded-xl;
   background: var(--wagoo-accent-primary);
   color: var(--wagoo-text-primary);
   border-bottom-right-radius: 6px;
@@ -163,7 +163,7 @@ body {
 }
 
 .wagoo-message-assistant {
-  @apply px-5 py-4 rounded-2xl;
+  @apply px-3 py-2 rounded-xl;
   background: var(--wagoo-bg-tertiary);
   color: var(--wagoo-text-primary);
   border-bottom-left-radius: 6px;

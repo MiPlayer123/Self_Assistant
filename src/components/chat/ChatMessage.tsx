@@ -39,8 +39,8 @@ export function ChatMessage({ message }: ChatMessageProps) {
   }
 
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} px-4`}>
-      <div className="max-w-[85%]">
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} px-2`}>
+      <div className="max-w-[95%]">
         {/* Message bubble */}
         <div
           className={isUser ? 'wagoo-message-user' : 'wagoo-message-assistant'}

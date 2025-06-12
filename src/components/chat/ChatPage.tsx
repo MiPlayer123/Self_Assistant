@@ -233,7 +233,7 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
 
       {/* Messages */}
       <div className="wagoo-chat-messages">
-        <div className="space-y-6 py-4">
+        <div className="space-y-1 py-1">
           {state.messages.map((message) => (
             <ChatMessage key={message.id} message={message} />
           ))}

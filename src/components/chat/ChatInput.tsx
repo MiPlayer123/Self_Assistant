@@ -52,14 +52,16 @@ export function ChatInput({
   };
 
   return (
-    <div className="wagoo-chat-input-container">
-      <form onSubmit={handleSubmit} className="flex items-end gap-3">
+    <div className="wagoo-chat-input-container flex items-center justify-center py-2 px-4">
+      <form onSubmit={handleSubmit} className="flex items-center gap-2 w-full max-w-2xl">
         {/* Screenshot button */}
         <button
           type="button"
           onClick={onTakeScreenshot}
           disabled={isProcessing}
-          className={`wagoo-screenshot-button ${hasScreenshot ? 'active' : ''} disabled:opacity-50 disabled:cursor-not-allowed`}
+          className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-lg transition-colors
+            ${hasScreenshot ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}
+            disabled:opacity-50 disabled:cursor-not-allowed`}
           title={hasScreenshot ? 'Screenshot attached' : 'Take screenshot'}
         >
           📸
@@ -74,12 +76,18 @@ export function ChatInput({
             onKeyDown={handleKeyDown}
             placeholder="Ask Wagoo anything..."
             disabled={isProcessing}
-            className="wagoo-input disabled:opacity-50 disabled:cursor-not-allowed"
+            className="wagoo-input disabled:opacity-50 disabled:cursor-not-allowed focus:ring-0 focus:border-transparent"
             rows={1}
             style={{
-              minHeight: '40px',
+              minHeight: '38px',
               maxHeight: '120px',
-              height: '40px'
+              height: 'auto',
+              resize: 'none',
+              padding: '8px 12px',
+              borderRadius: '9999px', // Makes it pill-shaped
+              border: '1px solid var(--wagoo-border-secondary)',
+              backgroundColor: 'var(--wagoo-bg-tertiary)',
+              color: 'var(--wagoo-text-primary)',
             }}
           />
         </div>
@@ -88,7 +96,7 @@ export function ChatInput({
         <button
           type="submit"
           disabled={!message.trim() || isProcessing}
-          className="flex-shrink-0 w-10 h-10 wagoo-button disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           title="Send message"
         >
           {isProcessing ? (
@@ -101,7 +109,7 @@ export function ChatInput({
 
       {/* Context indicator */}
       {hasScreenshot && (
-        <div className="mt-2 wagoo-context-indicator">
+        <div className="mt-2 text-sm wagoo-context-indicator">
           <span className="wagoo-status-dot"></span>
           Screenshot ready - AI will use it for visual context if needed
         </div>
