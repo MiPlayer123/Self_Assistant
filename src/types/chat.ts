@@ -3,7 +3,7 @@ import { FunctionCall } from "./tools";
 
 export interface ChatMessage {
   id: string
-  role: 'user' | 'assistant' | 'system'
+  role: ChatRole
   content: string
   timestamp: Date
   context?: ContextData
@@ -45,5 +45,5 @@ export interface ChatState {
   currentContext?: ContextData
 }
 
-export type ChatRole = 'user' | 'assistant' | 'system'
+export type ChatRole = 'user' | 'assistant' | 'system' | 'tool'
 export type MessageStatus = 'sending' | 'complete' | 'error' 

@@ -1,12 +1,10 @@
 import OpenAI from 'openai'
-import OpenAI from 'openai'
 import { BaseModel, ModelConfig, ModelResponse, ProblemInfo, GeneratedSolutions, DebugInfo } from '../../base/types'
 import { ChatMessage, ContextData } from '../../../types/chat'
 import { Tool, FunctionCall } from '../../../types/tools'
 import { ToolRegistry } from '../../../tools/ToolRegistry'
 import { zodResponseFormat } from "openai/helpers/zod"
 import { z } from "zod"
-import { countTokens } from '../../../utils/tokenizer'
 
 // Zod schemas for structured outputs
 const ProblemInfoSchema = z.object({
@@ -49,9 +47,12 @@ export class OpenAIModel extends BaseModel {
 
   constructor(config: ModelConfig) {
     super(config)
+    console.log('OpenAIModel: Initializing with API key:', config.apiKey ? 'exists' : 'missing')
     this.openai = new OpenAI({
       apiKey: config.apiKey,
+      dangerouslyAllowBrowser: true, // Required for Electron renderer process
     })
+    console.log('OpenAIModel: Client initialized successfully')
   }
 
   async extractProblem(imageData: string[], language: string): Promise<ModelResponse<ProblemInfo>> {
@@ -272,31 +273,43 @@ Help debug the issue shown in the screenshot(s):`
 
     // Adapt conversation history to OpenAI's format
     conversationHistory.forEach(msg => {
-      const openAIMsg: OpenAI.Chat.Completions.ChatCompletionMessageParam = {
-        role: msg.role as 'user' | 'assistant' | 'system',
-        content: msg.content,
-      };
-      if (msg.functionCall && msg.toolCallId) {
-        openAIMsg.tool_calls = [{
-          id: msg.toolCallId,
-          type: 'function',
-          function: {
-            name: msg.functionCall.tool_name,
-            arguments: JSON.stringify(msg.functionCall.arguments),
-          },
-        }];
-        openAIMsg.content = msg.content || null; // Ensure content is null if tool_calls are present and no text from assistant
-      } else if (msg.role === 'tool' && msg.toolCallId && msg.functionResult) {
-        // This is a slight deviation as OpenAI expects 'tool' role to have 'content' (result) and 'tool_call_id'
-        // The ChatMessage type stores this as functionResult, so we adapt it
+      if (msg.role === 'tool' && msg.toolCallId && msg.functionResult) {
         messages.push({
             role: 'tool',
             tool_call_id: msg.toolCallId,
             content: typeof msg.functionResult === 'string' ? msg.functionResult : JSON.stringify(msg.functionResult),
         });
-        return; // Skip adding to messages directly as it's already added
+      } else if (msg.role === 'assistant') {
+        if (msg.functionCall && msg.toolCallId) {
+          messages.push({
+            role: 'assistant',
+            content: msg.content || null, // Content can be null when tool_calls are present
+            tool_calls: [{
+              id: msg.toolCallId,
+              type: 'function',
+              function: {
+                name: msg.functionCall.tool_name,
+                arguments: JSON.stringify(msg.functionCall.arguments),
+              },
+            }],
+          });
+        } else {
+          messages.push({
+            role: 'assistant',
+            content: msg.content,
+          });
+        }
+      } else if (msg.role === 'user') {
+        messages.push({
+          role: 'user',
+          content: msg.content,
+        });
+      } else if (msg.role === 'system') {
+        messages.push({
+          role: 'system',
+          content: msg.content,
+        });
       }
-      messages.push(openAIMsg);
     });
 
     messages.push({ role: 'user', content: message });
@@ -432,20 +445,27 @@ Help debug the issue shown in the screenshot(s):`
 
 
       // Calculate token usage (simplified)
+      // Since countTokens is not available, we'll use approximate character count or 0
       const promptTokens = messages.reduce((acc, msg) => {
-        if (typeof msg.content === 'string') return acc + countTokens(msg.content);
-        // Add more sophisticated counting for image inputs or other types if necessary
+        if (typeof msg.content === 'string') return acc + msg.content.length / 4; // Approx tokens per char
+        if (Array.isArray(msg.content)) {
+            // Handle complex content types if necessary, for now, just sum text parts
+            return acc + msg.content.reduce((charAcc, part) => {
+                if (part.type === 'text') return charAcc + part.text.length / 4;
+                return charAcc;
+            }, 0);
+        }
         return acc;
       }, 0);
-      const completionTokens = countTokens(fullResponse);
+      const completionTokens = fullResponse.length / 4;
 
       return {
         success: true, // Assuming ModelResponse needs a success field like others in this file
         data: fullResponse,
         usage: { // Assuming ModelResponse needs a usage field
-          promptTokens,
-          completionTokens,
-          totalTokens: promptTokens + completionTokens,
+          promptTokens: Math.round(promptTokens),
+          completionTokens: Math.round(completionTokens),
+          totalTokens: Math.round(promptTokens + completionTokens),
         },
         // metadata might be more appropriate if ModelResponse is generic
         // metadata: {

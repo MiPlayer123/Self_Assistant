@@ -493,10 +493,15 @@ function loadEnvVariables() {
   }
   console.log("Loaded environment variables:", {
     VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL ? "exists" : "missing",
-    VITE_SUPABASE_ANON_KEY: process.env.VITE_SUPABASE_ANON_KEY
-      ? "exists"
-      : "missing"
+    VITE_SUPABASE_ANON_KEY: process.env.VITE_SUPABASE_ANON_KEY ? "exists" : "missing",
+    VITE_OPENAI_API_KEY: process.env.VITE_OPENAI_API_KEY ? "exists" : "missing",
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY ? "exists" : "missing"
   })
+  // Add debug logging for API key
+  if (process.env.VITE_OPENAI_API_KEY) {
+    console.log("API key length:", process.env.VITE_OPENAI_API_KEY.length)
+    console.log("API key first 10 chars:", process.env.VITE_OPENAI_API_KEY.substring(0, 10))
+  }
 }
 
 // Initialize application

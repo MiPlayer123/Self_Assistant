@@ -71,17 +71,43 @@ export function getModelManager(): ModelManager {
 
 // Helper function to get API key from environment  
 export async function getOpenAIApiKey(): Promise<string> {
+  console.log('getOpenAIApiKey: Starting...')
+  console.log('getOpenAIApiKey: Window available?', typeof window !== 'undefined')
+  
   // In renderer process, try to get from global object set by preload script
-  if (typeof window !== 'undefined' && (window as any).electronAPI?.getEnvVar) {
-    try {
-      const apiKey = await (window as any).electronAPI.getEnvVar('VITE_OPENAI_API_KEY') || 
-                     await (window as any).electronAPI.getEnvVar('OPENAI_API_KEY')
-      if (apiKey) {
-        return apiKey
+  if (typeof window !== 'undefined') {
+    console.log('getOpenAIApiKey: electronAPI available?', !!(window as any).electronAPI)
+    console.log('getOpenAIApiKey: getEnvVar available?', !!(window as any).electronAPI?.getEnvVar)
+    
+    if ((window as any).electronAPI?.getEnvVar) {
+      try {
+        console.log('getOpenAIApiKey: Attempting to get API key from IPC...')
+        const apiKey = await (window as any).electronAPI.getEnvVar('VITE_OPENAI_API_KEY')
+        console.log('getOpenAIApiKey: First API key attempt:', apiKey ? 'exists' : 'missing')
+        
+        if (!apiKey) {
+          console.log('getOpenAIApiKey: Trying OPENAI_API_KEY as fallback...')
+          const fallbackKey = await (window as any).electronAPI.getEnvVar('OPENAI_API_KEY')
+          console.log('getOpenAIApiKey: Fallback API key:', fallbackKey ? 'exists' : 'missing')
+          
+          if (fallbackKey) {
+            console.log('getOpenAIApiKey: Using fallback key')
+            return fallbackKey
+          }
+        } else {
+          console.log('getOpenAIApiKey: Using primary key')
+          return apiKey
+        }
+      } catch (error) {
+        console.error('getOpenAIApiKey: Failed to get API key from IPC:', error)
+        console.error('getOpenAIApiKey: Error details:', error instanceof Error ? error.stack : error)
+        throw error
       }
-    } catch (error) {
-      console.error('Failed to get API key from IPC:', error)
+    } else {
+      console.error('getOpenAIApiKey: electronAPI.getEnvVar not available')
     }
+  } else {
+    console.error('getOpenAIApiKey: Window not available')
   }
   
   // Fallback error message

@@ -282,10 +282,28 @@ console.log(
   Object.keys(electronAPI)
 )
 
+// Add debug logging for getEnvVar specifically
+console.log("getEnvVar function available:", typeof electronAPI.getEnvVar === 'function')
+
 // Expose the API
 contextBridge.exposeInMainWorld("electronAPI", electronAPI)
 
+// Add verification after exposure
 console.log("electronAPI exposed to window")
+console.log("Verifying electronAPI exposure:", {
+  hasElectronAPI: typeof window !== 'undefined' && !!(window as any).electronAPI,
+  hasGetEnvVar: typeof window !== 'undefined' && !!(window as any).electronAPI?.getEnvVar
+})
+
+// Add a test call to verify getEnvVar works
+if (typeof window !== 'undefined') {
+  console.log("Testing getEnvVar in preload...")
+  electronAPI.getEnvVar('VITE_OPENAI_API_KEY').then(key => {
+    console.log("Test getEnvVar result:", key ? "exists" : "missing")
+  }).catch(err => {
+    console.error("Test getEnvVar error:", err)
+  })
+}
 
 // Add this focus restoration handler
 ipcRenderer.on("restore-focus", () => {

@@ -27,6 +27,10 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
   useEffect(() => {
     const initialize = async () => {
       try {
+        console.log('ChatPage: Starting initialization...')
+        console.log('ChatPage: electronAPI available?', !!(window as any).electronAPI)
+        console.log('ChatPage: getEnvVar available?', !!(window as any).electronAPI?.getEnvVar)
+
         // Initialize Tool Registry
         const registry = new ToolRegistry()
         const screenshotTool = new ScreenshotTool()
@@ -35,7 +39,10 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
         console.log('Tool registry initialized and screenshot tool registered.')
 
         // Initialize Model
+        console.log('ChatPage: Attempting to get API key...')
         const apiKey = await getOpenAIApiKey()
+        console.log('ChatPage: API key received:', apiKey ? 'exists' : 'missing')
+        
         // Ensure config matches what OpenAIModel expects (ModelConfig from '../../models/base/types')
         chatModelRef.current = new OpenAIChatModel({
           apiKey,
@@ -47,6 +54,7 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
         console.log('Chat model initialized successfully')
       } catch (error) {
         console.error('Failed to initialize chat model or tool registry:', error)
+        console.error('Error details:', error instanceof Error ? error.stack : error)
         addMessage({
           role: 'assistant',
           content: '❌ Error: Could not initialize AI model. Please set your OpenAI API key in the .env file:\n\nVITE_OPENAI_API_KEY=your_api_key_here\n\nThen restart the application.',
@@ -55,7 +63,7 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
       }
     }
     
-    initializeModel()
+    initialize()
   }, []) // Remove dependencies to prevent re-initialization
 
   // Auto-scroll to bottom

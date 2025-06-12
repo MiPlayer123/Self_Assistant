@@ -178,6 +178,11 @@ export function initializeIpcHandlers(deps: IIpcHandlerDeps): void {
 
   // Environment variable handler
   ipcMain.handle("get-env-var", (event, varName: string) => {
+    console.log(`Getting env var ${varName}:`, process.env[varName] ? "exists" : "missing")
+    if (varName === 'VITE_OPENAI_API_KEY' && process.env[varName]) {
+      console.log(`API key length in IPC:`, process.env[varName]!.length)
+      console.log(`API key first 10 chars in IPC:`, process.env[varName]!.substring(0, 10))
+    }
     return process.env[varName]
   })
 
