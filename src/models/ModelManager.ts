@@ -27,8 +27,8 @@ export class ModelManager {
         // TODO: Implement Claude problem-solving model if needed, otherwise throw or return a placeholder
         throw new Error('Claude problem-solving model not yet implemented')
       case 'local':
-        // TODO: Implement local problem-solving model
-        throw new Error('Local problem-solving model not yet implemented')
+        // As per user request, LocalModel is not used for problem solving
+        throw new Error('Local problem-solving model is not supported. Only Local Chat Model is available.')
       default:
         throw new Error(`Unsupported model provider: ${provider}`)
     }
@@ -44,15 +44,18 @@ export class ModelManager {
   }
 
   public async extractProblem(imageData: string[], language: string): Promise<ModelResponse<ProblemInfo>> {
-    return this.model.extractProblem(imageData, language)
+    // Problem solving with local model is not supported directly through BaseModel
+    throw new Error('Local problem extraction not supported.')
   }
 
   public async generateSolutions(problemInfo: ProblemInfo): Promise<ModelResponse<GeneratedSolutions>> {
-    return this.model.generateSolutions(problemInfo)
+    // Problem solving with local model is not supported directly through BaseModel
+    throw new Error('Local solution generation not supported.')
   }
 
   public async debugCode(problemInfo: ProblemInfo, imageData: string[]): Promise<ModelResponse<DebugInfo>> {
-    return this.model.debugCode(problemInfo, imageData)
+    // Problem solving with local model is not supported directly through BaseModel
+    throw new Error('Local code debugging not supported.')
   }
 }
 
@@ -104,10 +107,37 @@ export async function getApiKey(providerId: string): Promise<string> {
 
 // Factory function to get chat model (for the new chat feature)
 export async function getChatModel(modelId: string): Promise<IChatModel> {
-  const [providerId, modelValue] = modelId.split(':')
+  const [providerPrefix, modelValue] = modelId.split('-'); // Split by '-' to handle local-modelName
 
-  if (!providerId || !modelValue) {
-    throw new Error(`Invalid model ID format: ${modelId}. Expected format 'provider:model'.`)
+  let providerId: string;
+  let actualModelValue: string;
+
+  if (providerPrefix === 'local') {
+    providerId = 'local';
+    actualModelValue = modelValue; // modelValue will be the filename here
+  } else {
+    // For non-local models, split by ':' as before
+    const parts = modelId.split(':');
+    if (parts.length < 2) {
+      throw new Error(`Invalid model ID format: ${modelId}. Expected format 'provider:model' or 'local-modelName'.`);
+    }
+    providerId = parts[0];
+    actualModelValue = parts.slice(1).join(':'); // Rejoin in case modelValue itself contains ':'
+  }
+
+  if (!providerId || !actualModelValue) {
+    throw new Error(`Invalid model ID format: ${modelId}. Expected format 'provider:model' or 'local-modelName'.`);
+  }
+
+  // Local models don't need API keys
+  if (providerId === 'local') {
+    const { LocalChatModel } = await import('./providers/local/ChatModel')
+    return new LocalChatModel({
+      apiKey: '', // Not needed for local models
+      model: actualModelValue, // This will now be the filename for local models
+      temperature: 0.7,
+      maxTokens: 2000,
+    })
   }
 
   const apiKey = await getApiKey(providerId)
@@ -117,7 +147,7 @@ export async function getChatModel(modelId: string): Promise<IChatModel> {
       const { OpenAIChatModel } = await import('./providers/openai/ChatModel')
       return new OpenAIChatModel({
         apiKey,
-        model: modelValue,
+        model: actualModelValue,
         temperature: 0.7,
         maxTokens: 2000, // Default max tokens
       })
@@ -125,7 +155,7 @@ export async function getChatModel(modelId: string): Promise<IChatModel> {
       const { ClaudeChatModel } = await import('./providers/anthropic/ChatModel')
       return new ClaudeChatModel({
         apiKey,
-        model: modelValue,
+        model: actualModelValue,
         temperature: 0.7,
         maxTokens: 2000, // Default max tokens
       })
@@ -133,7 +163,7 @@ export async function getChatModel(modelId: string): Promise<IChatModel> {
       const { GeminiChatModel } = await import('./providers/google/ChatModel')
       return new GeminiChatModel({
         apiKey,
-        model: modelValue,
+        model: actualModelValue,
         temperature: 0.7,
         maxTokens: 2000, // Default max tokens
       })

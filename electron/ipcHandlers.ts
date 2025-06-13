@@ -178,6 +178,7 @@ export function initializeIpcHandlers(deps: IIpcHandlerDeps): void {
 
   // Environment variable handler
   ipcMain.handle("get-env-var", (event, varName: string) => {
+    console.log(`[IPC] Request for env var: ${varName}, value: ${process.env[varName] ? "Exists" : "Missing"}`);
     return process.env[varName]
   })
 

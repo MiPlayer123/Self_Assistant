@@ -57,6 +57,9 @@ interface ElectronAPI {
   onCreditsUpdated: (callback: (credits: number) => void) => () => void
   onOutOfCredits: (callback: () => void) => () => void
   getPlatform: () => string
+  // Local model methods
+  invokeLocalChatModel: (method: string, args: any) => Promise<any>
+  getAvailableLocalModels: () => Promise<{ success: boolean; data?: string[]; error?: string }>
 }
 
 export const PROCESSING_EVENTS = {
@@ -271,7 +274,12 @@ const electronAPI = {
       ipcRenderer.removeListener("credits-updated", subscription)
     }
   },
-  getPlatform: () => process.platform
+  getPlatform: () => process.platform,
+  // Local model methods
+  invokeLocalChatModel: async (method: string, args: any) => {
+    return ipcRenderer.invoke("invokeLocalChatModel", { method, args })
+  },
+  getAvailableLocalModels: () => ipcRenderer.invoke("getAvailableLocalModels")
 } as ElectronAPI
 
 // Before exposing the API

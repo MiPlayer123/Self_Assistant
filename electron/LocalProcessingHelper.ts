@@ -3,7 +3,7 @@ import fs from "node:fs"
 import { ScreenshotHelper } from "./ScreenshotHelper"
 import { IProcessingHelperDeps } from "./main"
 import { BrowserWindow } from "electron"
-import { ModelManager, initializeModelManager, getApiKey } from "../src/models/ModelManager"
+import { ModelManager, initializeModelManager } from "../src/models/ModelManager"
 
 export class LocalProcessingHelper {
   private deps: IProcessingHelperDeps
@@ -26,10 +26,10 @@ export class LocalProcessingHelper {
 
   private async initializeModel() {
     try {
-      const apiKey = await getApiKey('openai')
+      const apiKey = process.env.VITE_OPENAI_API_KEY;
       
       if (!apiKey) {
-        throw new Error('OpenAI API key not found in environment variables')
+        throw new Error('OpenAI API key not found. Please set VITE_OPENAI_API_KEY in your .env file.')
       }
       
       this.modelManager = initializeModelManager({
@@ -45,6 +45,7 @@ export class LocalProcessingHelper {
       console.log('Local model manager initialized successfully')
     } catch (error) {
       console.error('Failed to initialize model manager:', error)
+      this.deps.getMainWindow()?.webContents.send(this.deps.PROCESSING_EVENTS.API_KEY_INVALID, 'openai');
     }
   }
 

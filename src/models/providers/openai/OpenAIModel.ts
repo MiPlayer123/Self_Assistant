@@ -46,6 +46,7 @@ export class OpenAIModel extends BaseModel {
     super(config)
     this.openai = new OpenAI({
       apiKey: config.apiKey,
+      dangerouslyAllowBrowser: true // Allow browser usage
     })
   }
 

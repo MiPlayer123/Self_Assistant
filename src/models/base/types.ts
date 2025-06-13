@@ -5,6 +5,7 @@ export interface ModelConfig {
   temperature?: number
   maxTokens?: number
   timeout?: number
+  modelPath?: string
 }
 
 export interface ModelResponse<T = any> {

@@ -6,6 +6,7 @@ import { ContextData, IChatModel } from '../../types/chat'
 import { useModel } from '../../contexts/ModelContext'
 import ModelPicker from '../chat/ModelPicker'
 import { getChatModel } from '../../models/ModelManager'
+import { LocalModelSettings } from './LocalModelSettings'
 
 interface ChatPageProps {
   onTakeScreenshot: () => Promise<string>
@@ -14,30 +15,43 @@ interface ChatPageProps {
 
 export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps) {
   const { state, addMessage, addMessageWithId, updateMessage, appendToMessage, setProcessing, setContext, clearMessages, setFirstMessage } = useChat()
-  const { selectedModelId } = useModel();
+  const { selectedModelId, setSelectedModelId } = useModel()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const chatModelRef = useRef<IChatModel | null>(null)
   const welcomeMessageAddedRef = useRef<boolean>(false)
 
   // New state for controlling the 'Analyzing' message
-  const [isFirstMessageAnalyzing, setIsFirstMessageAnalyzing] = useState(false);
+  const [isFirstMessageAnalyzing, setIsFirstMessageAnalyzing] = useState(false)
+  // State for toggling local model settings visibility
+  const [showLocalModelSettings, setShowLocalModelSettings] = useState(false);
+
+  // Handler for selecting a local model
+  const handleSelectLocalModel = (modelFilename: string) => {
+    setSelectedModelId(`local-${modelFilename}`); // Prepend 'local-' to distinguish local models
+  };
+
+  // Toggle local model settings visibility
+  const toggleLocalModelSettings = () => {
+    setShowLocalModelSettings(prev => !prev);
+  };
 
   // Initialize chat model (only once)
   useEffect(() => {
     const initializeModel = async () => {
       try {
-        chatModelRef.current = await getChatModel(selectedModelId);
+        chatModelRef.current = await getChatModel(selectedModelId)
         console.log(`Chat model initialized successfully with model: ${selectedModelId}`)
       } catch (error) {
         console.error('Failed to initialize chat model:', error)
         addMessage({
           role: 'assistant',
-          content: '❌ Error: Could not initialize AI model. Please ensure your API key is correctly set in the .env file for the selected model provider and restart the application.',
+          content:
+            '❌ Error: Could not initialize AI model. Please ensure your API key is correctly set in the .env file for the selected model provider and restart the application.',
           status: 'error'
         })
       }
     }
-    
+
     initializeModel()
   }, [selectedModelId]) // Re-initialize when selectedModelId changes
 
@@ -61,14 +75,14 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
   // Helper to take screenshot without sending chat message, returns ContextData if successful
   const takeScreenshotForCheck = async (): Promise<ContextData | null> => {
     try {
-      console.log('Taking screenshot for check...');
-      const screenshotPath = await onTakeScreenshot();
-      if (!screenshotPath) return null;
+      console.log('Taking screenshot for check...')
+      const screenshotPath = await onTakeScreenshot()
+      if (!screenshotPath) return null
 
-      const screenshotDataUrl = await onGetImagePreview(screenshotPath);
-      if (!screenshotDataUrl) return null;
+      const screenshotDataUrl = await onGetImagePreview(screenshotPath)
+      if (!screenshotDataUrl) return null
 
-      const base64Data = screenshotDataUrl.replace(/^data:image\/[a-z]+;base64,/, '');
+      const base64Data = screenshotDataUrl.replace(/^data:image\/[a-z]+;base64,/, '')
 
       const newContextData: ContextData = {
         screenshot: {
@@ -77,14 +91,14 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
           preview: screenshotDataUrl,
           timestamp: new Date()
         }
-      };
+      }
       // Do NOT set context here, only return it
-      return newContextData;
+      return newContextData
     } catch (error) {
-      console.error('Screenshot for check error:', error);
+      console.error('Screenshot for check error:', error)
       // Ensure context is cleared if any error occurs during screenshot process
-      setContext(undefined); 
-      return null;
+      setContext(undefined)
+      return null
     }
   }
 
@@ -105,44 +119,49 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
       status: 'complete'
     })
 
-    let currentMessageContext = state.currentContext;
+    let currentMessageContext = state.currentContext
 
     if (state.isFirstMessage) {
-      console.log('First message, checking if screenshot is required...');
-      setIsFirstMessageAnalyzing(true); // Start showing analyzing message
-      const checkedContextData = await takeScreenshotForCheck();
+      console.log('First message, checking if screenshot is required...')
+      setIsFirstMessageAnalyzing(true) // Start showing analyzing message
+      const checkedContextData = await takeScreenshotForCheck()
 
       if (checkedContextData && checkedContextData.screenshot && chatModelRef.current) {
-        const screenshotNeeded = await chatModelRef.current.isScreenshotRequired(message, checkedContextData.screenshot.base64);
+        const screenshotNeeded = await chatModelRef.current.isScreenshotRequired(
+          message,
+          checkedContextData.screenshot.base64
+        )
         if (screenshotNeeded) {
-          console.log('Screenshot IS required by the model.');
+          console.log('Screenshot IS required by the model.')
           // Set context here only if screenshot is required
-          setContext(checkedContextData);
+          setContext(checkedContextData)
           // Update the user message with the screenshot context
           updateMessage(state.messages[state.messages.length - 1].id, {
             context: checkedContextData
-          });
-          currentMessageContext = checkedContextData;
+          })
+          currentMessageContext = checkedContextData
           // Only show screenshot captured message after we know it's needed
           addMessage({
             role: 'assistant',
             content: '📸 Screenshot detected and will be used for this query.',
             status: 'complete'
-          });
+          })
         } else {
-          console.log('Screenshot is NOT required by the model.');
+          console.log('Screenshot is NOT required by the model.')
           // Clear context if it was set by takeScreenshotForCheck (not used)
-          setContext(undefined);
-          currentMessageContext = undefined;
+          setContext(undefined)
+          currentMessageContext = undefined
         }
       } else {
-        console.log('Could not take screenshot for check, or model not available, or screenshot data missing.');
+        console.log(
+          'Could not take screenshot for check, or model not available, or screenshot data missing.'
+        )
         // Ensure context is cleared if takeScreenshotForCheck failed or didn't provide data
-        setContext(undefined);
-        currentMessageContext = undefined;
+        setContext(undefined)
+        currentMessageContext = undefined
       }
-      setFirstMessage(false);
-      setIsFirstMessageAnalyzing(false); // Stop showing analyzing message after check
+      setFirstMessage(false)
+      setIsFirstMessageAnalyzing(false) // Stop showing analyzing message after check
     }
 
     setProcessing(true)
@@ -157,8 +176,10 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
     }
 
     // Generate a unique ID for the streaming message
-    const streamingMessageId = `streaming-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-    
+    const streamingMessageId = `streaming-${Date.now()}-${Math.random()
+      .toString(36)
+      .substr(2, 9)}`
+
     // Create empty assistant message for streaming with our own ID
     const streamingMessage = {
       id: streamingMessageId,
@@ -171,7 +192,7 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
         hasImageAnalysis: !!currentMessageContext?.screenshot
       }
     }
-    
+
     addMessageWithId(streamingMessage)
 
     try {
@@ -207,7 +228,7 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
       })
     } finally {
       setProcessing(false)
-      setContext(undefined);
+      setContext(undefined)
     }
   }
 
@@ -227,13 +248,13 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
       console.log('Taking screenshot...')
       const screenshotPath = await onTakeScreenshot()
       console.log('Screenshot path:', screenshotPath)
-      
+
       const screenshotDataUrl = await onGetImagePreview(screenshotPath)
       console.log('Screenshot data URL length:', screenshotDataUrl.length)
-      
+
       // Extract base64 data from data URL
       const base64Data = screenshotDataUrl.replace(/^data:image\/[a-z]+;base64,/, '')
-      
+
       // Set the screenshot in context for the next message
       const newContextData: ContextData = {
         screenshot: {
@@ -242,8 +263,8 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
           preview: screenshotDataUrl,
           timestamp: new Date()
         }
-      };
-      setContext(newContextData);
+      }
+      setContext(newContextData)
 
       // Don't show the screenshot captured message here anymore
       // It will be shown after detection if needed
@@ -251,9 +272,11 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
       console.error('Screenshot error:', error)
       addMessage({
         role: 'assistant',
-        content: `Failed to take screenshot: ${error.message}`,
+        content:
+          '❌ Error: Could not capture screenshot. Please ensure the app has screen recording permissions.',
         status: 'error'
       })
+      setContext(undefined) // Clear context on error
     }
   }
 
@@ -278,6 +301,16 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
               <span className="text-lg">↺</span>
             </button>
             <ModelPicker />
+            {selectedModelId.startsWith('local-') && (
+              <button
+                onClick={toggleLocalModelSettings}
+                className="p-1 rounded-md hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Local Model Settings"
+                title="Local Model Settings"
+              >
+                <span className="text-lg">⚙️</span> {/* Gear icon */}
+              </button>
+            )}
           </div>
         </div>
         {isFirstMessageAnalyzing && (
@@ -293,6 +326,13 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
           </div>
         )}
       </div>
+
+      {/* Local Model Settings */}
+      {selectedModelId.startsWith('local-') && showLocalModelSettings && (
+        <div className="flex-none p-2 border-b border-zinc-700">
+          <LocalModelSettings onSelectLocalModel={handleSelectLocalModel} />
+        </div>
+      )}
 
       {/* Messages */}
       <div className="wagoo-chat-messages">

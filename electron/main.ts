@@ -1,6 +1,7 @@
 import { app, BrowserWindow, screen, shell, ipcMain } from "electron"
 import path from "path"
 import { initializeIpcHandlers } from "./ipcHandlers"
+import { initializeLocalModelIpcHandlers } from "./localModelIpcHandlers"
 import { LocalProcessingHelper } from "./LocalProcessingHelper"
 import { ScreenshotHelper } from "./ScreenshotHelper"
 import { ShortcutsHelper } from "./shortcuts"
@@ -495,7 +496,8 @@ function loadEnvVariables() {
     VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL ? "exists" : "missing",
     VITE_SUPABASE_ANON_KEY: process.env.VITE_SUPABASE_ANON_KEY
       ? "exists"
-      : "missing"
+      : "missing",
+    VITE_OPENAI_API_KEY: process.env.VITE_OPENAI_API_KEY ? "exists" : "missing"
   })
 }
 
@@ -534,6 +536,7 @@ async function initializeApp() {
       moveWindowUp: () => moveWindowVertical((y) => y - state.step),
       moveWindowDown: () => moveWindowVertical((y) => y + state.step)
     })
+    await initializeLocalModelIpcHandlers()
     await createWindow()
     await createButtonWindow()
     state.shortcutsHelper?.registerGlobalShortcuts()
@@ -605,14 +608,14 @@ async function createButtonWindow(): Promise<void> {
   const workArea = primaryDisplay.workAreaSize
   
   // Small window for just the button (68x68 pixels)
-  const buttonSize = 60
+  const buttonSize = 68
   const margin = 10
   
   const windowSettings: Electron.BrowserWindowConstructorOptions = {
     width: buttonSize,
     height: buttonSize,
     x: workArea.width - buttonSize - margin,
-    y: workArea.height - buttonSize, // Position very close to bottom of screen
+    y: workArea.height - buttonSize - 10, // Position very close to bottom of screen
     alwaysOnTop: true,
     webPreferences: {
       nodeIntegration: false,

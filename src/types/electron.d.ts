@@ -32,6 +32,8 @@ export interface ElectronAPI {
   onKeyboardToggleWindow: (callback: () => void) => () => void
   onKeyboardToggleButton: (callback: () => void) => () => void
   openExternal: (url: string) => void
+  getEnvVar: (varName: string) => Promise<string | undefined>
+  getImagePreview: (path: string) => Promise<string>
   toggleMainWindow: () => Promise<{ success: boolean; error?: string }>
   triggerScreenshot: () => Promise<{ success: boolean; error?: string }>
   triggerProcessScreenshots: () => Promise<{ success: boolean; error?: string }>
@@ -46,18 +48,18 @@ export interface ElectronAPI {
   installUpdate: () => void
   onUpdateAvailable: (callback: (info: any) => void) => () => void
   onUpdateDownloaded: (callback: (info: any) => void) => () => void
-
   decrementCredits: () => Promise<void>
-  setInitialCredits: (credits: number) => Promise<void>
   onCreditsUpdated: (callback: (credits: number) => void) => () => void
   onOutOfCredits: (callback: () => void) => () => void
-  openSettingsPortal: () => Promise<void>
   getPlatform: () => string
+  // Local model methods
+  invokeLocalChatModel: (method: string, args: any) => Promise<any>
+  getAvailableLocalModels: () => Promise<{ success: boolean; data?: string[]; error?: string }>
 }
 
 declare global {
   interface Window {
-    electronAPI: ElectronAPI
+    electronAPI?: ElectronAPI
     electron: {
       ipcRenderer: {
         on: (channel: string, func: (...args: any[]) => void) => void
@@ -70,3 +72,5 @@ declare global {
     __CREDITS__: number
   }
 }
+
+export {};

@@ -36,6 +36,11 @@ export const AI_MODEL_PROVIDERS: AiModelProvider[] = [
       { id: 'google:gemini-1.5-pro', name: 'Gemini 2.5 Pro', provider: 'google' },
     ],
   },
+  {
+    id: 'local',
+    name: 'Local Models',
+    models: [],
+  },
 ];
 
 export const DEFAULT_CHAT_MODEL_ID = AI_MODEL_PROVIDERS[0].models[0].id; 
