@@ -1,13 +1,13 @@
 import OpenAI from 'openai'
-import { BaseChatModel } from '../../base/ChatModel'
-import { ModelConfig, ModelResponse } from '../../base/types'
-import { ChatMessage, ContextData } from '../../../types/chat'
+import { ChatMessage, ContextData, IChatModel, ChatModelConfig } from '../../../types/chat'
+import { buildOpenAIMessages } from '../../../prompts/openai' // Import the new prompt builder
 
-export class OpenAIChatModel extends BaseChatModel {
-  private openai: OpenAI
+export class OpenAIChatModel implements IChatModel {
+  private openai: OpenAI;
+  private config: ChatModelConfig; // Store the config
 
-  constructor(config: ModelConfig) {
-    super(config)
+  constructor(config: ChatModelConfig) {
+    this.config = config;
     this.openai = new OpenAI({
       apiKey: config.apiKey,
       dangerouslyAllowBrowser: true // Allow browser usage
@@ -16,77 +16,20 @@ export class OpenAIChatModel extends BaseChatModel {
 
   async sendMessageStream(
     message: string,
-    context?: ContextData,
+    contextData?: ContextData,
     conversationHistory?: ChatMessage[],
     onChunk?: (chunk: string) => void
-  ): Promise<ModelResponse<string>> {
+  ): Promise<{ success: boolean; error?: string; data?: string; usage?: { promptTokens: number; completionTokens: number; totalTokens: number; }; }> {
     try {
-      const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-        {
-          role: "system",
-          content: `You are Wagoo, a helpful AI assistant that can help with any task and respond to any queries. You may be provided with an image analysis summary to help provide context for your response.
-          
-          You can:
-          - Answer questions about anything
-          - Use image analysis summaries to understand what the user is seeing
-          - Help with coding, writing, problem-solving
-          - Provide explanations and guidance
-          
-          Be helpful, concise, and friendly. 
-          Provide a response that answers the question using any provided image analysis as context.
-          `
-        }
-      ]
-
-      // Add conversation history
-      if (conversationHistory && conversationHistory.length > 0) {
-        // Take last 25 messages to avoid token limits
-        const recentHistory = conversationHistory.slice(-25)
-        for (const msg of recentHistory) {
-          if (msg.role !== 'system') {
-            // For conversation history, just include text content without re-analyzing images
-            messages.push({
-              role: msg.role as 'user' | 'assistant',
-              content: msg.content
-            })
-          }
-        }
-      }
-
-      // Handle current message with potential image analysis
-      let userMessageContent: OpenAI.Chat.Completions.ChatCompletionContentPart[] = [{ type: 'text', text: message }];
-
-      if (context?.screenshot) {
-        console.log('Attaching image for targeted analysis...');
-        
-        userMessageContent = [
-          {
-            type: "text",
-            text: `Analyze the attached screenshot in the context of my query: "${message}". Please provide a direct and relevant response.`
-          },
-          {
-            type: "image_url",
-            image_url: {
-              url: `data:image/png;base64,${context.screenshot.base64}`,
-              detail: "high"
-            }
-          }
-        ];
-        
-        console.log('Image attached, proceeding with streaming response...');
-      }
-
-      messages.push({
-        role: "user",
-        content: userMessageContent
-      })
+      // Use the modular prompt builder
+      const messages = buildOpenAIMessages(message, conversationHistory || [], contextData);
 
       // Create streaming completion
       const stream = await this.openai.chat.completions.create({
-        model: this.config.model || "gpt-4o",
+        model: this.config.model,
         messages,
-        temperature: this.config.temperature || 0.7,
-        max_tokens: this.config.maxTokens || 2000,
+        temperature: this.config.temperature,
+        max_tokens: this.config.maxTokens,
         stream: true,
       })
 
@@ -145,7 +88,7 @@ export class OpenAIChatModel extends BaseChatModel {
   async isScreenshotRequired(message: string, screenshot: string): Promise<boolean> {
     try {
       const response = await this.openai.chat.completions.create({
-        model: this.config.model || "gpt-4o",
+        model: this.config.model,
         messages: [
           {
             role: "user",

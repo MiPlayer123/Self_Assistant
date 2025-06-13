@@ -7,11 +7,11 @@ interface ChatInputProps {
   hasScreenshot: boolean
 }
 
-export function ChatInput({ 
-  onSendMessage, 
-  onTakeScreenshot, 
-  isProcessing, 
-  hasScreenshot 
+export function ChatInput({
+  onSendMessage,
+  onTakeScreenshot,
+  isProcessing,
+  hasScreenshot
 }: ChatInputProps) {
   const [message, setMessage] = useState('')
   const textareaRef = React.useRef<HTMLTextAreaElement>(null)

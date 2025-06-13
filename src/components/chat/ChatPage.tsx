@@ -2,9 +2,10 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useChat } from '../../contexts/ChatContext'
 import { ChatMessage } from './ChatMessage'
 import { ChatInput } from './ChatInput'
-import { OpenAIChatModel } from '../../models/providers/openai/ChatModel'
-import { getOpenAIApiKey } from '../../models/ModelManager'
-import { ContextData } from '../../types/chat'
+import { ContextData, IChatModel } from '../../types/chat'
+import { useModel } from '../../contexts/ModelContext'
+import ModelPicker from '../chat/ModelPicker'
+import { getChatModel } from '../../models/ModelManager'
 
 interface ChatPageProps {
   onTakeScreenshot: () => Promise<string>
@@ -13,8 +14,9 @@ interface ChatPageProps {
 
 export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps) {
   const { state, addMessage, addMessageWithId, updateMessage, appendToMessage, setProcessing, setContext, clearMessages, setFirstMessage } = useChat()
+  const { selectedModelId } = useModel();
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const chatModelRef = useRef<OpenAIChatModel | null>(null)
+  const chatModelRef = useRef<IChatModel | null>(null)
   const welcomeMessageAddedRef = useRef<boolean>(false)
 
   // New state for controlling the 'Analyzing' message
@@ -24,26 +26,20 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
   useEffect(() => {
     const initializeModel = async () => {
       try {
-        const apiKey = await getOpenAIApiKey()
-        chatModelRef.current = new OpenAIChatModel({
-          apiKey,
-          model: 'gpt-4o',
-          temperature: 0.7,
-          maxTokens: 2000
-        })
-        console.log('Chat model initialized successfully')
+        chatModelRef.current = await getChatModel(selectedModelId);
+        console.log(`Chat model initialized successfully with model: ${selectedModelId}`)
       } catch (error) {
         console.error('Failed to initialize chat model:', error)
         addMessage({
           role: 'assistant',
-          content: '❌ Error: Could not initialize AI model. Please set your OpenAI API key in the .env file:\n\nVITE_OPENAI_API_KEY=your_api_key_here\n\nThen restart the application.',
+          content: '❌ Error: Could not initialize AI model. Please ensure your API key is correctly set in the .env file for the selected model provider and restart the application.',
           status: 'error'
         })
       }
     }
     
     initializeModel()
-  }, []) // Remove dependencies to prevent re-initialization
+  }, [selectedModelId]) // Re-initialize when selectedModelId changes
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -171,7 +167,7 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
       timestamp: new Date(),
       status: 'streaming' as const,
       metadata: {
-        model: state.selectedModel,
+        model: selectedModelId,
         hasImageAnalysis: !!currentMessageContext?.screenshot
       }
     }
@@ -193,7 +189,7 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
         updateMessage(streamingMessageId, {
           status: 'complete',
           metadata: {
-            model: state.selectedModel,
+            model: selectedModelId,
             tokenUsage: response.usage,
             hasImageAnalysis: !!currentMessageContext?.screenshot
           }
@@ -281,9 +277,7 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
             >
               <span className="text-lg">↺</span>
             </button>
-            <div className="text-sm wagoo-text-muted">
-              Model: {state.selectedModel}
-            </div>
+            <ModelPicker />
           </div>
         </div>
         {isFirstMessageAnalyzing && (

@@ -41,4 +41,21 @@ export interface ChatState {
 }
 
 export type ChatRole = 'user' | 'assistant' | 'system'
-export type MessageStatus = 'sending' | 'complete' | 'error' 
+export type MessageStatus = 'sending' | 'complete' | 'error'
+
+export interface ChatModelConfig {
+  apiKey: string;
+  model: string;
+  temperature: number;
+  maxTokens: number;
+}
+
+export interface IChatModel {
+  sendMessageStream(
+    userMessage: string,
+    contextData: ContextData | undefined,
+    chatHistory: ChatMessage[],
+    onChunk: (chunk: string) => void
+  ): Promise<{ success: boolean; error?: string; data?: string; usage?: { promptTokens: number; completionTokens: number; totalTokens: number; }; }>;
+  isScreenshotRequired(message: string, base64ImageData: string): Promise<boolean>;
+} 

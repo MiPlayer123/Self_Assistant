@@ -3,7 +3,7 @@ import fs from "node:fs"
 import { ScreenshotHelper } from "./ScreenshotHelper"
 import { IProcessingHelperDeps } from "./main"
 import { BrowserWindow } from "electron"
-import { ModelManager, initializeModelManager, getOpenAIApiKey } from "../src/models"
+import { ModelManager, initializeModelManager, getApiKey } from "../src/models/ModelManager"
 
 export class LocalProcessingHelper {
   private deps: IProcessingHelperDeps
@@ -26,8 +26,8 @@ export class LocalProcessingHelper {
 
   private async initializeModel() {
     try {
-      // For Electron main process, use process.env directly
-      const apiKey = process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY
+      const apiKey = await getApiKey('openai')
+      
       if (!apiKey) {
         throw new Error('OpenAI API key not found in environment variables')
       }
@@ -162,7 +162,7 @@ export class LocalProcessingHelper {
           }))
         )
 
-        const result = await this.processScreenshotsHelper(screenshots, signal)
+        const result = await this.modelManager.extractProblem(screenshots.map(s => s.data), await this.getLanguage());
 
         if (!result.success) {
           console.log("Processing failed:", result.error)
@@ -220,7 +220,7 @@ export class LocalProcessingHelper {
           }))
         )
 
-        const result = await this.processExtraScreenshotsHelper(screenshots, signal)
+        const result = await this.modelManager.debugCode(this.deps.getProblemInfo()!, screenshots.map(s => s.data))
 
         if (result.success) {
           mainWindow.webContents.send(
@@ -249,128 +249,58 @@ export class LocalProcessingHelper {
   private async processScreenshotsHelper(
     screenshots: Array<{ path: string; data: string }>,
     signal: AbortSignal
-  ) {
+  ): Promise<{ success: boolean; data?: any; error?: string }> {
     if (!this.modelManager) {
-      return { success: false, error: "Model manager not initialized" }
+      return { success: false, error: "Model manager not initialized." };
+    }
+    const language = await this.getLanguage();
+    const problemInfoResult = await this.modelManager.extractProblem(screenshots.map(s => s.data), language);
+
+    if (!problemInfoResult.success || !problemInfoResult.data) {
+      return { success: false, error: problemInfoResult.error || "Failed to extract problem." };
     }
 
-    try {
-      const imageDataList = screenshots.map((screenshot) => screenshot.data)
-      const mainWindow = this.deps.getMainWindow()
-      const language = await this.getLanguage()
+    this.deps.setProblemInfo(problemInfoResult.data);
+    const generatedSolutionsResult = await this.modelManager.generateSolutions(problemInfoResult.data);
 
-      // Check if aborted
-      if (signal.aborted) {
-        return { success: false, error: "Processing was canceled by the user." }
-      }
-
-      // First step - extract problem info
-      console.log("Extracting problem information...")
-      const problemResult = await this.modelManager.extractProblem(imageDataList, language)
-
-      if (!problemResult.success) {
-        throw new Error(problemResult.error || "Failed to extract problem information")
-      }
-
-      console.log("Problem extracted successfully:", problemResult.data)
-      
-      // Store problem info in AppState
-      this.deps.setProblemInfo(problemResult.data)
-
-      // Send first success event
-      if (mainWindow) {
-        mainWindow.webContents.send(
-          this.deps.PROCESSING_EVENTS.PROBLEM_EXTRACTED,
-          problemResult.data
-        )
-
-        // Check if aborted before generating solutions
-        if (signal.aborted) {
-          return { success: false, error: "Processing was canceled by the user." }
-        }
-
-        // Generate solutions after successful extraction
-        console.log("Generating solutions...")
-        const solutionsResult = await this.modelManager.generateSolutions(problemResult.data!)
-        
-        if (solutionsResult.success) {
-          console.log("Solutions generated successfully")
-          // Clear any existing extra screenshots before transitioning to solutions view
-          this.screenshotHelper.clearExtraScreenshotQueue()
-          return { success: true, data: solutionsResult.data }
-        } else {
-          throw new Error(solutionsResult.error || "Failed to generate solutions")
-        }
-      }
-
-      return { success: false, error: "Main window not available" }
-    } catch (error: any) {
-      console.error("Local processing error:", error)
-      return { success: false, error: error.message || "Processing failed" }
+    if (!generatedSolutionsResult.success) {
+      return { success: false, error: generatedSolutionsResult.error || "Failed to generate solutions." };
     }
+
+    return { success: true, data: generatedSolutionsResult.data };
   }
 
   private async processExtraScreenshotsHelper(
     screenshots: Array<{ path: string; data: string }>,
     signal: AbortSignal
-  ) {
+  ): Promise<{ success: boolean; data?: any; error?: string }> {
     if (!this.modelManager) {
-      return { success: false, error: "Model manager not initialized" }
+      return { success: false, error: "Model manager not initialized." };
+    }
+    const problemInfo = this.deps.getProblemInfo();
+    if (!problemInfo) {
+      return { success: false, error: "No current problem info found for debugging." };
     }
 
-    try {
-      const imageDataList = screenshots.map((screenshot) => screenshot.data)
-      const problemInfo = this.deps.getProblemInfo()
+    const debugInfoResult = await this.modelManager.debugCode(problemInfo, screenshots.map(s => s.data));
 
-      if (!problemInfo) {
-        throw new Error("No problem info available")
-      }
-
-      // Check if aborted
-      if (signal.aborted) {
-        return { success: false, error: "Processing was canceled by the user." }
-      }
-
-      console.log("Debugging code...")
-      const debugResult = await this.modelManager.debugCode(problemInfo, imageDataList)
-
-      if (debugResult.success) {
-        console.log("Debug completed successfully")
-        return { success: true, data: debugResult.data }
-      } else {
-        throw new Error(debugResult.error || "Failed to debug code")
-      }
-    } catch (error: any) {
-      console.error("Local debug processing error:", error)
-      return { success: false, error: error.message || "Debug processing failed" }
+    if (!debugInfoResult.success) {
+      return { success: false, error: debugInfoResult.error || "Failed to debug code." };
     }
+
+    return { success: true, data: debugInfoResult.data };
   }
 
   public cancelOngoingRequests(): void {
-    let wasCancelled = false
-
     if (this.currentProcessingAbortController) {
-      this.currentProcessingAbortController.abort()
-      this.currentProcessingAbortController = null
-      wasCancelled = true
+      this.currentProcessingAbortController.abort();
+      this.currentProcessingAbortController = null;
+      console.log("Canceled ongoing processing request.");
     }
-
     if (this.currentExtraProcessingAbortController) {
-      this.currentExtraProcessingAbortController.abort()
-      this.currentExtraProcessingAbortController = null
-      wasCancelled = true
-    }
-
-    // Reset hasDebugged flag
-    this.deps.setHasDebugged(false)
-
-    // Clear any pending state
-    this.deps.setProblemInfo(null)
-
-    const mainWindow = this.deps.getMainWindow()
-    if (wasCancelled && mainWindow && !mainWindow.isDestroyed()) {
-      // Send a clear message that processing was cancelled
-      mainWindow.webContents.send(this.deps.PROCESSING_EVENTS.NO_SCREENSHOTS)
+      this.currentExtraProcessingAbortController.abort();
+      this.currentExtraProcessingAbortController = null;
+      console.log("Canceled ongoing extra processing request.");
     }
   }
 } 
