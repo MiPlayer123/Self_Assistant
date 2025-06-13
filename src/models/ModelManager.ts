@@ -130,8 +130,13 @@ export async function getChatModel(modelId: string): Promise<IChatModel> {
         maxTokens: 2000, // Default max tokens
       })
     case 'google':
-      // TODO: Implement GoogleChatModel
-      throw new Error('Google model not yet implemented')
+      const { GeminiChatModel } = await import('./providers/google/ChatModel')
+      return new GeminiChatModel({
+        apiKey,
+        model: modelValue,
+        temperature: 0.7,
+        maxTokens: 2000, // Default max tokens
+      })
     default:
       throw new Error(`Unsupported model provider: ${providerId}`)
   }
