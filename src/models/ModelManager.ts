@@ -107,14 +107,12 @@ export async function getApiKey(providerId: string): Promise<string> {
 
 // Factory function to get chat model (for the new chat feature)
 export async function getChatModel(modelId: string): Promise<IChatModel> {
-  const [providerPrefix, modelValue] = modelId.split('-'); // Split by '-' to handle local-modelName
-
   let providerId: string;
   let actualModelValue: string;
 
-  if (providerPrefix === 'local') {
+  if (modelId.startsWith('local-')) {
     providerId = 'local';
-    actualModelValue = modelValue; // modelValue will be the filename here
+    actualModelValue = modelId.substring(6); // Remove 'local-' prefix to get the full filename
   } else {
     // For non-local models, split by ':' as before
     const parts = modelId.split(':');
@@ -134,7 +132,7 @@ export async function getChatModel(modelId: string): Promise<IChatModel> {
     const { LocalChatModel } = await import('./providers/local/ChatModel')
     return new LocalChatModel({
       apiKey: '', // Not needed for local models
-      model: actualModelValue, // This will now be the filename for local models
+      model: actualModelValue, // This will now be the full filename for local models
       temperature: 0.7,
       maxTokens: 2000,
     })

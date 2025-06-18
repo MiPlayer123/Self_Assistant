@@ -1,34 +1,43 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useImperativeHandle, forwardRef } from 'react';
 import { useModel } from '../../contexts/ModelContext';
 import { AI_MODEL_PROVIDERS, AiModel } from '../../lib/aiModels';
 
-const ModelPicker: React.FC = () => {
+export interface ModelPickerRef {
+  refreshLocalModels: () => void;
+}
+
+const ModelPicker = forwardRef<ModelPickerRef>((props, ref) => {
   const { selectedModelId, setSelectedModelId } = useModel();
   const [dynamicLocalModels, setDynamicLocalModels] = useState<AiModel[]>([]);
 
-  useEffect(() => {
-    const fetchLocalModels = async () => {
-      if (window.electronAPI) {
-        try {
-          const response = await window.electronAPI.getAvailableLocalModels();
-          if (response.success && response.data) {
-            const models: AiModel[] = response.data.map(filename => ({
-              id: `local-${filename}`,
-              name: filename.replace('.gguf', ''), // Display name without .gguf extension
-              provider: 'local',
-            }));
-            setDynamicLocalModels(models);
-          } else {
-            console.error('Failed to fetch local models:', response.error);
-          }
-        } catch (error) {
-          console.error('Error fetching local models:', error);
+  const fetchLocalModels = async () => {
+    if (window.electronAPI) {
+      try {
+        const response = await window.electronAPI.getAvailableLocalModels();
+        if (response.success && response.data) {
+          const models: AiModel[] = response.data.map(filename => ({
+            id: `local-${filename}`,
+            name: filename.replace('.gguf', ''), // Display name without .gguf extension
+            provider: 'local',
+          }));
+          setDynamicLocalModels(models);
+        } else {
+          console.error('Failed to fetch local models:', response.error);
         }
+      } catch (error) {
+        console.error('Error fetching local models:', error);
       }
-    };
+    }
+  };
 
+  useEffect(() => {
     fetchLocalModels();
   }, []);
+
+  // Expose refresh function to parent components
+  useImperativeHandle(ref, () => ({
+    refreshLocalModels: fetchLocalModels
+  }));
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedModelId(event.target.value);
@@ -75,6 +84,8 @@ const ModelPicker: React.FC = () => {
       </div>
     </div>
   );
-};
+});
+
+ModelPicker.displayName = 'ModelPicker';
 
 export default ModelPicker; 

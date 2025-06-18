@@ -61,6 +61,12 @@ interface ElectronAPI {
   installUpdate: () => void
   onUpdateAvailable: (callback: (info: any) => void) => () => void
   onUpdateDownloaded: (callback: (info: any) => void) => () => void
+  // Local model methods
+  invokeLocalChatModel: (method: string, args: any) => Promise<any>
+  getAvailableLocalModels: () => Promise<{ success: boolean; data?: string[]; error?: string }>
+  // Generic listener methods for streaming support
+  addListener: (channel: string, callback: (data: any) => void) => () => void
+  removeListener: (channel: string, callback: (data: any) => void) => void
 }
 
 interface Window {

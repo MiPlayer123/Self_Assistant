@@ -21,7 +21,7 @@ export async function initializeLocalModelIpcHandlers() {
     ipcMain.handle('invokeLocalChatModel', async (event, { method, args }) => {
       try {
         if (method === 'sendMessage') {
-          const { message, conversationHistory, modelPath, temperature, maxTokens } = args;
+          const { message, contextData, conversationHistory, modelPath, temperature, maxTokens } = args;
 
           const resolvedModelPath = await resolveModelFile(modelPath, localModelsDirectory);
 
@@ -51,24 +51,58 @@ export async function initializeLocalModelIpcHandlers() {
               .join('\n') + '\n';
           }
 
-          const fullPrompt = conversationContext + `User: ${message}\nAssistant:`;
+          // Handle screenshot context - COMMENTED OUT FOR TESTING
+          let fullPrompt = '';
+          // if (contextData?.screenshot) {
+          //   // WARNING: Current implementation provides text context only
+          //   // For true multimodal support, need:
+          //   // 1. Multimodal GGUF model (e.g., LLaVA)
+          //   // 2. node-llama-cpp with multimodal support
+          //   // 3. Proper image data passing to model
+          //   
+          //   // For now, provide text context about the image
+          //   fullPrompt = conversationContext + 
+          //     `User: I have provided a screenshot for context. Please analyze my query in relation to what might be shown in the screenshot: "${message}"\n` +
+          //     `Note: The screenshot was taken at ${contextData.screenshot.timestamp} and may contain visual information relevant to my question.\n` +
+          //     `Assistant:`;
+          // } else {
+            fullPrompt = conversationContext + `User: ${message}\nAssistant:`;
+          // }
+
+          console.log('Local Model: Starting inference with prompt length:', fullPrompt.length);
+          console.log('Local Model: Full prompt:', fullPrompt);
 
           let fullResponse = '';
           let tokenCount = 0;
 
-          await session.prompt(fullPrompt, {
+          // Stream text chunks in real-time to the renderer process
+          const response = await session.prompt(fullPrompt, {
             temperature: temperature || 0.7,
             maxTokens: maxTokens || 2000,
-            onToken: (chunk: any) => {
-              const chunkText = chunk.toString();
-              fullResponse += chunkText;
+            onTextChunk: (chunk: string) => {
+              fullResponse += chunk;
               tokenCount++;
+              console.log('Local Model: Received text chunk:', chunk);
+              
+              // Send chunk immediately to renderer process for real-time streaming
+              event.sender.send('localModelChunk', {
+                chunk: chunk,
+                messageId: args.messageId // We'll need to pass this from the renderer
+              });
             }
           });
 
+          console.log('Local Model: Final response from session.prompt:', response);
+          console.log('Local Model: Final response length:', fullResponse.length);
+          console.log('Local Model: Final response:', fullResponse);
+          console.log('Local Model: Total chunks received:', tokenCount);
+
+          // Use the response from session.prompt if fullResponse is empty or malformed
+          const finalResponse = fullResponse || response;
+
           return {
             success: true,
-            data: fullResponse,
+            data: finalResponse,
             usage: {
               promptTokens: Math.floor(tokenCount * 0.7),
               completionTokens: Math.floor(tokenCount * 0.3),

@@ -4,7 +4,7 @@ import { ChatMessage } from './ChatMessage'
 import { ChatInput } from './ChatInput'
 import { ContextData, IChatModel } from '../../types/chat'
 import { useModel } from '../../contexts/ModelContext'
-import ModelPicker from '../chat/ModelPicker'
+import ModelPicker, { ModelPickerRef } from '../chat/ModelPicker'
 import { getChatModel } from '../../models/ModelManager'
 import { LocalModelSettings } from './LocalModelSettings'
 
@@ -19,6 +19,7 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const chatModelRef = useRef<IChatModel | null>(null)
   const welcomeMessageAddedRef = useRef<boolean>(false)
+  const modelPickerRef = useRef<ModelPickerRef>(null)
 
   // New state for controlling the 'Analyzing' message
   const [isFirstMessageAnalyzing, setIsFirstMessageAnalyzing] = useState(false)
@@ -28,6 +29,11 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
   // Handler for selecting a local model
   const handleSelectLocalModel = (modelFilename: string) => {
     setSelectedModelId(`local-${modelFilename}`); // Prepend 'local-' to distinguish local models
+  };
+
+  // Handler for when a model is downloaded - refresh the ModelPicker
+  const handleModelDownloaded = () => {
+    modelPickerRef.current?.refreshLocalModels();
   };
 
   // Toggle local model settings visibility
@@ -140,12 +146,7 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
             context: checkedContextData
           })
           currentMessageContext = checkedContextData
-          // Only show screenshot captured message after we know it's needed
-          addMessage({
-            role: 'assistant',
-            content: '📸 Screenshot detected and will be used for this query.',
-            status: 'complete'
-          })
+          // Screenshot detection message removed
         } else {
           console.log('Screenshot is NOT required by the model.')
           // Clear context if it was set by takeScreenshotForCheck (not used)
@@ -166,14 +167,7 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
 
     setProcessing(true)
 
-    // Show processing message if image is included
-    if (currentMessageContext?.screenshot) {
-      addMessage({
-        role: 'assistant',
-        content: '🖼️ Analyzing image and processing your request...',
-        status: 'complete'
-      })
-    }
+    // Image processing message removed
 
     // Generate a unique ID for the streaming message
     const streamingMessageId = `streaming-${Date.now()}-${Math.random()
@@ -300,7 +294,7 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
             >
               <span className="text-lg">↺</span>
             </button>
-            <ModelPicker />
+            <ModelPicker ref={modelPickerRef} />
             {selectedModelId.startsWith('local-') && (
               <button
                 onClick={toggleLocalModelSettings}
@@ -330,7 +324,10 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
       {/* Local Model Settings */}
       {selectedModelId.startsWith('local-') && showLocalModelSettings && (
         <div className="flex-none p-2 border-b border-zinc-700">
-          <LocalModelSettings onSelectLocalModel={handleSelectLocalModel} />
+          <LocalModelSettings 
+            onSelectLocalModel={handleSelectLocalModel} 
+            onModelDownloaded={handleModelDownloaded}
+          />
         </div>
       )}
 

@@ -60,6 +60,9 @@ interface ElectronAPI {
   // Local model methods
   invokeLocalChatModel: (method: string, args: any) => Promise<any>
   getAvailableLocalModels: () => Promise<{ success: boolean; data?: string[]; error?: string }>
+  // Generic listener methods for streaming support
+  addListener: (channel: string, callback: (data: any) => void) => () => void
+  removeListener: (channel: string, callback: (data: any) => void) => void
 }
 
 export const PROCESSING_EVENTS = {
@@ -279,7 +282,18 @@ const electronAPI = {
   invokeLocalChatModel: async (method: string, args: any) => {
     return ipcRenderer.invoke("invokeLocalChatModel", { method, args })
   },
-  getAvailableLocalModels: () => ipcRenderer.invoke("getAvailableLocalModels")
+  getAvailableLocalModels: () => ipcRenderer.invoke("getAvailableLocalModels"),
+  // Generic listener methods for streaming support
+  addListener: (channel: string, callback: (data: any) => void) => {
+    const subscription = (_: any, data: any) => callback(data);
+    ipcRenderer.on(channel, subscription);
+    return () => {
+      ipcRenderer.removeListener(channel, subscription);
+    };
+  },
+  removeListener: (channel: string, callback: (data: any) => void) => {
+    ipcRenderer.removeListener(channel, callback);
+  }
 } as ElectronAPI
 
 // Before exposing the API
