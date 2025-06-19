@@ -161,8 +161,46 @@ export class ClaudeChatModel implements IChatModel {
     }
   }
 
-  async isScreenshotRequired(message: string, base64ImageData: string): Promise<boolean> {
-    console.log('ClaudeChatModel: isScreenshotRequired called, assuming true if image data is present.');
-    return !!base64ImageData;
+  async isScreenshotRequired(message: string, screenshot: string): Promise<boolean> {
+    try {
+      console.log('Claude: Checking if screenshot is required for message:', message.substring(0, 100) + '...');
+      
+      // Use the existing client but with Haiku model for screenshot detection (faster and cheaper)
+      const response = await this.client.messages.create({
+        model: 'claude-3-5-haiku-20241022', // Use Haiku for screenshot detection
+        max_tokens: 10,
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: `Does the following query require the attached screenshot or content on the screen to be answered effectively? Assume the query is the only context provided. Respond with only "true" or "false".\n\nQuery: "${message}"`
+              },
+              {
+                type: "image",
+                source: {
+                  type: "base64",
+                  media_type: "image/png",
+                  data: screenshot
+                }
+              }
+            ]
+          }
+        ]
+      });
+
+      const result = response.content[0]?.type === 'text' ? response.content[0].text.trim().toLowerCase() : '';
+      console.log('Claude: Screenshot detection result:', result);
+      return result === "true";
+    } catch (error: any) {
+      console.error('Claude screenshot check error:', error);
+      console.error('Screenshot check error details:', {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      // In case of error, assume screenshot is not required to avoid unnecessary processing
+      return false;
+    }
   }
 } 
