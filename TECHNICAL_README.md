@@ -1,4 +1,4 @@
-# Interview Coder - Technical Architecture Guide
+# Wagoo - Technical Architecture Guide
 
 ## Overview
 An Electron-based desktop application that provides AI-powered coding assistance while remaining invisible to screen capture software. Built with React/TypeScript frontend and Node.js backend integration.

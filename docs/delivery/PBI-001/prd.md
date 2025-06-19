@@ -4,7 +4,7 @@
 
 ## Overview
 
-Transform the current application UI to match Wagoo's vision with a modern, dark translucent theme inspired by Interview Coders. This includes comprehensive styling updates, window positioning improvements, and a unified CSS architecture.
+Transform the current application UI to match Wagoo's vision with a modern, dark translucent theme inspired by professional design principles. This includes comprehensive styling updates, window positioning improvements, and a unified CSS architecture.
 
 ## Problem Statement
 
@@ -31,7 +31,7 @@ The current UI theme and window behavior doesn't align with Wagoo's intended aes
 
 ## UX/UI Considerations
 
-- Dark translucent background similar to Interview Coders aesthetic
+- Dark translucent background with a professional aesthetic
 - White text for good contrast and readability
 - Smooth animations and transitions
 - Maintain existing functionality while improving visual appeal

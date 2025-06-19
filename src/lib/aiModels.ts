@@ -34,8 +34,8 @@ export const AI_MODEL_PROVIDERS: AiModelProvider[] = [
     name: 'Google',
     models: [
       { id: 'google:gemini-2.0-flash', name: 'Gemini 2.0 Flash', provider: 'google' },
-      { id: 'google:gemini-2.5-flash-preview-06-05', name: 'Gemini 2.5 Flash (Thinking)', provider: 'google' },
-      { id: 'google:gemini-2.5-pro-preview-06-05', name: 'Gemini 2.5 Pro (Thinking)', provider: 'google' },
+      { id: 'google:gemini-2.5-flash-preview-06-05', name: 'Gemini 2.5 Flash', provider: 'google' },
+      { id: 'google:gemini-2.5-pro-preview-06-05', name: 'Gemini 2.5 Pro', provider: 'google' },
     ],
   },
   {

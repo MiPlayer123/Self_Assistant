@@ -413,7 +413,7 @@ function AuthForm() {
         <div className="w-full max-w-md space-y-8 p-4 sm:p-8">
           <div className="flex flex-col items-center justify-center space-y-6">
             <h2 className="text-2xl font-semibold text-white">
-              {isSignUp ? "Create your account" : "Log in to Interview Coder"}
+              {isSignUp ? "Create your account" : "Log in to Wagoo"}
             </h2>
 
             <div className="w-full max-w-sm space-y-4">

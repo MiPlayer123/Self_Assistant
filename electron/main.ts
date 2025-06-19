@@ -163,18 +163,18 @@ function initializeHelpers() {
 
 // Auth callback handler
 
-// Register the interview-coder protocol
+// Register the wagoo protocol
 if (process.platform === "darwin") {
-  app.setAsDefaultProtocolClient("interview-coder")
+  app.setAsDefaultProtocolClient("wagoo")
 } else {
-  app.setAsDefaultProtocolClient("interview-coder", process.execPath, [
+  app.setAsDefaultProtocolClient("wagoo", process.execPath, [
     path.resolve(process.argv[1] || "")
   ])
 }
 
 // Handle the protocol. In this case, we choose to show an Error Box.
 if (process.defaultApp && process.argv.length >= 2) {
-  app.setAsDefaultProtocolClient("interview-coder", process.execPath, [
+  app.setAsDefaultProtocolClient("wagoo", process.execPath, [
     path.resolve(process.argv[1])
   ])
 }
@@ -560,7 +560,7 @@ async function initializeApp() {
 app.on("open-url", (event, url) => {
   console.log("open-url event received:", url)
   event.preventDefault()
-  if (url.startsWith("interview-coder://")) {
+  if (url.startsWith("wagoo://")) {
     handleAuthCallback(url, state.mainWindow)
   }
 })
@@ -568,7 +568,7 @@ app.on("open-url", (event, url) => {
 // Handle the auth callback in production (Windows/Linux)
 app.on("second-instance", (event, commandLine) => {
   console.log("second-instance event received:", commandLine)
-  const url = commandLine.find((arg) => arg.startsWith("interview-coder://"))
+      const url = commandLine.find((arg) => arg.startsWith("wagoo://"))
   if (url) {
     handleAuthCallback(url, state.mainWindow)
   }

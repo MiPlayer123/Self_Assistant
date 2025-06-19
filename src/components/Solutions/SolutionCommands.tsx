@@ -430,7 +430,7 @@ const SolutionCommands: React.FC<SolutionCommandsProps> = ({
                               window.electronAPI.openSettingsPortal()
                             }
                           >
-                            www.interviewcoder.co/settings
+                            www.wagoo.co/settings
                           </span>
                         </div>
                       </div>

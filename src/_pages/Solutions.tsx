@@ -348,7 +348,7 @@ const Solutions: React.FC<SolutionsProps> = ({
       window.electronAPI.onOutOfCredits(() => {
         showToast(
           "Out of Credits",
-          "You are out of credits. Please refill at https://www.interviewcoder.co/settings.",
+          "You are out of credits. Please refill at https://www.wagoo.co/settings.",
           "error"
         )
       })

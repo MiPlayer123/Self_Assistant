@@ -1,8 +1,8 @@
-# Interview Coder
+# Wagoo
 
-An invisible desktop application that will help you pass your technical interviews.
+An invisible desktop application that serves as your general-purpose AI assistant overlay.
 
-https://www.interviewcoder.co
+https://www.wagoo.co
 
 
 https://github.com/user-attachments/assets/0615b110-2670-4b0e-bc69-3c32a2d8a996
@@ -80,12 +80,12 @@ The application uses unidentifiable global keyboard shortcuts that won't be dete
 
 - Node.js (v16 or higher)
 - npm or bun package manager
-- Subscription on https://www.interviewcoder.co/settings
+- Subscription on https://www.wagoo.co/settings
 - Screen Recording Permission for Terminal/IDE
   - On macOS:
     1. Go to System Preferences > Security & Privacy > Privacy > Screen Recording
-    2. Ensure that Interview Coder has screen recording permission enabled
-    3. Restart Interview Coder after enabling permissions
+    2. Ensure that Wagoo has screen recording permission enabled
+    3. Restart Wagoo after enabling permissions
   - On Windows:
     - No additional permissions needed
   - On Linux:
@@ -96,8 +96,8 @@ The application uses unidentifiable global keyboard shortcuts that won't be dete
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/ibttf/interview-coder-v1.git
-cd interview-coder-v1
+git clone https://github.com/ibttf/wagoo.git
+cd wagoo
 ```
 
 2. Install dependencies:
@@ -142,8 +142,8 @@ This will:
 after npm run build, hit:
 
 ```
-node scripts/manual-notarize.js "release/Interview-Coder-x64.dmg" && xcrun stapler staple "release/Interview-Coder-x64.dmg"
-node scripts/manual-notarize.js "release/Interview-Coder-arm64.dmg" && xcrun stapler staple "release/Interview-Coder-arm64.dmg"
+node scripts/manual-notarize.js "release/Wagoo-x64.dmg" && xcrun stapler staple "release/Wagoo-x64.dmg"
+node scripts/manual-notarize.js "release/Wagoo-arm64.dmg" && xcrun stapler staple "release/Wagoo-arm64.dmg"
 ```
 
 ## Contributing

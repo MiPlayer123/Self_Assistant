@@ -101,7 +101,7 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
                 if (credits <= 0) {
                   showToast(
                     "Out of Credits",
-                    "You are out of credits. Please refill at https://www.interviewcoder.co/settings.",
+                    "You are out of credits. Please refill at https://www.wagoo.co/settings.",
                     "error"
                   )
                   return
@@ -341,7 +341,7 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
                               window.electronAPI.openSettingsPortal()
                             }
                           >
-                            www.interviewcoder.co/settings
+                            www.wagoo.co/settings
                           </span>
                         </div>
                       </div>

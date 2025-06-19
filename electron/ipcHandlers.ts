@@ -157,11 +157,11 @@ export function initializeIpcHandlers(deps: IIpcHandlerDeps): void {
 
   // Subscription handlers
   ipcMain.handle("open-settings-portal", () => {
-    shell.openExternal("https://www.interviewcoder.co/settings")
+    shell.openExternal("https://www.wagoo.co/settings")
   })
   ipcMain.handle("open-subscription-portal", async (_event, authData) => {
     try {
-      const url = "https://www.interviewcoder.co/checkout"
+      const url = "https://www.wagoo.co/checkout"
       await shell.openExternal(url)
       return { success: true }
     } catch (error) {
