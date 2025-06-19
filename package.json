@@ -109,7 +109,7 @@
   "license": "ISC",
   "description": "An invisible desktop application to help you pass your technical interviews.",
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.20.0",
+    "@anthropic-ai/sdk": "^0.54.0",
     "@electron/notarize": "^2.3.0",
     "@emotion/react": "^11.11.0",
     "@emotion/styled": "^11.11.0",

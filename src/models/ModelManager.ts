@@ -91,15 +91,23 @@ export async function getApiKey(providerId: string): Promise<string> {
       throw new Error(`Unsupported provider: ${providerId}`)
   }
 
+  console.log(`Getting API key for provider: ${providerId}, env var: ${envVarName}`)
+
   if (typeof window !== 'undefined' && (window as any).electronAPI?.getEnvVar) {
     try {
+      console.log(`Attempting to get ${envVarName} from electron IPC`)
       const apiKey = await (window as any).electronAPI.getEnvVar(envVarName)
       if (apiKey) {
+        console.log(`Successfully retrieved API key for ${providerId} (length: ${apiKey.length})`)
         return apiKey
+      } else {
+        console.error(`No API key found for ${providerId} in environment variable ${envVarName}`)
       }
     } catch (error) {
       console.error(`Failed to get ${providerId} API key from IPC:`, error)
     }
+  } else {
+    console.error('electronAPI.getEnvVar not available')
   }
 
   throw new Error(`${providerId} API key not found. Please set ${envVarName} in your .env file.`)

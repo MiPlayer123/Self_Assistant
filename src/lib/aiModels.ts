@@ -24,8 +24,9 @@ export const AI_MODEL_PROVIDERS: AiModelProvider[] = [
     id: 'anthropic',
     name: 'Anthropic',
     models: [
-      { id: 'anthropic:claude-3-7-sonnet-20250219', name: 'Claude 3.7 Sonnet', provider: 'anthropic' },
-      { id: 'anthropic:claude-opus-4-20250514', name: 'Claude Opus 4', provider: 'anthropic' },
+      { id: 'anthropic:claude-sonnet-4-20250514', name: 'Claude 4 Sonnet', provider: 'anthropic' },
+      { id: 'anthropic:claude-3-7-sonnet-latest', name: 'Claude 3.7 Sonnet', provider: 'anthropic' },
+      { id: 'anthropic:claude-3-5-haiku-latest', name: 'Claude 3.5 Haiku', provider: 'anthropic' },
     ],
   },
   {

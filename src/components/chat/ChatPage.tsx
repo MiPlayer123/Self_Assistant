@@ -45,14 +45,20 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
   useEffect(() => {
     const initializeModel = async () => {
       try {
+        console.log(`Attempting to initialize chat model with ID: ${selectedModelId}`)
         chatModelRef.current = await getChatModel(selectedModelId)
         console.log(`Chat model initialized successfully with model: ${selectedModelId}`)
       } catch (error) {
         console.error('Failed to initialize chat model:', error)
+        console.error('Error details:', {
+          message: error instanceof Error ? error.message : String(error),
+          selectedModelId: selectedModelId,
+          stack: error instanceof Error ? error.stack : undefined
+        })
         addMessage({
           role: 'assistant',
           content:
-            '❌ Error: Could not initialize AI model. Please ensure your API key is correctly set in the .env file for the selected model provider and restart the application.',
+            `❌ Error: Could not initialize AI model (${selectedModelId}). Please ensure your API key is correctly set in the .env file for the selected model provider and restart the application. Error: ${error instanceof Error ? error.message : String(error)}`,
           status: 'error'
         })
       }

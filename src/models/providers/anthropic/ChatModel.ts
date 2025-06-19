@@ -1,6 +1,5 @@
 import { IChatModel, ChatMessage, ContextData } from '../../../types/chat';
 import Anthropic from '@anthropic-ai/sdk';
-import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 
 interface ClaudeChatModelConfig {
   apiKey: string;
@@ -21,7 +20,18 @@ export class ClaudeChatModel implements IChatModel {
     this.model = config.model;
     this.temperature = config.temperature;
     this.maxTokens = config.maxTokens;
-    this.client = new Anthropic({ apiKey: this.apiKey });
+    console.log('Claude: Initializing client with config:', {
+      model: this.model,
+      temperature: this.temperature,
+      maxTokens: this.maxTokens,
+      apiKeyLength: this.apiKey ? this.apiKey.length : 0,
+      apiKeyPrefix: this.apiKey ? this.apiKey.substring(0, 10) + '...' : 'missing'
+    });
+    this.client = new Anthropic({ 
+      apiKey: this.apiKey,
+      dangerouslyAllowBrowser: true // Enable browser/Electron usage like OpenAI
+    });
+    console.log('Claude: Client initialized successfully');
   }
 
   async sendMessageStream(
@@ -31,18 +41,14 @@ export class ClaudeChatModel implements IChatModel {
     onChunk: (chunk: string) => void
   ): Promise<{ success: boolean; error?: string; usage?: { promptTokens: number; completionTokens: number; totalTokens: number; }; }> {
     try {
+      console.log('Claude: Starting message stream with model:', this.model);
+      
       const messages: Anthropic.Messages.MessageParam[] = [];
-
-      // Add system prompt (optional, but good practice for Claude)
-      messages.push({
-        role: "user",
-        content: "You are Wagoo, a helpful AI assistant that can help with any task and respond to any queries. You may be provided with an image analysis summary to help provide context for your response."
-      });
 
       // Add conversation history
       if (chatHistory && chatHistory.length > 0) {
-        // Take last 25 messages to avoid token limits, similar to OpenAI
-        const recentHistory = chatHistory.slice(-25);
+        // Take last 20 messages to avoid token limits
+        const recentHistory = chatHistory.slice(-20);
         for (const msg of recentHistory) {
           if (msg.role !== 'system') {
             messages.push({
@@ -54,16 +60,16 @@ export class ClaudeChatModel implements IChatModel {
       }
 
       // Handle current message with potential image analysis
-      let userMessageContent: Anthropic.Messages.MessageParam['content'] = [{ type: 'text', text: userMessage }];
+      let userMessageContent: Anthropic.Messages.MessageParam['content'];
 
       if (contextData?.screenshot) {
-        console.log('Claude: Attaching image for targeted analysis...');
+        console.log('Claude: Attaching image for analysis...');
         userMessageContent = [
           {
             type: "image",
             source: {
               type: "base64",
-              media_type: "image/png", // Assuming PNG. Adjust if different.
+              media_type: "image/png",
               data: contextData.screenshot.base64,
             },
           },
@@ -72,7 +78,8 @@ export class ClaudeChatModel implements IChatModel {
             text: `Analyze the attached screenshot in the context of my query: "${userMessage}". Please provide a direct and relevant response.`
           },
         ];
-        console.log('Claude: Image attached.');
+      } else {
+        userMessageContent = userMessage;
       }
 
       messages.push({
@@ -80,91 +87,81 @@ export class ClaudeChatModel implements IChatModel {
         content: userMessageContent
       });
 
-      // Remove the last system message that was acting as a hack, as Claude supports system prompts directly now
-      const lastUserMessage = messages.pop();
-      const systemMessage = messages.shift(); // Remove the hacky system message
+      console.log('Claude: Sending request to API...');
 
-      if (systemMessage && systemMessage.content) {
-        // Use the actual system parameter if the first message was a system one
-        const systemPrompt = Array.isArray(systemMessage.content) ?
-          systemMessage.content.map(block => block.type === 'text' ? block.text : '').join('\n') :
-          systemMessage.content;
+      const systemPrompt = "You are Wagoo, a helpful AI assistant that can help with any task and respond to any queries. You may be provided with an image analysis summary to help provide context for your response.";
 
-        const stream = await this.client.messages.stream({
-          model: this.model,
-          max_tokens: this.maxTokens,
-          temperature: this.temperature,
-          messages: messages as Anthropic.Messages.MessageParam[],
-          system: systemPrompt,
-        });
-
-        let promptTokens = 0;
-        let completionTokens = 0;
-
-        for await (const chunk of stream) {
-          if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
-            onChunk(chunk.delta.text);
-          } else if (chunk.type === 'message_start') {
-            promptTokens = chunk.message.usage.input_tokens;
-          } else if (chunk.type === 'message_delta' && chunk.usage) {
-            completionTokens = chunk.usage.output_tokens;
-          }
-        }
-
-        return {
-          success: true,
-          usage: {
-            promptTokens,
-            completionTokens,
-            totalTokens: promptTokens + completionTokens,
-          },
-        };
-
-      } else if (lastUserMessage) {
-        // If there was no system message hack, just push back the user message
-        messages.push(lastUserMessage);
-      }
+      console.log('Claude: About to make API call with:', {
+        model: this.model,
+        messagesCount: messages.length,
+        maxTokens: this.maxTokens,
+        temperature: this.temperature,
+        systemPrompt: systemPrompt ? systemPrompt.substring(0, 100) + '...' : 'none'
+      });
 
       const stream = await this.client.messages.stream({
         model: this.model,
         max_tokens: this.maxTokens,
         temperature: this.temperature,
-        messages: messages as Anthropic.Messages.MessageParam[],
+        system: systemPrompt,
+        messages: messages,
       });
 
-      let promptTokens = 0;
-      let completionTokens = 0;
+      console.log('Claude: API call successful, stream created');
+      let fullContent = '';
+      let totalInputTokens = 0;
+      let totalOutputTokens = 0;
+
+      console.log('Claude: Processing stream...');
 
       for await (const chunk of stream) {
         if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
           onChunk(chunk.delta.text);
         } else if (chunk.type === 'message_start') {
-          promptTokens = chunk.message.usage.input_tokens;
+          totalInputTokens = chunk.message.usage.input_tokens;
         } else if (chunk.type === 'message_delta' && chunk.usage) {
-          completionTokens = chunk.usage.output_tokens;
+          totalOutputTokens = chunk.usage.output_tokens;
         }
       }
+
+      console.log('Claude: Stream completed successfully');
 
       return {
         success: true,
         usage: {
-          promptTokens,
-          completionTokens,
-          totalTokens: promptTokens + completionTokens,
+          promptTokens: totalInputTokens,
+          completionTokens: totalOutputTokens,
+          totalTokens: totalInputTokens + totalOutputTokens,
         },
       };
 
-
     } catch (error: any) {
       console.error("Error during Claude sendMessageStream:", error);
-      return { success: false, error: error.message };
+      // Log all available error details
+      if (error.response) {
+        console.error("Error response data:", error.response.data);
+        console.error("Error response status:", error.response.status);
+        console.error("Error response headers:", error.response.headers);
+      }
+      if (error.request) {
+        console.error("Error request:", error.request);
+      }
+      // Check if it's an Anthropic API error and log specific properties
+      if (error instanceof Anthropic.APIError) {
+        // Anthropic APIError object exposes status and message directly
+        console.error("Anthropic API Error - Name:", error.name);
+        console.error("Anthropic API Error - Status:", error.status);
+        console.error("Anthropic API Error - Message:", error.message); // The top-level error message
+        console.error("Anthropic API Error - Headers:", (error as any).headers); // Access headers, often useful
+        console.error("Anthropic API Error - Request ID:", (error as any)._request_id); // Access internal request ID if available
+      }
+      console.error("Full error message:", error.message);
+      console.error("Error stack:", error.stack);
+      return { success: false, error: error.message || 'Unknown error occurred' };
     }
   }
 
   async isScreenshotRequired(message: string, base64ImageData: string): Promise<boolean> {
-    // For Claude, if an image is provided, it can always be used.
-    // We can potentially make a call to Claude here to ask if it thinks the screenshot is relevant,
-    // but for simplicity, we'll assume it's always relevant if present.
     console.log('ClaudeChatModel: isScreenshotRequired called, assuming true if image data is present.');
     return !!base64ImageData;
   }
