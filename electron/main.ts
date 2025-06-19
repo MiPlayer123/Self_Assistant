@@ -498,7 +498,8 @@ function loadEnvVariables() {
       ? "exists"
       : "missing",
     VITE_OPENAI_API_KEY: process.env.VITE_OPENAI_API_KEY ? "exists" : "missing",
-    VITE_ANTHROPIC_API_KEY: process.env.VITE_ANTHROPIC_API_KEY ? "exists" : "missing"
+    VITE_ANTHROPIC_API_KEY: process.env.VITE_ANTHROPIC_API_KEY ? "exists" : "missing",
+    VITE_GOOGLE_API_KEY: process.env.VITE_GOOGLE_API_KEY ? "exists" : "missing"
   })
 }
 
