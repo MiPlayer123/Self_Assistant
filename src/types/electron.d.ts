@@ -55,6 +55,11 @@ export interface ElectronAPI {
   // Local model methods
   invokeLocalChatModel: (method: string, args: any) => Promise<any>
   getAvailableLocalModels: () => Promise<{ success: boolean; data?: string[]; error?: string }>
+  loadLocalModel: (args: { modelPath: string }) => Promise<{ success: boolean; error?: string }>
+  isModelLoaded: (args: { modelPath: string }) => Promise<{ success: boolean; data?: boolean; error?: string }>
+  // Generic listener methods for progress updates
+  addListener: (channel: string, callback: (data: any) => void) => () => void
+  removeListener: (channel: string, callback: (data: any) => void) => void
 }
 
 declare global {

@@ -138,12 +138,22 @@ export async function getChatModel(modelId: string): Promise<IChatModel> {
   // Local models don't need API keys
   if (providerId === 'local') {
     const { LocalChatModel } = await import('./providers/local/ChatModel')
-    return new LocalChatModel({
+    const model = new LocalChatModel({
       apiKey: '', // Not needed for local models
       model: actualModelValue, // This will now be the full filename for local models
       temperature: 0.7,
       maxTokens: 2000,
     })
+    
+    // For local models, we can check if the model is already loaded
+    // This helps with efficiency and avoids unnecessary reloading
+    const isLoaded = await (model as any).isModelLoaded?.();
+    if (!isLoaded) {
+      // Model will be loaded on first use, but we can trigger loading here if needed
+      console.log(`Local model ${actualModelValue} will be loaded on first use`);
+    }
+    
+    return model;
   }
 
   const apiKey = await getApiKey(providerId)

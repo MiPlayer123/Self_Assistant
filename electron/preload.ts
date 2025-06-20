@@ -60,6 +60,10 @@ interface ElectronAPI {
   // Local model methods
   invokeLocalChatModel: (method: string, args: any) => Promise<any>
   getAvailableLocalModels: () => Promise<{ success: boolean; data?: string[]; error?: string }>
+  loadLocalModel: (args: { modelPath: string }) => Promise<{ success: boolean; error?: string }>
+  isModelLoaded: (args: { modelPath: string }) => Promise<{ success: boolean; data?: boolean; error?: string }>
+  resetLocalModelChat: () => Promise<{ success: boolean; data?: string; error?: string }>
+  cleanupLocalModel: () => Promise<{ success: boolean; data?: string; error?: string }>
   // Generic listener methods for streaming support
   addListener: (channel: string, callback: (data: any) => void) => () => void
   removeListener: (channel: string, callback: (data: any) => void) => void
@@ -283,6 +287,14 @@ const electronAPI = {
     return ipcRenderer.invoke("invokeLocalChatModel", { method, args })
   },
   getAvailableLocalModels: () => ipcRenderer.invoke("getAvailableLocalModels"),
+  loadLocalModel: (args: { modelPath: string }) => 
+    ipcRenderer.invoke("loadLocalModel", args),
+  isModelLoaded: (args: { modelPath: string }) => 
+    ipcRenderer.invoke("isModelLoaded", args),
+  resetLocalModelChat: () => 
+    ipcRenderer.invoke("resetLocalModelChat"),
+  cleanupLocalModel: () => 
+    ipcRenderer.invoke("cleanupLocalModel"),
   // Generic listener methods for streaming support
   addListener: (channel: string, callback: (data: any) => void) => {
     const subscription = (_: any, data: any) => callback(data);

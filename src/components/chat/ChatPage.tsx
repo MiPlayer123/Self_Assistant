@@ -15,7 +15,16 @@ interface ChatPageProps {
 
 export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps) {
   const { state, addMessage, addMessageWithId, updateMessage, appendToMessage, setProcessing, setContext, clearMessages, setFirstMessage } = useChat()
-  const { selectedModelId, setSelectedModelId } = useModel()
+  const { 
+    selectedModelId, 
+    setSelectedModelId, 
+    isModelLoading, 
+    setIsModelLoading, 
+    modelLoadingProgress, 
+    setModelLoadingProgress,
+    modelLoadingMessage,
+    setModelLoadingMessage
+  } = useModel()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const chatModelRef = useRef<IChatModel | null>(null)
   const welcomeMessageAddedRef = useRef<boolean>(false)
@@ -41,13 +50,73 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
     setShowLocalModelSettings(prev => !prev);
   };
 
+  // Set up listeners for model loading progress
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).electronAPI?.addListener) {
+      const removeProgressListener = (window as any).electronAPI.addListener('modelLoadingProgress', (data: any) => {
+        setModelLoadingProgress(data.progress)
+        setModelLoadingMessage(data.message)
+      });
+
+      return () => {
+        if (removeProgressListener) {
+          removeProgressListener();
+        }
+      };
+    }
+  }, []);
+
+  // Track previous model to handle cleanup when switching
+  const previousModelIdRef = useRef<string | null>(null)
+
   // Initialize chat model (only once)
   useEffect(() => {
     const initializeModel = async () => {
       try {
+        const previousModelId = previousModelIdRef.current
+        const isCurrentLocal = selectedModelId.startsWith('local-')
+        const wasPreviousLocal = previousModelId?.startsWith('local-')
+
         console.log(`Attempting to initialize chat model with ID: ${selectedModelId}`)
+        
+        // Cleanup previous local model when switching to cloud model
+        if (wasPreviousLocal && !isCurrentLocal && previousModelId) {
+          console.log('Switching from local to cloud model - unloading local model...')
+          try {
+            const result = await (window as any).electronAPI?.cleanupLocalModel?.()
+            if (result?.success) {
+              console.log('✅ Local model unloaded successfully')
+            } else {
+              console.warn('⚠️ Failed to unload local model:', result?.error)
+            }
+          } catch (error) {
+            console.error('❌ Error unloading local model:', error)
+          }
+        }
+        
+        // Set loading state for local models
+        if (isCurrentLocal) {
+          setIsModelLoading(true)
+          setModelLoadingProgress(0)
+          setModelLoadingMessage('Initializing local model...')
+        }
+        
         chatModelRef.current = await getChatModel(selectedModelId)
         console.log(`Chat model initialized successfully with model: ${selectedModelId}`)
+        
+        // Update previous model tracking
+        previousModelIdRef.current = selectedModelId
+        
+        // Clear loading state
+        if (isCurrentLocal) {
+          setModelLoadingProgress(100)
+          setModelLoadingMessage('Model ready!')
+          setTimeout(() => {
+            setIsModelLoading(false)
+            setModelLoadingProgress(0)
+            setModelLoadingMessage('')
+          }, 500)
+        }
       } catch (error) {
         console.error('Failed to initialize chat model:', error)
         console.error('Error details:', {
@@ -55,6 +124,12 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
           selectedModelId: selectedModelId,
           stack: error instanceof Error ? error.stack : undefined
         })
+        
+        // Clear loading state on error
+        setIsModelLoading(false)
+        setModelLoadingProgress(0)
+        setModelLoadingMessage('')
+        
         addMessage({
           role: 'assistant',
           content:
@@ -115,6 +190,11 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
   }
 
   const handleSendMessage = async (message: string) => {
+    // Prevent sending if model is loading
+    if (isModelLoading) {
+      return
+    }
+    
     if (!chatModelRef.current) {
       addMessage({
         role: 'assistant',
@@ -232,7 +312,23 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
     }
   }
 
-  const handleResetChat = () => {
+  const handleResetChat = async () => {
+    // If using a local model, reset the chat session on the backend
+    if (selectedModelId.startsWith('local-')) {
+      try {
+        console.log('Resetting local model chat session...')
+        const result = await (window as any).electronAPI?.resetLocalModelChat?.()
+        if (result?.success) {
+          console.log('Local model chat session reset successfully')
+        } else {
+          console.warn('Failed to reset local model chat session:', result?.error)
+        }
+      } catch (error) {
+        console.error('Error resetting local model chat session:', error)
+      }
+    }
+    
+    // Reset the frontend state
     clearMessages()
     setFirstMessage(true) // Reset the first message flag
     setContext(undefined) // Clear any existing context like a screenshot
@@ -284,6 +380,16 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
   
   return (
     <div className="wagoo-chat-container wagoo-fade-in">
+      {/* Progress Bar */}
+      {isModelLoading && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-blue-600 h-1">
+          <div 
+            className="h-full bg-blue-400 transition-all duration-300 ease-out"
+            style={{ width: `${modelLoadingProgress}%` }}
+          />
+        </div>
+      )}
+      
       {/* Chat header */}
       <div className="wagoo-chat-header">
         <div className="flex items-center justify-between">
@@ -313,13 +419,19 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
             )}
           </div>
         </div>
-        {isFirstMessageAnalyzing && (
+        {isModelLoading && (
+          <div className="wagoo-context-indicator mt-1">
+            <span className="wagoo-status-dot animate-pulse"></span>
+            {modelLoadingMessage}
+          </div>
+        )}
+        {isFirstMessageAnalyzing && !isModelLoading && (
           <div className="wagoo-context-indicator mt-1">
             <span className="wagoo-status-dot animate-pulse"></span>
             Analyzing...
           </div>
         )}
-        {state.currentContext?.screenshot && !isFirstMessageAnalyzing && (
+        {state.currentContext?.screenshot && !isFirstMessageAnalyzing && !isModelLoading && (
           <div className="wagoo-context-indicator mt-1">
             <span className="wagoo-status-dot"></span>
             Screenshot ready
@@ -352,7 +464,7 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
         <ChatInput
           onSendMessage={handleSendMessage}
           onTakeScreenshot={handleTakeScreenshot}
-          isProcessing={state.isProcessing}
+          isProcessing={state.isProcessing || isModelLoading}
           hasScreenshot={!!state.currentContext?.screenshot}
         />
       </div>

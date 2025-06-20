@@ -1,0 +1,27 @@
+{
+  "timestamp": "2025-06-20T21:36:36.099Z",
+  "modelPath": "/Users/mikul/Library/Application Support/wagoo-v1/local_models/Llamma-3.2.gguf",
+  "modelSize": 2643853856,
+  "systemInfo": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "nodeVersion": "v22.1.0",
+    "cpuCount": 12,
+    "totalMemory": "18 GB"
+  },
+  "testResults": {
+    "standalone_load": {
+      "success": true
+    },
+    "standalone_inference": {
+      "success": true
+    },
+    "standalone_memory": {
+      "success": true
+    },
+    "electron": {
+      "success": false,
+      "error": "spawn ENOTDIR"
+    }
+  }
+}

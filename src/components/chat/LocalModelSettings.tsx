@@ -55,6 +55,7 @@ export const LocalModelSettings: React.FC<LocalModelSettingsProps> = ({ onSelect
   const [downloadStatus, setDownloadStatus] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [downloadingModel, setDownloadingModel] = useState<string | null>(null);
+  const [downloadProgress, setDownloadProgress] = useState<number>(0);
 
   const fetchAvailableModels = async () => {
     try {
@@ -71,13 +72,28 @@ export const LocalModelSettings: React.FC<LocalModelSettingsProps> = ({ onSelect
 
   useEffect(() => {
     fetchAvailableModels();
+    
+    // Set up listener for download progress
+    if (typeof window !== 'undefined' && (window as any).electronAPI?.addListener) {
+      const removeDownloadListener = (window as any).electronAPI.addListener('modelDownloadProgress', (data: any) => {
+        setDownloadProgress(data.progress);
+        setDownloadStatus(data.message);
+      });
+
+      return () => {
+        if (removeDownloadListener) {
+          removeDownloadListener();
+        }
+      };
+    }
   }, []);
 
   const handleDownloadModel = async (uri?: string) => {
     const downloadUri = uri || modelUri;
     if (!downloadUri) return;
 
-    setDownloadStatus('Downloading...');
+    setDownloadStatus('Starting download...');
+    setDownloadProgress(0);
     setError(null);
     setDownloadingModel(downloadUri);
     
@@ -88,15 +104,24 @@ export const LocalModelSettings: React.FC<LocalModelSettingsProps> = ({ onSelect
 
       if (response?.success) {
         setDownloadStatus('Download complete!');
+        setDownloadProgress(100);
         if (!uri) setModelUri(''); // Clear input only if it was manual entry
         fetchAvailableModels(); // Refresh the list of models
         if (onModelDownloaded) onModelDownloaded();
+        
+        // Clear progress after a delay
+        setTimeout(() => {
+          setDownloadProgress(0);
+          setDownloadStatus('');
+        }, 2000);
       } else {
         setDownloadStatus('Download failed.');
+        setDownloadProgress(0);
         setError(response?.error || 'Unknown download error');
       }
     } catch (err: any) {
       setDownloadStatus('Download failed.');
+      setDownloadProgress(0);
       setError(err.message || 'Error initiating download');
     } finally {
       setDownloadingModel(null);
@@ -155,7 +180,19 @@ export const LocalModelSettings: React.FC<LocalModelSettingsProps> = ({ onSelect
       </div>
 
       {/* Status Messages */}
-      {downloadStatus && <p className="mb-2 text-sm text-gray-300">{downloadStatus}</p>}
+      {downloadStatus && (
+        <div className="mb-2">
+          <p className="text-sm text-gray-300 mb-1">{downloadStatus}</p>
+          {downloadingModel && downloadProgress > 0 && (
+            <div className="w-full bg-gray-600 rounded-full h-2">
+              <div 
+                className="bg-blue-500 h-2 rounded-full transition-all duration-300 ease-out"
+                style={{ width: `${downloadProgress}%` }}
+              />
+            </div>
+          )}
+        </div>
+      )}
       {error && <p className="mb-2 text-sm text-red-400">Error: {error}</p>}
 
       {/* Available Models Section */}

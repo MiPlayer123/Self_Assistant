@@ -118,4 +118,32 @@ export class LocalChatModel implements IChatModel {
     // const lowerMessage = message.toLowerCase();
     // return screenshotKeywords.some(keyword => lowerMessage.includes(keyword));
   }
+
+  // Add method to check if model is loaded
+  async isModelLoaded(): Promise<boolean> {
+    try {
+      if (typeof window !== 'undefined' && (window as any).electronAPI?.isModelLoaded) {
+        const result = await (window as any).electronAPI.isModelLoaded({ modelPath: this.config.model });
+        return result.success && result.data;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error checking if model is loaded:', error);
+      return false;
+    }
+  }
+
+  // Add method to explicitly load model
+  async loadModel(): Promise<{ success: boolean; error?: string }> {
+    try {
+      if (typeof window !== 'undefined' && (window as any).electronAPI?.loadLocalModel) {
+        const result = await (window as any).electronAPI.loadLocalModel({ modelPath: this.config.model });
+        return result;
+      }
+      return { success: false, error: 'IPC not available' };
+    } catch (error: any) {
+      console.error('Error loading model:', error);
+      return { success: false, error: error.message || 'Failed to load model' };
+    }
+  }
 } 

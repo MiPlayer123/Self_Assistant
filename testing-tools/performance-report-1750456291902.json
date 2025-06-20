@@ -1,0 +1,3540 @@
+{
+  "metadata": {
+    "startTime": 1750456223602,
+    "endTime": 1750456291902,
+    "duration": 300000,
+    "interval": 1000,
+    "nodeVersion": "v22.1.0",
+    "platform": "darwin arm64"
+  },
+  "samples": [
+    {
+      "timestamp": 1750456223602,
+      "relativeTime": 0,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.3896484375,
+          "5min": 4.58056640625,
+          "15min": 4.61962890625
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 198,
+        "used": 18234,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 0,
+        "memory": {
+          "rss": 37,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 39029,
+          "system": 6543
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456224604,
+      "relativeTime": 1002,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.3896484375,
+          "5min": 4.58056640625,
+          "15min": 4.61962890625
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 225,
+        "used": 18207,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 1,
+        "memory": {
+          "rss": 37,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 40166,
+          "system": 6726
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456225605,
+      "relativeTime": 2003,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.3896484375,
+          "5min": 4.58056640625,
+          "15min": 4.61962890625
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 221,
+        "used": 18211,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 2,
+        "memory": {
+          "rss": 37,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 40969,
+          "system": 7137
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456226607,
+      "relativeTime": 3005,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.3896484375,
+          "5min": 4.58056640625,
+          "15min": 4.61962890625
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 117,
+        "used": 18315,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 3,
+        "memory": {
+          "rss": 37,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 41259,
+          "system": 7339
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456227606,
+      "relativeTime": 4004,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.1982421875,
+          "5min": 4.55419921875,
+          "15min": 4.60986328125
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 165,
+        "used": 18267,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 4,
+        "memory": {
+          "rss": 32,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 41635,
+          "system": 7634
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456228607,
+      "relativeTime": 5005,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.1982421875,
+          "5min": 4.55419921875,
+          "15min": 4.60986328125
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 198,
+        "used": 18234,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 5,
+        "memory": {
+          "rss": 27,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 42023,
+          "system": 7822
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456229609,
+      "relativeTime": 6007,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.1982421875,
+          "5min": 4.55419921875,
+          "15min": 4.60986328125
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 1541,
+        "used": 16891,
+        "usagePercent": 92
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 6,
+        "memory": {
+          "rss": 27,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 42517,
+          "system": 8111
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456230609,
+      "relativeTime": 7007,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.1982421875,
+          "5min": 4.55419921875,
+          "15min": 4.60986328125
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 202,
+        "used": 18230,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 7,
+        "memory": {
+          "rss": 27,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 42986,
+          "system": 8641
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456231610,
+      "relativeTime": 8008,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.1982421875,
+          "5min": 4.55419921875,
+          "15min": 4.60986328125
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 140,
+        "used": 18292,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 8,
+        "memory": {
+          "rss": 27,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 43453,
+          "system": 8978
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456233117,
+      "relativeTime": 9515,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.34228515625,
+          "5min": 4.5947265625,
+          "15min": 4.62353515625
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 18,
+        "used": 18414,
+        "usagePercent": 100
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 10,
+        "memory": {
+          "rss": 5,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 54253,
+          "system": 129779
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456234112,
+      "relativeTime": 10510,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.34228515625,
+          "5min": 4.5947265625,
+          "15min": 4.62353515625
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 62,
+        "used": 18370,
+        "usagePercent": 100
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 11,
+        "memory": {
+          "rss": 8,
+          "heapTotal": 4,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 59359,
+          "system": 188590
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456235118,
+      "relativeTime": 11516,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.34228515625,
+          "5min": 4.5947265625,
+          "15min": 4.62353515625
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 97,
+        "used": 18335,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 12,
+        "memory": {
+          "rss": 7,
+          "heapTotal": 4,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 60220,
+          "system": 195509
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456236180,
+      "relativeTime": 12578,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.34228515625,
+          "5min": 4.5947265625,
+          "15min": 4.62353515625
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 56,
+        "used": 18376,
+        "usagePercent": 100
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 13,
+        "memory": {
+          "rss": 9,
+          "heapTotal": 4,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 61517,
+          "system": 202322
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456237180,
+      "relativeTime": 13578,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.234375,
+          "5min": 4.58447265625,
+          "15min": 4.61962890625
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 7818,
+        "used": 10614,
+        "usagePercent": 58
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 14,
+        "memory": {
+          "rss": 11,
+          "heapTotal": 4,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 61799,
+          "system": 203029
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456238181,
+      "relativeTime": 14579,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.234375,
+          "5min": 4.58447265625,
+          "15min": 4.61962890625
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 4775,
+        "used": 13657,
+        "usagePercent": 74
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 15,
+        "memory": {
+          "rss": 11,
+          "heapTotal": 4,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 61972,
+          "system": 203160
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456239181,
+      "relativeTime": 15579,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.234375,
+          "5min": 4.58447265625,
+          "15min": 4.61962890625
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 308,
+        "used": 18124,
+        "usagePercent": 98
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 16,
+        "memory": {
+          "rss": 10,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 62198,
+          "system": 203415
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456240196,
+      "relativeTime": 16594,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.234375,
+          "5min": 4.58447265625,
+          "15min": 4.61962890625
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 57,
+        "used": 18375,
+        "usagePercent": 100
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 17,
+        "memory": {
+          "rss": 4,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 62656,
+          "system": 208505
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456241309,
+      "relativeTime": 17707,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.234375,
+          "5min": 4.58447265625,
+          "15min": 4.61962890625
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 38,
+        "used": 18394,
+        "usagePercent": 100
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 18,
+        "memory": {
+          "rss": 2,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 63803,
+          "system": 229580
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456242540,
+      "relativeTime": 18938,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.13525390625,
+          "5min": 4.57470703125,
+          "15min": 4.61572265625
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 199,
+        "used": 18233,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 19,
+        "memory": {
+          "rss": 5,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 65118,
+          "system": 269819
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456243541,
+      "relativeTime": 19939,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.13525390625,
+          "5min": 4.57470703125,
+          "15min": 4.61572265625
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 266,
+        "used": 18166,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 20,
+        "memory": {
+          "rss": 6,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 65497,
+          "system": 271986
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456244560,
+      "relativeTime": 20958,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.13525390625,
+          "5min": 4.57470703125,
+          "15min": 4.61572265625
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 395,
+        "used": 18037,
+        "usagePercent": 98
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 21,
+        "memory": {
+          "rss": 5,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 65912,
+          "system": 274765
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456245595,
+      "relativeTime": 21993,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.13525390625,
+          "5min": 4.57470703125,
+          "15min": 4.61572265625
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 100,
+        "used": 18332,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 22,
+        "memory": {
+          "rss": 4,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 66489,
+          "system": 280089
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456246999,
+      "relativeTime": 23397,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 4.8837890625,
+          "5min": 4.53173828125,
+          "15min": 4.60009765625
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 71,
+        "used": 18361,
+        "usagePercent": 100
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 24,
+        "memory": {
+          "rss": 1,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 67232,
+          "system": 319958
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456249493,
+      "relativeTime": 25891,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 4.8837890625,
+          "5min": 4.53173828125,
+          "15min": 4.60009765625
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 270,
+        "used": 18162,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 26,
+        "memory": {
+          "rss": 6,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 67842,
+          "system": 351763
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456250522,
+      "relativeTime": 26920,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 4.8837890625,
+          "5min": 4.53173828125,
+          "15min": 4.60009765625
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 75,
+        "used": 18357,
+        "usagePercent": 100
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 27,
+        "memory": {
+          "rss": 5,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 68184,
+          "system": 353706
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456251645,
+      "relativeTime": 28043,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 4.8837890625,
+          "5min": 4.53173828125,
+          "15min": 4.60009765625
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 103,
+        "used": 18329,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 28,
+        "memory": {
+          "rss": 12,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 71524,
+          "system": 366775
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456252693,
+      "relativeTime": 29091,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 4.89306640625,
+          "5min": 4.5390625,
+          "15min": 4.60205078125
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 106,
+        "used": 18326,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 29,
+        "memory": {
+          "rss": 4,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 72091,
+          "system": 370937
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456253785,
+      "relativeTime": 30183,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 4.89306640625,
+          "5min": 4.5390625,
+          "15min": 4.60205078125
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 72,
+        "used": 18360,
+        "usagePercent": 100
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 30,
+        "memory": {
+          "rss": 3,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 72880,
+          "system": 382565
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456254810,
+      "relativeTime": 31208,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 4.89306640625,
+          "5min": 4.5390625,
+          "15min": 4.60205078125
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 302,
+        "used": 18130,
+        "usagePercent": 98
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 31,
+        "memory": {
+          "rss": 7,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 73507,
+          "system": 398222
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456255811,
+      "relativeTime": 32209,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 4.89306640625,
+          "5min": 4.5390625,
+          "15min": 4.60205078125
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 171,
+        "used": 18261,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 32,
+        "memory": {
+          "rss": 5,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 73895,
+          "system": 399770
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456256814,
+      "relativeTime": 33212,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 4.89306640625,
+          "5min": 4.5390625,
+          "15min": 4.60205078125
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 118,
+        "used": 18314,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 33,
+        "memory": {
+          "rss": 7,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 74239,
+          "system": 401231
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456257817,
+      "relativeTime": 34215,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 6.2626953125,
+          "5min": 4.82861328125,
+          "15min": 4.70361328125
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 97,
+        "used": 18335,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 34,
+        "memory": {
+          "rss": 5,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 74541,
+          "system": 402171
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456258845,
+      "relativeTime": 35243,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 6.2626953125,
+          "5min": 4.82861328125,
+          "15min": 4.70361328125
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 69,
+        "used": 18363,
+        "usagePercent": 100
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 35,
+        "memory": {
+          "rss": 5,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 74914,
+          "system": 404640
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456259896,
+      "relativeTime": 36294,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 6.2626953125,
+          "5min": 4.82861328125,
+          "15min": 4.70361328125
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 54,
+        "used": 18378,
+        "usagePercent": 100
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 36,
+        "memory": {
+          "rss": 2,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 75504,
+          "system": 411838
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456260960,
+      "relativeTime": 37358,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 6.2626953125,
+          "5min": 4.82861328125,
+          "15min": 4.70361328125
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 84,
+        "used": 18348,
+        "usagePercent": 100
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 37,
+        "memory": {
+          "rss": 6,
+          "heapTotal": 5,
+          "heapUsed": 4,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 76289,
+          "system": 438351
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456261985,
+      "relativeTime": 38383,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.9208984375,
+          "5min": 4.78125,
+          "15min": 4.6875
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 72,
+        "used": 18360,
+        "usagePercent": 100
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 38,
+        "memory": {
+          "rss": 4,
+          "heapTotal": 5,
+          "heapUsed": 4,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 76719,
+          "system": 441519
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456262982,
+      "relativeTime": 39380,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.9208984375,
+          "5min": 4.78125,
+          "15min": 4.6875
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 158,
+        "used": 18274,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 39,
+        "memory": {
+          "rss": 5,
+          "heapTotal": 5,
+          "heapUsed": 4,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 77351,
+          "system": 447324
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456264019,
+      "relativeTime": 40417,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.9208984375,
+          "5min": 4.78125,
+          "15min": 4.6875
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 135,
+        "used": 18297,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 40,
+        "memory": {
+          "rss": 5,
+          "heapTotal": 5,
+          "heapUsed": 4,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 77902,
+          "system": 450600
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456265025,
+      "relativeTime": 41423,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.9208984375,
+          "5min": 4.78125,
+          "15min": 4.6875
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 130,
+        "used": 18302,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 41,
+        "memory": {
+          "rss": 5,
+          "heapTotal": 5,
+          "heapUsed": 4,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 78205,
+          "system": 451927
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456266074,
+      "relativeTime": 42472,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.9208984375,
+          "5min": 4.78125,
+          "15min": 4.6875
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 97,
+        "used": 18335,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 42,
+        "memory": {
+          "rss": 8,
+          "heapTotal": 5,
+          "heapUsed": 4,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 79071,
+          "system": 458691
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456267086,
+      "relativeTime": 43484,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.7666015625,
+          "5min": 4.76806640625,
+          "15min": 4.68310546875
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 104,
+        "used": 18328,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 44,
+        "memory": {
+          "rss": 6,
+          "heapTotal": 5,
+          "heapUsed": 4,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 79565,
+          "system": 461216
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456268192,
+      "relativeTime": 44590,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.7666015625,
+          "5min": 4.76806640625,
+          "15min": 4.68310546875
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 64,
+        "used": 18368,
+        "usagePercent": 100
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 45,
+        "memory": {
+          "rss": 4,
+          "heapTotal": 5,
+          "heapUsed": 4,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 80834,
+          "system": 472225
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456269188,
+      "relativeTime": 45586,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.7666015625,
+          "5min": 4.76806640625,
+          "15min": 4.68310546875
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 90,
+        "used": 18342,
+        "usagePercent": 100
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 46,
+        "memory": {
+          "rss": 5,
+          "heapTotal": 5,
+          "heapUsed": 4,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 81700,
+          "system": 494021
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456270223,
+      "relativeTime": 46621,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.7666015625,
+          "5min": 4.76806640625,
+          "15min": 4.68310546875
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 29,
+        "used": 18403,
+        "usagePercent": 100
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 47,
+        "memory": {
+          "rss": 3,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 82467,
+          "system": 509264
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456271221,
+      "relativeTime": 47619,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.7666015625,
+          "5min": 4.76806640625,
+          "15min": 4.68310546875
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 180,
+        "used": 18252,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 48,
+        "memory": {
+          "rss": 6,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 83252,
+          "system": 526769
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456272221,
+      "relativeTime": 48619,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 6.10546875,
+          "5min": 4.8544921875,
+          "15min": 4.7138671875
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 278,
+        "used": 18154,
+        "usagePercent": 98
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 49,
+        "memory": {
+          "rss": 10,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 83965,
+          "system": 533060
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456273223,
+      "relativeTime": 49621,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 6.10546875,
+          "5min": 4.8544921875,
+          "15min": 4.7138671875
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 332,
+        "used": 18100,
+        "usagePercent": 98
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 50,
+        "memory": {
+          "rss": 8,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 84391,
+          "system": 534010
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456274224,
+      "relativeTime": 50622,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 6.10546875,
+          "5min": 4.8544921875,
+          "15min": 4.7138671875
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 138,
+        "used": 18294,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 51,
+        "memory": {
+          "rss": 8,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 84683,
+          "system": 535311
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456275226,
+      "relativeTime": 51624,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 6.10546875,
+          "5min": 4.8544921875,
+          "15min": 4.7138671875
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 138,
+        "used": 18294,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 52,
+        "memory": {
+          "rss": 7,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 84950,
+          "system": 536917
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456276255,
+      "relativeTime": 52653,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 6.10546875,
+          "5min": 4.8544921875,
+          "15min": 4.7138671875
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 75,
+        "used": 18357,
+        "usagePercent": 100
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 53,
+        "memory": {
+          "rss": 7,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 85250,
+          "system": 538078
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456277335,
+      "relativeTime": 53733,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 6.2568359375,
+          "5min": 4.90625,
+          "15min": 4.73291015625
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 79,
+        "used": 18353,
+        "usagePercent": 100
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 54,
+        "memory": {
+          "rss": 6,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 86436,
+          "system": 544499
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456278331,
+      "relativeTime": 54729,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 6.2568359375,
+          "5min": 4.90625,
+          "15min": 4.73291015625
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 75,
+        "used": 18357,
+        "usagePercent": 100
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 55,
+        "memory": {
+          "rss": 4,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 86960,
+          "system": 548899
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456279368,
+      "relativeTime": 55766,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 6.2568359375,
+          "5min": 4.90625,
+          "15min": 4.73291015625
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 58,
+        "used": 18374,
+        "usagePercent": 100
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 56,
+        "memory": {
+          "rss": 2,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 87667,
+          "system": 562862
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456280398,
+      "relativeTime": 56796,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 6.2568359375,
+          "5min": 4.90625,
+          "15min": 4.73291015625
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 157,
+        "used": 18275,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 57,
+        "memory": {
+          "rss": 7,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 88180,
+          "system": 585908
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456281400,
+      "relativeTime": 57798,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 6.2568359375,
+          "5min": 4.90625,
+          "15min": 4.73291015625
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 253,
+        "used": 18179,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 58,
+        "memory": {
+          "rss": 5,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 88480,
+          "system": 587355
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456282401,
+      "relativeTime": 58799,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.91552734375,
+          "5min": 4.85791015625,
+          "15min": 4.716796875
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 130,
+        "used": 18302,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 59,
+        "memory": {
+          "rss": 7,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 88840,
+          "system": 589009
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456283402,
+      "relativeTime": 59800,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.91552734375,
+          "5min": 4.85791015625,
+          "15min": 4.716796875
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 117,
+        "used": 18315,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 60,
+        "memory": {
+          "rss": 7,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 89127,
+          "system": 589414
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456284408,
+      "relativeTime": 60806,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.91552734375,
+          "5min": 4.85791015625,
+          "15min": 4.716796875
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 123,
+        "used": 18309,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 61,
+        "memory": {
+          "rss": 5,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 89428,
+          "system": 590540
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456285413,
+      "relativeTime": 61811,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.91552734375,
+          "5min": 4.85791015625,
+          "15min": 4.716796875
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 67,
+        "used": 18365,
+        "usagePercent": 100
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 62,
+        "memory": {
+          "rss": 4,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 89780,
+          "system": 592417
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456286420,
+      "relativeTime": 62818,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 5.91552734375,
+          "5min": 4.85791015625,
+          "15min": 4.716796875
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 62,
+        "used": 18370,
+        "usagePercent": 100
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 63,
+        "memory": {
+          "rss": 5,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 90185,
+          "system": 595553
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456287422,
+      "relativeTime": 63820,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 7.68359375,
+          "5min": 5.24169921875,
+          "15min": 4.85302734375
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 204,
+        "used": 18228,
+        "usagePercent": 99
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 64,
+        "memory": {
+          "rss": 5,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 90492,
+          "system": 597477
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456288423,
+      "relativeTime": 64821,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 7.68359375,
+          "5min": 5.24169921875,
+          "15min": 4.85302734375
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 419,
+        "used": 18013,
+        "usagePercent": 98
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 65,
+        "memory": {
+          "rss": 7,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 90746,
+          "system": 598403
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    },
+    {
+      "timestamp": 1750456289424,
+      "relativeTime": 65822,
+      "cpu": {
+        "cores": 12,
+        "model": "Apple M3 Pro",
+        "usage": 27,
+        "loadAverage": {
+          "1min": 7.68359375,
+          "5min": 5.24169921875,
+          "15min": 4.85302734375
+        }
+      },
+      "memory": {
+        "total": 18432,
+        "free": 503,
+        "used": 17929,
+        "usagePercent": 97
+      },
+      "process": {
+        "pid": 61105,
+        "nodeVersion": "v22.1.0",
+        "platform": "darwin arm64",
+        "uptime": 66,
+        "memory": {
+          "rss": 7,
+          "heapTotal": 5,
+          "heapUsed": 3,
+          "external": 1
+        },
+        "cpuUsage": {
+          "user": 91055,
+          "system": 598766
+        }
+      },
+      "disk": {
+        "currentDir": "/Users/mikul/Library/CloudStorage/OneDrive-Personal/Code Projects/Self_Assistant",
+        "accessible": true
+      },
+      "network": {
+        "lo0": 0,
+        "utun1": 1,
+        "utun2": 1,
+        "en0": 2,
+        "awdl0": 1,
+        "llw0": 1,
+        "utun3": 1,
+        "utun4": 1,
+        "utun0": 1,
+        "utun5": 1,
+        "utun6": 1,
+        "utun7": 1,
+        "utun8": 1,
+        "utun9": 1
+      }
+    }
+  ]
+}
