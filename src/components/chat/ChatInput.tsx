@@ -32,9 +32,10 @@ export function ChatInput({
     if (message.trim() && !isProcessing) {
       onSendMessage(message.trim())
       setMessage('')
-      // Reset textarea height
+      // Reset textarea height and border radius
       if (textareaRef.current) {
-        textareaRef.current.style.height = '40px'
+        textareaRef.current.style.height = '38px'
+        textareaRef.current.style.borderRadius = '12px'
       }
     }
   }
@@ -42,10 +43,16 @@ export function ChatInput({
   const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMessage(e.target.value)
     
-    // Auto-resize textarea
+    // Auto-resize textarea with dynamic border radius (both grow and shrink)
     if (textareaRef.current) {
-      textareaRef.current.style.height = '40px'
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`
+      // Reset height first to get accurate scrollHeight measurement
+      textareaRef.current.style.height = 'auto'
+      const newHeight = Math.min(Math.max(textareaRef.current.scrollHeight, 38), 120)
+      textareaRef.current.style.height = `${newHeight}px`
+      
+      // Adjust border radius based on height - less rounding for taller text areas
+      const borderRadius = newHeight <= 40 ? '12px' : `${Math.max(8, 12 - (newHeight - 40) / 10)}px`
+      textareaRef.current.style.borderRadius = borderRadius
     }
   }
 
@@ -75,10 +82,15 @@ export function ChatInput({
             const newText = message ? `${message} ${result.text}` : result.text
             setMessage(newText)
             
-            // Auto-resize textarea
+            // Auto-resize textarea with dynamic border radius
             if (textareaRef.current) {
-              textareaRef.current.style.height = '40px'
-              textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`
+              textareaRef.current.style.height = 'auto'
+              const newHeight = Math.min(Math.max(textareaRef.current.scrollHeight, 38), 120)
+              textareaRef.current.style.height = `${newHeight}px`
+              
+              // Adjust border radius based on height
+              const borderRadius = newHeight <= 40 ? '12px' : `${Math.max(8, 12 - (newHeight - 40) / 10)}px`
+              textareaRef.current.style.borderRadius = borderRadius
             }
           } else {
             console.error('Transcription failed:', result.error)
@@ -130,10 +142,11 @@ export function ChatInput({
               height: 'auto',
               resize: 'none',
               padding: '8px 12px',
-              borderRadius: '9999px', // Makes it pill-shaped
+              borderRadius: '12px', // Less rounded, will adjust dynamically
               border: '1px solid var(--wagoo-border-secondary)',
               backgroundColor: 'var(--wagoo-bg-tertiary)',
               color: 'var(--wagoo-text-primary)',
+              marginBottom: '-5px', // Bring text box down to align with buttons
             }}
           />
         </div>
