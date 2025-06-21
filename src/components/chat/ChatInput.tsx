@@ -1,4 +1,6 @@
 import React, { useState } from 'react'
+import { useAudioRecording } from '../../hooks/useAudioRecording'
+import { transcribeAudio } from '../../services/audioTranscription'
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void
@@ -15,6 +17,15 @@ export function ChatInput({
 }: ChatInputProps) {
   const [message, setMessage] = useState('')
   const textareaRef = React.useRef<HTMLTextAreaElement>(null)
+  
+  // Audio recording functionality
+  const { 
+    recordingState, 
+    startRecording, 
+    stopRecording, 
+    error: recordingError, 
+    clearError 
+  } = useAudioRecording()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,6 +53,41 @@ export function ChatInput({
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSubmit(e)
+    }
+  }
+
+  const handleMicrophoneClick = async () => {
+    if (isProcessing) return
+    
+    try {
+      if (recordingState === 'idle') {
+        // Start recording
+        await startRecording()
+      } else if (recordingState === 'recording') {
+        // Stop recording and transcribe
+        const audioBlob = await stopRecording()
+        
+        if (audioBlob) {
+          const result = await transcribeAudio(audioBlob)
+          
+          if (result.success && result.text) {
+            // Add transcribed text to the current message
+            const newText = message ? `${message} ${result.text}` : result.text
+            setMessage(newText)
+            
+            // Auto-resize textarea
+            if (textareaRef.current) {
+              textareaRef.current.style.height = '40px'
+              textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`
+            }
+          } else {
+            console.error('Transcription failed:', result.error)
+            // You could show an error toast here if desired
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Microphone error:', error)
     }
   }
 
@@ -75,7 +121,7 @@ export function ChatInput({
             onChange={handleMessageChange}
             onKeyDown={handleKeyDown}
             placeholder="Ask Wagoo anything..."
-            disabled={isProcessing}
+            disabled={isProcessing || recordingState === 'processing'}
             className="wagoo-input disabled:opacity-50 disabled:cursor-not-allowed focus:ring-0 focus:border-transparent"
             rows={1}
             style={{
@@ -91,6 +137,33 @@ export function ChatInput({
             }}
           />
         </div>
+
+        {/* Microphone button */}
+        <button
+          type="button"
+          onClick={handleMicrophoneClick}
+          disabled={isProcessing}
+          className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-lg transition-colors
+            ${recordingState === 'recording' 
+              ? 'bg-red-500 text-white animate-pulse' 
+              : recordingState === 'processing'
+              ? 'bg-yellow-500 text-white'
+              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}
+            disabled:opacity-50 disabled:cursor-not-allowed`}
+          title={
+            recordingState === 'recording' 
+              ? 'Stop recording' 
+              : recordingState === 'processing'
+              ? 'Processing...'
+              : 'Start voice recording'
+          }
+        >
+          {recordingState === 'processing' ? (
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+          ) : (
+            '🎤'
+          )}
+        </button>
 
         {/* Send button */}
         <button
