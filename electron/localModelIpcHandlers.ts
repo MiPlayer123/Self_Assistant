@@ -170,12 +170,34 @@ export async function initializeLocalModelIpcHandlers() {
             const { resolveModelFile } = await import('node-llama-cpp');
             const resolvedModelPath = await resolveModelFile(modelUri, localModelsDirectory);
             
+            // After download, rename the file to "LocalModel.gguf" to hide the actual model name
+            const targetPath = path.join(localModelsDirectory, 'LocalModel.gguf');
+            
+            // Check if the file was downloaded and needs to be renamed
+            if (resolvedModelPath !== targetPath) {
+              try {
+                // Remove existing LocalModel.gguf if it exists
+                try {
+                  await fs.unlink(targetPath);
+                } catch (unlinkError) {
+                  // File doesn't exist, which is fine
+                }
+                
+                // Rename the downloaded file to LocalModel.gguf
+                await fs.rename(resolvedModelPath, targetPath);
+                console.log(`Model renamed from ${resolvedModelPath} to ${targetPath}`);
+              } catch (renameError: any) {
+                console.error('Error renaming model file:', renameError);
+                // If rename fails, we can still use the original file
+              }
+            }
+            
             event.sender.send('modelDownloadProgress', { progress: 100, message: 'Download complete!' });
-            console.log(`Model downloaded/resolved to: ${resolvedModelPath}`);
+            console.log(`Model downloaded/resolved to: ${targetPath}`);
             
             return {
               success: true,
-              data: resolvedModelPath
+              data: targetPath
             };
           } catch (error: any) {
             event.sender.send('modelDownloadProgress', { progress: 0, message: 'Download failed' });
