@@ -1,9 +1,10 @@
-import React from 'react'
+import React, { useRef, useEffect } from 'react'
 import { ChatMessage as ChatMessageType } from '../../types/chat'
 import ReactMarkdown, { Components } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { coldarkDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { getMarkdownForSelection } from '../../lib/utils'
 
 interface ChatMessageProps {
   message: ChatMessageType
@@ -21,6 +22,147 @@ interface CodeComponentProps {
 export function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === 'user'
   const isSystem = message.role === 'system'
+  const messageContentRef = useRef<HTMLDivElement>(null)
+
+  // Handle copy events to provide clean markdown text and formatted HTML
+  useEffect(() => {
+    const handleCopy = (e: ClipboardEvent) => {
+      const selection = window.getSelection()
+      if (!selection || selection.rangeCount === 0) return
+
+      // Check if selection is within this message
+      const range = selection.getRangeAt(0)
+      const messageElement = messageContentRef.current
+      if (!messageElement || !messageElement.contains(range.commonAncestorContainer)) return
+
+      // Get the raw markdown content for assistant messages
+      if (!isUser && !isSystem) {
+        e.preventDefault()
+        
+        // Get selected text from the rendered content
+        const selectedText = selection.toString()
+        
+        if (selectedText.trim()) {
+          const fullText = messageElement.textContent || ''
+          const isFullSelection = selectedText.trim() === fullText.trim()
+          
+          // Use the utility function to get the best markdown representation
+          const markdownText = getMarkdownForSelection(
+            selectedText,
+            message.content,
+            isFullSelection
+          )
+          
+          // Get the HTML content for rich text formatting
+          let htmlContent = ''
+          
+          if (isFullSelection) {
+            // For full selection, get the entire rendered HTML
+            htmlContent = messageElement.innerHTML
+          } else {
+            // For partial selection, get the HTML from the selection
+            const container = document.createElement('div')
+            container.appendChild(range.cloneContents())
+            htmlContent = container.innerHTML
+          }
+          
+          // Clean up the HTML to normalize styling
+          const cleanedHtml = cleanHtmlForCopy(htmlContent)
+          
+          // Set both plain text (markdown) and rich text (HTML) in clipboard
+          e.clipboardData?.setData('text/plain', markdownText)
+          e.clipboardData?.setData('text/html', cleanedHtml)
+        }
+      }
+    }
+
+    document.addEventListener('copy', handleCopy)
+    return () => document.removeEventListener('copy', handleCopy)
+  }, [message.content, isUser, isSystem])
+
+  // Function to clean HTML and normalize styling for copy/paste
+  const cleanHtmlForCopy = (html: string): string => {
+    // Create a temporary div to manipulate the HTML
+    const tempDiv = document.createElement('div')
+    tempDiv.innerHTML = html
+    
+    // Remove or normalize problematic styles and classes
+    const allElements = tempDiv.querySelectorAll('*')
+    allElements.forEach(element => {
+      // Remove all classes to avoid CSS conflicts
+      element.removeAttribute('class')
+      
+      // Remove ALL inline styles first
+      element.removeAttribute('style')
+      
+      // Remove any color-related attributes
+      element.removeAttribute('color')
+      
+      // Keep structural attributes but normalize them with black text
+      if (element.tagName === 'CODE') {
+        // For inline code, add basic styling with black text
+        element.setAttribute('style', 'font-family: monospace; background-color: #f4f4f4; padding: 2px 4px; border-radius: 3px; color: #000000;')
+      } else if (element.tagName === 'PRE') {
+        // For code blocks, add basic styling with black text
+        element.setAttribute('style', 'font-family: monospace; background-color: #f4f4f4; padding: 12px; border-radius: 6px; white-space: pre-wrap; overflow-x: auto; color: #000000;')
+      } else if (element.tagName === 'STRONG' || element.tagName === 'B') {
+        // Keep bold formatting with black text
+        element.setAttribute('style', 'font-weight: bold; color: #000000;')
+      } else if (element.tagName === 'EM' || element.tagName === 'I') {
+        // Keep italic formatting with black text
+        element.setAttribute('style', 'font-style: italic; color: #000000;')
+      } else if (element.tagName === 'UL' || element.tagName === 'OL') {
+        // Basic list styling with black text
+        element.setAttribute('style', 'margin: 8px 0; padding-left: 20px; color: #000000;')
+      } else if (element.tagName === 'LI') {
+        // Basic list item styling with black text
+        element.setAttribute('style', 'margin: 4px 0; color: #000000;')
+      } else if (element.tagName === 'P') {
+        // Basic paragraph styling with black text
+        element.setAttribute('style', 'margin: 8px 0; color: #000000;')
+      } else if (element.tagName === 'H1' || element.tagName === 'H2' || element.tagName === 'H3' || element.tagName === 'H4' || element.tagName === 'H5' || element.tagName === 'H6') {
+        // Basic heading styling with black text
+        const level = parseInt(element.tagName.charAt(1))
+        const fontSize = Math.max(16, 24 - (level * 2))
+        element.setAttribute('style', `font-size: ${fontSize}px; font-weight: bold; margin: 12px 0 8px 0; color: #000000;`)
+      } else {
+        // For any other element, ensure black text
+        element.setAttribute('style', 'color: #000000;')
+      }
+    })
+    
+    // Handle syntax highlighter elements specifically
+    const codeBlocks = tempDiv.querySelectorAll('div[style*="background"], div[class*="language-"], span[style*="color"]')
+    codeBlocks.forEach(block => {
+      if (block.textContent && block.textContent.trim()) {
+        // Replace syntax highlighter divs with simple pre elements
+        const preElement = document.createElement('pre')
+        preElement.textContent = block.textContent
+        preElement.setAttribute('style', 'font-family: monospace; background-color: #f4f4f4; padding: 12px; border-radius: 6px; white-space: pre-wrap; overflow-x: auto; color: #000000;')
+        block.parentNode?.replaceChild(preElement, block)
+      }
+    })
+    
+    // Additional cleanup: remove any remaining elements with style attributes that might contain colors
+    tempDiv.querySelectorAll('[style]').forEach(element => {
+      const currentStyle = element.getAttribute('style') || ''
+      // Remove any color, background-color properties and add black text
+      const cleanStyle = currentStyle
+        .replace(/color\s*:\s*[^;]+;?/gi, '')
+        .replace(/background-color\s*:\s*[^;]+;?/gi, '')
+        .replace(/text-color\s*:\s*[^;]+;?/gi, '')
+        .trim()
+      
+      // Ensure black text color
+      const finalStyle = cleanStyle ? `${cleanStyle}; color: #000000;` : 'color: #000000;'
+      element.setAttribute('style', finalStyle)
+    })
+    
+    // Wrap in a div with normalized base styling and force black text
+    const wrapper = `<div style="color: #000000 !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; font-size: 14px; line-height: 1.5;">${tempDiv.innerHTML}</div>`
+    
+    return wrapper
+  }
 
   // Adjust the opacity of message bubbles
   const messageStyle = {
@@ -45,7 +187,16 @@ export function ChatMessage({ message }: ChatMessageProps) {
         <div
           className={isUser ? 'wagoo-message-user' : 'wagoo-message-assistant'}
         >
-          <div className="whitespace-pre-wrap break-words max-w-full">
+          <div 
+            ref={messageContentRef}
+            className="whitespace-pre-wrap break-words max-w-full"
+            style={{ 
+              userSelect: 'text',
+              WebkitUserSelect: 'text',
+              MozUserSelect: 'text',
+              msUserSelect: 'text'
+            }}
+          >
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
