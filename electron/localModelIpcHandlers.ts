@@ -2,6 +2,14 @@ import { app, ipcMain } from 'electron';
 import path from 'path';
 import fs from 'fs/promises';
 
+// Type for search results
+interface SearchResult {
+  title: string;
+  content: string;
+  url: string;
+  score: number;
+}
+
 // Simplified state management for working IPC handlers
 interface ModelState {
   currentModelPath: string | null;
@@ -79,6 +87,7 @@ export async function initializeLocalModelIpcHandlers() {
           const resolvedModelPath = await resolveModelFile(modelPath, localModelsDirectory);
 
           console.log('Local Model: Starting optimized inference for:', message);
+          console.log('Local Model: Received contextData:', contextData);
 
           // Initialize llama if needed
           if (!llamaInstance) {
@@ -121,12 +130,38 @@ export async function initializeLocalModelIpcHandlers() {
             });
           }
 
+          // Build enhanced prompt with search results if available
+          let enhancedMessage = message;
+          
+          if (contextData?.searchResults && contextData.searchResults.length > 0) {
+            console.log(`Local Model: Incorporating ${contextData.searchResults.length} search results into prompt`);
+            console.log('Local Model: Search result titles:', contextData.searchResults.map((r: SearchResult) => r.title));
+            
+            const searchContext = contextData.searchResults
+              .map((result: SearchResult) => `Title: ${result.title}\nContent: ${result.content}\nURL: ${result.url}`)
+              .join('\n\n');
+            
+            enhancedMessage = `You have access to current web search results. Use this information to provide accurate, up-to-date responses and cite sources when relevant.
+
+Recent web search results:
+
+${searchContext}
+
+User question: ${message}
+
+Please answer the user's question using the search results above when relevant. Cite sources with their URLs when appropriate.`;
+            
+            console.log('Local Model: Enhanced prompt created with search context (length:', enhancedMessage.length, 'chars)');
+          } else {
+            console.log('Local Model: No search results available, using original message');
+          }
+
           let fullResponse = '';
           let tokenCount = 0;
           const startTime = Date.now();
 
-          // Use the reusable session for inference (no need to build full prompt, session maintains context)
-          const response = await currentSession.prompt(message, {
+          // Use the reusable session for inference with enhanced prompt
+          const response = await currentSession.prompt(enhancedMessage, {
             temperature: temperature || 0.7,
             maxTokens: Math.min(maxTokens || 1000, 800), // Conservative limit
             onTextChunk: (chunk: string) => {

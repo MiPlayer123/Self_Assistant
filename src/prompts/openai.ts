@@ -10,14 +10,28 @@ export function buildOpenAIMessages(userMessage: string, chatHistory: ChatMessag
       You can:
       - Answer questions about anything
       - Use image analysis summaries to understand what the user is seeing
+      - Use real-time web search results when provided to give current information
       - Help with coding, writing, problem-solving
       - Provide explanations and guidance
 
       Be helpful, concise, and friendly. 
-      Provide a response that answers the question using any provided image analysis as context.
+      Provide a response that answers the question using any provided image analysis or search results as context.
+      When using search results, cite the sources with their URLs when relevant.
       `
     }
   ];
+
+  // Add search results context if available
+  if (contextData?.searchResults && contextData.searchResults.length > 0) {
+    const searchContext = contextData.searchResults
+      .map(result => `Title: ${result.title}\nContent: ${result.content}\nURL: ${result.url}`)
+      .join('\n\n');
+    
+    messages.push({
+      role: "system", 
+      content: `Recent web search results for the user's query:\n\n${searchContext}\n\nUse this information to provide accurate, up-to-date responses. Cite sources when relevant.`
+    });
+  }
 
   // Add conversation history
   if (chatHistory && chatHistory.length > 0) {

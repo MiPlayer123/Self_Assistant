@@ -87,6 +87,9 @@ export async function getApiKey(providerId: string): Promise<string> {
     case 'google':
       envVarName = 'VITE_GOOGLE_API_KEY'
       break
+    case 'tavily':
+      envVarName = 'VITE_TAVILY_API_KEY'
+      break
     default:
       throw new Error(`Unsupported provider: ${providerId}`)
   }

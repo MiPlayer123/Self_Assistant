@@ -13,6 +13,14 @@ export interface ContextData {
   screenshot?: ScreenshotData
   selectedText?: string
   applicationContext?: string
+  searchResults?: SearchResultData[]
+}
+
+export interface SearchResultData {
+  title: string
+  content: string
+  url: string
+  score: number
 }
 
 export interface ScreenshotData {
@@ -55,7 +63,8 @@ export interface IChatModel {
     userMessage: string,
     contextData: ContextData | undefined,
     chatHistory: ChatMessage[],
-    onChunk: (chunk: string) => void
+    onChunk: (chunk: string) => void,
+    onSearchStatusChange?: (isSearching: boolean) => void
   ): Promise<{ success: boolean; error?: string; data?: string; usage?: { promptTokens: number; completionTokens: number; totalTokens: number; }; }>;
   isScreenshotRequired(message: string, base64ImageData: string): Promise<boolean>;
 } 

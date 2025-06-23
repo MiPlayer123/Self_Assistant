@@ -1,5 +1,6 @@
 import { IChatModel, ChatMessage, ContextData, ChatModelConfig } from '../../../types/chat';
 import { GoogleGenAI } from '@google/genai';
+import { shouldPerformSearch, performWebSearch } from '../../../utils/searchUtils';
 
 export class GeminiChatModel implements IChatModel {
   private client: GoogleGenAI;
@@ -30,10 +31,22 @@ export class GeminiChatModel implements IChatModel {
     userMessage: string,
     contextData: ContextData | undefined,
     chatHistory: ChatMessage[],
-    onChunk: (chunk: string) => void
+    onChunk: (chunk: string) => void,
+    onSearchStatusChange?: (isSearching: boolean) => void
   ): Promise<{ success: boolean; error?: string; data?: string; usage?: { promptTokens: number; completionTokens: number; totalTokens: number; }; }> {
     try {
       console.log('GeminiChatModel: Starting message stream with model:', this.config.model);
+      
+      // Check if search is needed and perform it
+      if (await shouldPerformSearch(userMessage, chatHistory)) {
+        const searchResults = await performWebSearch(userMessage, 3, onSearchStatusChange);
+        if (searchResults) {
+          contextData = { 
+            ...contextData, 
+            searchResults 
+          };
+        }
+      }
 
       // Build conversation history for context
       let conversationContext = '';
@@ -53,13 +66,24 @@ export class GeminiChatModel implements IChatModel {
 You can:
 - Answer questions about anything
 - Use image analysis summaries to understand what the user is seeing
+- Use real-time web search results when provided to give current information
 - Help with coding, writing, problem-solving
 - Provide explanations and guidance
 
 Be helpful, concise, and friendly. 
-Provide a response that answers the question using any provided image analysis as context.
+Provide a response that answers the question using any provided image analysis or search results as context.
+When using search results, cite the sources with their URLs when relevant.
 
 `;
+
+      // Add search results context if available
+      if (contextData?.searchResults && contextData.searchResults.length > 0) {
+        const searchContext = contextData.searchResults
+          .map(result => `Title: ${result.title}\nContent: ${result.content}\nURL: ${result.url}`)
+          .join('\n\n');
+        
+        promptText += `Recent web search results for the user's query:\n\n${searchContext}\n\nUse this information to provide accurate, up-to-date responses. Cite sources when relevant.\n\n`;
+      }
 
       // Add conversation context if available
       if (conversationContext) {
@@ -217,4 +241,6 @@ Provide a response that answers the question using any provided image analysis a
       'gemini-pro-vision'
     ];
   }
+
+
 } 

@@ -1,4 +1,5 @@
 import { ChatMessage, ContextData, IChatModel, ChatModelConfig } from '../../../types/chat';
+import { shouldPerformSearch, performWebSearch } from '../../../utils/searchUtils';
 
 export class LocalChatModel implements IChatModel {
   private config: ChatModelConfig;
@@ -11,9 +12,27 @@ export class LocalChatModel implements IChatModel {
     message: string,
     contextData?: ContextData,
     conversationHistory?: ChatMessage[],
-    onChunk?: (chunk: string) => void
+    onChunk?: (chunk: string) => void,
+    onSearchStatusChange?: (isSearching: boolean) => void
   ): Promise<{ success: boolean; error?: string; data?: string; usage?: { promptTokens: number; completionTokens: number; totalTokens: number; }; }> {
     try {
+      // Check if search is enabled and needed
+      const searchEnabled = this.getSearchEnabled();
+      if (searchEnabled && await shouldPerformSearch(message, conversationHistory)) {
+        console.log('Local model: Performing web search...');
+        const searchResults = await performWebSearch(message, 3, onSearchStatusChange);
+        if (searchResults) {
+          contextData = { 
+            ...contextData, 
+            searchResults 
+          };
+          console.log(`Local model: Search successful, found ${searchResults.length} results:`, 
+                      searchResults.map((r: any) => r.title));
+          console.log('Local model: contextData with search results:', contextData);
+        } else {
+          console.warn('Local model: Search returned no results, continuing without search');
+        }
+      }
       // Use IPC to communicate with the main process for local model inference
       if (typeof window !== 'undefined' && (window as any).electronAPI?.invokeLocalChatModel) {
         // Generate a unique message ID for this streaming session
@@ -34,6 +53,7 @@ export class LocalChatModel implements IChatModel {
         const removeListener = (window as any).electronAPI.addListener('localModelChunk', chunkListener);
         
         try {
+          console.log('Local model: Sending to IPC with contextData:', contextData);
           const result = await (window as any).electronAPI.invokeLocalChatModel('sendMessage', {
             message,
             contextData,
@@ -146,4 +166,12 @@ export class LocalChatModel implements IChatModel {
       return { success: false, error: error.message || 'Failed to load model' };
     }
   }
+
+  private getSearchEnabled(): boolean {
+    // Get search setting from localStorage
+    const searchEnabled = localStorage.getItem('localModelSearchEnabled');
+    return searchEnabled === 'true';
+  }
+
+
 } 

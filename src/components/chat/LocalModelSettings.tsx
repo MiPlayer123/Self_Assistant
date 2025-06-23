@@ -31,6 +31,12 @@ export const LocalModelSettings: React.FC<LocalModelSettingsProps> = ({ onSelect
   const [error, setError] = useState<string | null>(null);
   const [downloadingModel, setDownloadingModel] = useState<string | null>(null);
   const [downloadProgress, setDownloadProgress] = useState<number>(0);
+  
+  // Search settings state
+  const [searchEnabled, setSearchEnabled] = useState<boolean>(() => {
+    const saved = localStorage.getItem('localModelSearchEnabled');
+    return saved === 'true';
+  });
 
   const fetchAvailableModels = async () => {
     try {
@@ -101,6 +107,11 @@ export const LocalModelSettings: React.FC<LocalModelSettingsProps> = ({ onSelect
 
   const isLocalModelDownloaded = availableModels.some(model => model.filename === 'LocalModel.gguf');
 
+  const handleSearchToggle = (enabled: boolean) => {
+    setSearchEnabled(enabled);
+    localStorage.setItem('localModelSearchEnabled', enabled.toString());
+  };
+
   return (
     <div className="local-model-settings p-4 border rounded-md shadow-sm bg-zinc-700">
       <h3 className="text-lg font-semibold mb-4 text-white">Local Model Settings</h3>
@@ -145,6 +156,27 @@ export const LocalModelSettings: React.FC<LocalModelSettingsProps> = ({ onSelect
         </div>
       )}
       {error && <p className="mb-2 text-sm text-red-400">Error: {error}</p>}
+
+      {/* Search Settings Section */}
+      <div className="mb-6">
+        <h4 className="text-md font-semibold mb-3 text-white">Search Settings:</h4>
+        <div className="border border-gray-600 rounded-md p-3 bg-zinc-800">
+          <label className="flex items-center space-x-3">
+            <input
+              type="checkbox"
+              checked={searchEnabled}
+              onChange={(e) => handleSearchToggle(e.target.checked)}
+              className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+            />
+            <div>
+              <span className="text-white font-medium">Enable Web Search</span>
+              <p className="text-sm text-gray-400">
+                Allow the local model to search the web for current information when needed. (Requirese internet)
+              </p>
+            </div>
+          </label>
+        </div>
+      </div>
 
       {/* Available Models Section */}
       <div>

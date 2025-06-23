@@ -1,5 +1,6 @@
 import { IChatModel, ChatMessage, ContextData } from '../../../types/chat';
 import Anthropic from '@anthropic-ai/sdk';
+import { shouldPerformSearch, performWebSearch } from '../../../utils/searchUtils';
 
 interface ClaudeChatModelConfig {
   apiKey: string;
@@ -38,10 +39,22 @@ export class ClaudeChatModel implements IChatModel {
     userMessage: string,
     contextData: ContextData | undefined,
     chatHistory: ChatMessage[],
-    onChunk: (chunk: string) => void
+    onChunk: (chunk: string) => void,
+    onSearchStatusChange?: (isSearching: boolean) => void
   ): Promise<{ success: boolean; error?: string; usage?: { promptTokens: number; completionTokens: number; totalTokens: number; }; }> {
     try {
       console.log('Claude: Starting message stream with model:', this.model);
+      
+      // Check if search is needed and perform it
+      if (await shouldPerformSearch(userMessage, chatHistory)) {
+        const searchResults = await performWebSearch(userMessage, 3, onSearchStatusChange);
+        if (searchResults) {
+          contextData = { 
+            ...contextData, 
+            searchResults 
+          };
+        }
+      }
       
       const messages: Anthropic.Messages.MessageParam[] = [];
 
@@ -89,7 +102,16 @@ export class ClaudeChatModel implements IChatModel {
 
       console.log('Claude: Sending request to API...');
 
-      const systemPrompt = "You are Wagoo, a helpful AI assistant that can help with any task and respond to any queries. You may be provided with an image analysis summary to help provide context for your response.";
+      let systemPrompt = "You are Wagoo, a helpful AI assistant that can help with any task and respond to any queries. You may be provided with an image analysis summary to help provide context for your response.";
+      
+      // Add search results context if available
+      if (contextData?.searchResults && contextData.searchResults.length > 0) {
+        const searchContext = contextData.searchResults
+          .map(result => `Title: ${result.title}\nContent: ${result.content}\nURL: ${result.url}`)
+          .join('\n\n');
+        
+        systemPrompt += `\n\nRecent web search results for the user's query:\n\n${searchContext}\n\nUse this information to provide accurate, up-to-date responses. Cite sources when relevant.`;
+      }
 
       console.log('Claude: About to make API call with:', {
         model: this.model,
@@ -203,4 +225,6 @@ export class ClaudeChatModel implements IChatModel {
       return false;
     }
   }
+
+
 } 

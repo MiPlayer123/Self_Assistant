@@ -32,6 +32,8 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
 
   // New state for controlling the 'Analyzing' message
   const [isFirstMessageAnalyzing, setIsFirstMessageAnalyzing] = useState(false)
+  // New state for controlling the 'Searching' message
+  const [isSearching, setIsSearching] = useState(false)
   // State for toggling local model settings visibility
   const [showLocalModelSettings, setShowLocalModelSettings] = useState(false);
 
@@ -283,6 +285,9 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
         state.messages,
         (chunk: string) => {
           appendToMessage(streamingMessageId, chunk)
+        },
+        (searching: boolean) => {
+          setIsSearching(searching)
         }
       )
 
@@ -430,7 +435,13 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
             Analyzing...
           </div>
         )}
-        {state.currentContext?.screenshot && !isFirstMessageAnalyzing && !isModelLoading && (
+        {isSearching && !isModelLoading && !isFirstMessageAnalyzing && (
+          <div className="wagoo-context-indicator mt-1">
+            <span className="wagoo-status-dot animate-pulse"></span>
+            Searching web...
+          </div>
+        )}
+        {state.currentContext?.screenshot && !isFirstMessageAnalyzing && !isModelLoading && !isSearching && (
           <div className="wagoo-context-indicator mt-1">
             <span className="wagoo-status-dot"></span>
             Screenshot ready

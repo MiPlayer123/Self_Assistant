@@ -1,6 +1,7 @@
 import OpenAI from 'openai'
 import { ChatMessage, ContextData, IChatModel, ChatModelConfig } from '../../../types/chat'
 import { buildOpenAIMessages } from '../../../prompts/openai' // Import the new prompt builder
+import { shouldPerformSearch, performWebSearch } from '../../../utils/searchUtils'
 
 export class OpenAIChatModel implements IChatModel {
   private openai: OpenAI;
@@ -18,9 +19,21 @@ export class OpenAIChatModel implements IChatModel {
     message: string,
     contextData?: ContextData,
     conversationHistory?: ChatMessage[],
-    onChunk?: (chunk: string) => void
+    onChunk?: (chunk: string) => void,
+    onSearchStatusChange?: (isSearching: boolean) => void
   ): Promise<{ success: boolean; error?: string; data?: string; usage?: { promptTokens: number; completionTokens: number; totalTokens: number; }; }> {
     try {
+      // Check if search is needed and perform it
+      if (await shouldPerformSearch(message, conversationHistory)) {
+        const searchResults = await performWebSearch(message, 3, onSearchStatusChange);
+        if (searchResults) {
+          contextData = { 
+            ...contextData, 
+            searchResults 
+          };
+        }
+      }
+
       // Use the modular prompt builder
       const messages = buildOpenAIMessages(message, conversationHistory || [], contextData);
 
@@ -118,4 +131,6 @@ export class OpenAIChatModel implements IChatModel {
       return false;
     }
   }
+
+
 } 
