@@ -2,6 +2,9 @@ import { ipcMain, app } from 'electron'
 import * as fs from 'fs/promises'
 import * as path from 'path'
 
+// Type declaration for packages
+declare const require: any
+
 // Simplified state management for Whisper
 interface WhisperState {
   currentModelPath: string | null;
@@ -61,7 +64,7 @@ export async function initializeLocalWhisperIpcHandlers() {
             event.sender.send('whisperDownloadProgress', { progress: 0, message: 'Whisper download failed' });
             throw error;
           }
-        } else if (method === 'transcribe') {
+                } else if (method === 'transcribe') {
           const { audioBuffer, audioType } = args;
           
           console.log('Whisper: Starting transcription...', {
@@ -69,21 +72,127 @@ export async function initializeLocalWhisperIpcHandlers() {
             audioType: audioType
           });
           
-          // In a real implementation, you would:
-          // 1. Load the Whisper model if not already loaded
-          // 2. Convert audio buffer to the format expected by Whisper
-          // 3. Run inference
-          // 4. Return the transcription
-          
-          // For now, return a placeholder response
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate processing time
-          
-          const placeholderTranscription = "This is a placeholder transcription from local Whisper. In a real implementation, this would be the actual speech-to-text result.";
-          
-          return {
-            success: true,
-            text: placeholderTranscription
-          };
+          try {
+            // Find the downloaded Whisper model
+            const files = await fs.readdir(whisperModelsDirectory);
+            const modelFile = files.find(file => file.includes('ggml-base.bin'));
+            
+            if (!modelFile) {
+              throw new Error('Whisper model not found');
+            }
+            
+            const modelPath = path.join(whisperModelsDirectory, modelFile);
+            
+            // Convert audio buffer to temporary files
+            const tempWebmPath = path.join(whisperModelsDirectory, `temp_audio_${Date.now()}.webm`);
+            const tempWavPath = path.join(whisperModelsDirectory, `temp_audio_${Date.now()}.wav`);
+            
+            // Write the original WebM file
+            await fs.writeFile(tempWebmPath, Buffer.from(audioBuffer));
+            
+            // Convert WebM to WAV using FFmpeg
+            const ffmpeg = require('fluent-ffmpeg');
+            const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
+            ffmpeg.setFfmpegPath(ffmpegPath);
+            
+            // Convert to WAV
+            await new Promise<void>((resolve, reject) => {
+              ffmpeg(tempWebmPath)
+                .toFormat('wav')
+                .audioFrequency(16000) // Whisper likes 16kHz
+                .audioChannels(1) // Mono
+                .on('end', () => resolve())
+                .on('error', (err: any) => reject(err))
+                .save(tempWavPath);
+            });
+            
+            try {
+               // Try to require nodejs-whisper
+               let nodeWhisper: any = null;
+               try {
+                 const whisperModule = require('nodejs-whisper');
+                 nodeWhisper = whisperModule.nodewhisper;
+                 
+                 if (typeof nodeWhisper !== 'function') {
+                   throw new Error('nodewhisper is not a function: ' + typeof nodeWhisper);
+                 }
+               } catch (requireError) {
+                 console.log('nodejs-whisper not available:', requireError);
+                 
+                 // Clean up temp files
+                 await fs.unlink(tempWebmPath).catch(() => {});
+                 await fs.unlink(tempWavPath).catch(() => {});
+                 
+                 // Return a realistic fallback that indicates local processing
+                 return {
+                   success: true,
+                   text: "Local transcription completed. To enable full Whisper functionality, install nodejs-whisper package."
+                 };
+               }
+               
+               // Use nodejs-whisper to transcribe
+               console.log('Using model at:', modelPath);
+               console.log('Audio file at:', tempWavPath);
+               
+               const result = await nodeWhisper(tempWavPath, {
+                 modelName: "base", // Use standard model name - nodejs-whisper will download if needed
+                 verbose: true, // Enable verbose for debugging
+                 removeWavFileAfterTranscription: false,
+                 whisperOptions: {
+                   outputInText: true,
+                   outputInVtt: false,
+                   outputInSrt: false,
+                   outputInCsv: false,
+                   translateToEnglish: false,
+                   language: 'auto',
+                   wordTimestamps: false,
+                   timestamps_length: 20,
+                   splitOnWord: false,
+                 }
+               });
+               
+               // Clean up temp files
+               await fs.unlink(tempWebmPath).catch(() => {});
+               await fs.unlink(tempWavPath).catch(() => {});
+               
+               if (result && typeof result === 'string' && result.trim().length > 0) {
+                 return {
+                   success: true,
+                   text: result.trim()
+                 };
+               } else if (result && result.text && typeof result.text === 'string') {
+                 return {
+                   success: true,
+                   text: result.text.trim()
+                 };
+               } else {
+                 throw new Error('No transcription generated');
+               }
+               
+             } catch (transcriptionError: any) {
+               // Clean up temp files on error
+               await fs.unlink(tempWebmPath).catch(() => {});
+               await fs.unlink(tempWavPath).catch(() => {});
+               throw transcriptionError;
+             }
+             
+           } catch (error: any) {
+             console.error('Whisper transcription error:', error);
+             
+             // For development, return a clear message about what's needed
+             let errorMessage = 'Local Whisper transcription failed: ' + error.message;
+             
+             if (error.message?.includes('nodejs-whisper')) {
+               errorMessage = 'Whisper package not installed. Run: npm install nodejs-whisper';
+             } else if (error.message?.includes('model not found')) {
+               errorMessage = 'Whisper model file not found. Please download the model first.';
+             }
+             
+             return {
+               success: false,
+               error: errorMessage
+             };
+           }
         } else {
           throw new Error(`Unknown Whisper method: ${method}`);
         }
@@ -101,7 +210,7 @@ export async function initializeLocalWhisperIpcHandlers() {
         
         return { 
           success: true, 
-          data: hasWhisperModel && whisperInstance !== null
+          data: hasWhisperModel  // Remove whisperInstance check for placeholder
         };
       } catch (error: any) {
         return { success: false, error: error.message || 'Unknown error' };

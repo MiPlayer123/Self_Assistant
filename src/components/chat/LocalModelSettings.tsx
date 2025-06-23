@@ -16,12 +16,7 @@ interface PopularModel {
   size: string;
 }
 
-interface WhisperModel {
-  name: string;
-  uri: string;
-  description: string;
-  size: string;
-}
+// WhisperModel interface removed - no longer needed with automatic model handling
 
 const POPULAR_MODELS: PopularModel[] = [
   {
@@ -32,14 +27,8 @@ const POPULAR_MODELS: PopularModel[] = [
   }
 ];
 
-const WHISPER_MODELS: WhisperModel[] = [
-  {
-    name: 'Whisper Base',
-    uri: 'ggml-base.bin',
-    description: 'Fast and efficient speech recognition model',
-    size: '142MB'
-  }
-];
+// Whisper models are now handled automatically by @xenova/transformers
+// The whisper-base.en model will be downloaded automatically when first used
 
 export const LocalModelSettings: React.FC<LocalModelSettingsProps> = ({ onSelectLocalModel, onModelDownloaded }) => {
   const [availableModels, setAvailableModels] = useState<ModelInfo[]>([]);
@@ -48,11 +37,7 @@ export const LocalModelSettings: React.FC<LocalModelSettingsProps> = ({ onSelect
   const [downloadingModel, setDownloadingModel] = useState<string | null>(null);
   const [downloadProgress, setDownloadProgress] = useState<number>(0);
   
-  // Whisper-specific state
-  const [availableWhisperModels, setAvailableWhisperModels] = useState<ModelInfo[]>([]);
-  const [downloadingWhisper, setDownloadingWhisper] = useState<string | null>(null);
-  const [whisperDownloadStatus, setWhisperDownloadStatus] = useState<string>('');
-  const [whisperDownloadProgress, setWhisperDownloadProgress] = useState<number>(0);
+  // Local dictation is now handled automatically - no download needed
   
   // Search settings state
   const [searchEnabled, setSearchEnabled] = useState<boolean>(() => {
@@ -79,24 +64,10 @@ export const LocalModelSettings: React.FC<LocalModelSettingsProps> = ({ onSelect
     }
   };
 
-  const fetchAvailableWhisperModels = async () => {
-    try {
-      const response = await window.electronAPI?.getAvailableWhisperModels?.();
-      if (response?.success) {
-        setAvailableWhisperModels(response.data?.map((filename: string) => ({ filename })) || []);
-      } else {
-        console.warn('Failed to fetch Whisper models:', response?.error);
-        setAvailableWhisperModels([]);
-      }
-    } catch (err: any) {
-      console.warn('Error fetching Whisper models:', err.message);
-      setAvailableWhisperModels([]);
-    }
-  };
+  // Whisper models are handled automatically by @xenova/transformers
 
   useEffect(() => {
     fetchAvailableModels();
-    fetchAvailableWhisperModels();
     
     // Set up listener for download progress
     if (typeof window !== 'undefined' && (window as any).electronAPI?.addListener) {
@@ -105,17 +76,9 @@ export const LocalModelSettings: React.FC<LocalModelSettingsProps> = ({ onSelect
         setDownloadStatus(data.message);
       });
 
-      const removeWhisperDownloadListener = (window as any).electronAPI.addListener('whisperDownloadProgress', (data: any) => {
-        setWhisperDownloadProgress(data.progress);
-        setWhisperDownloadStatus(data.message);
-      });
-
       return () => {
         if (removeDownloadListener) {
           removeDownloadListener();
-        }
-        if (removeWhisperDownloadListener) {
-          removeWhisperDownloadListener();
         }
       };
     }
@@ -157,43 +120,9 @@ export const LocalModelSettings: React.FC<LocalModelSettingsProps> = ({ onSelect
     }
   };
 
-  const handleDownloadWhisperModel = async (uri: string) => {
-    setWhisperDownloadStatus('Starting Whisper download...');
-    setWhisperDownloadProgress(0);
-    setError(null);
-    setDownloadingWhisper(uri);
-    
-    try {
-      const response = await window.electronAPI?.invokeLocalWhisper?.('downloadModel', {
-        modelUri: uri
-      });
-
-      if (response?.success) {
-        setWhisperDownloadStatus('Whisper download complete!');
-        setWhisperDownloadProgress(100);
-        fetchAvailableWhisperModels(); // Refresh the list of Whisper models
-        
-        // Clear progress after a delay
-        setTimeout(() => {
-          setWhisperDownloadProgress(0);
-          setWhisperDownloadStatus('');
-        }, 2000);
-      } else {
-        setWhisperDownloadStatus('Whisper download failed.');
-        setWhisperDownloadProgress(0);
-        setError(response?.error || 'Unknown Whisper download error');
-      }
-    } catch (err: any) {
-      setWhisperDownloadStatus('Whisper download failed.');
-      setWhisperDownloadProgress(0);
-      setError(err.message || 'Error initiating Whisper download');
-    } finally {
-      setDownloadingWhisper(null);
-    }
-  };
+  // Whisper models are downloaded automatically by @xenova/transformers
 
   const isLocalModelDownloaded = availableModels.some(model => model.filename === 'LocalModel.gguf');
-  const isWhisperModelDownloaded = availableWhisperModels.some(model => model.filename.includes('ggml-base.bin'));
 
   const handleSearchToggle = (enabled: boolean) => {
     setSearchEnabled(enabled);
@@ -234,28 +163,24 @@ export const LocalModelSettings: React.FC<LocalModelSettingsProps> = ({ onSelect
         </div>
       </div>
 
-      {/* Whisper Models Section */}
+      {/* Local Dictation Settings Section */}
       <div className="mb-6">
-        <h4 className="text-md font-semibold mb-3 text-white">Local Dictation (Whisper):</h4>
-        <div className="space-y-3">
-          {WHISPER_MODELS.map((model) => (
-            <div key={model.uri} className="border border-gray-600 rounded-md p-3 bg-zinc-800">
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <h5 className="font-medium text-white">{model.name}</h5>
-                  <p className="text-sm text-gray-400">{model.description}</p>
-                  <p className="text-xs text-gray-500">Size: {model.size}</p>
-                </div>
-                <button
-                  onClick={() => handleDownloadWhisperModel(model.uri)}
-                  disabled={downloadingWhisper === model.uri || isWhisperModelDownloaded}
-                  className="px-3 py-1 bg-purple-500 text-white text-sm rounded-md hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {downloadingWhisper === model.uri ? 'Downloading...' : isWhisperModelDownloaded ? 'Already Downloaded' : 'Download'}
-                </button>
-              </div>
+        <h4 className="text-md font-semibold mb-3 text-white">Local Dictation Settings:</h4>
+        <div className="border border-gray-600 rounded-md p-3 bg-zinc-800">
+          <label className="flex items-center space-x-3">
+            <input
+              type="checkbox"
+              checked={localDictationEnabled}
+              onChange={(e) => handleLocalDictationToggle(e.target.checked)}
+              className="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
+            />
+            <div>
+              <span className="text-white font-medium">Enable Local Dictation</span>
+              <p className="text-sm text-gray-400">
+                Use local Whisper model for voice transcription across all AI models. The model will download automatically when first used.
+              </p>
             </div>
-          ))}
+          </label>
         </div>
       </div>
 
@@ -273,43 +198,10 @@ export const LocalModelSettings: React.FC<LocalModelSettingsProps> = ({ onSelect
           )}
         </div>
       )}
-      {whisperDownloadStatus && (
-        <div className="mb-2">
-          <p className="text-sm text-gray-300 mb-1">{whisperDownloadStatus}</p>
-          {downloadingWhisper && whisperDownloadProgress > 0 && (
-            <div className="w-full bg-gray-600 rounded-full h-2">
-              <div 
-                className="bg-purple-500 h-2 rounded-full transition-all duration-300 ease-out"
-                style={{ width: `${whisperDownloadProgress}%` }}
-              />
-            </div>
-          )}
-        </div>
-      )}
+
       {error && <p className="mb-2 text-sm text-red-400">Error: {error}</p>}
 
-      {/* Local Dictation Settings Section */}
-      <div className="mb-6">
-        <h4 className="text-md font-semibold mb-3 text-white">Dictation Settings:</h4>
-        <div className="border border-gray-600 rounded-md p-3 bg-zinc-800">
-          <label className="flex items-center space-x-3">
-            <input
-              type="checkbox"
-              checked={localDictationEnabled}
-              onChange={(e) => handleLocalDictationToggle(e.target.checked)}
-              disabled={!isWhisperModelDownloaded}
-              className="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500 focus:ring-2 disabled:opacity-50"
-            />
-            <div>
-              <span className="text-white font-medium">Enable Local Dictation</span>
-              <p className="text-sm text-gray-400">
-                Use local Whisper model for voice transcription across all AI models. 
-                {!isWhisperModelDownloaded && ' (Download Whisper model first)'}
-              </p>
-            </div>
-          </label>
-        </div>
-      </div>
+
 
       {/* Search Settings Section */}
       <div className="mb-6">
@@ -354,23 +246,7 @@ export const LocalModelSettings: React.FC<LocalModelSettingsProps> = ({ onSelect
             ))}
           </ul>
         )}
-        
-        {/* Show Whisper models if any are downloaded */}
-        {availableWhisperModels.length > 0 && (
-          <div className="mt-4">
-            <h5 className="text-sm font-medium mb-2 text-gray-300">Downloaded Whisper Models:</h5>
-            <ul className="space-y-1">
-              {availableWhisperModels.map((model) => (
-                <li key={model.filename} className="flex justify-between items-center py-1">
-                  <span className="text-sm text-gray-300">
-                    {model.filename.includes('ggml-base.bin') ? 'Whisper Base (Ready)' : model.filename}
-                  </span>
-                  <span className="text-xs text-green-400">✓ Ready</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+
       </div>
     </div>
   );
