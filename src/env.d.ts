@@ -65,6 +65,10 @@ interface ElectronAPI {
   // Local model methods
   invokeLocalChatModel: (method: string, args: any) => Promise<any>
   getAvailableLocalModels: () => Promise<{ success: boolean; data?: string[]; error?: string }>
+  // Local Whisper methods
+  invokeLocalWhisper: (method: string, args: any) => Promise<any>
+  getAvailableWhisperModels: () => Promise<{ success: boolean; data?: string[]; error?: string }>
+  isLocalWhisperLoaded: () => Promise<{ success: boolean; data?: boolean; error?: string }>
   // Generic listener methods for streaming support
   addListener: (channel: string, callback: (data: any) => void) => () => void
   removeListener: (channel: string, callback: (data: any) => void) => void

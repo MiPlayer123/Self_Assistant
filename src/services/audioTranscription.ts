@@ -1,5 +1,6 @@
 import OpenAI from 'openai'
 import { getApiKey } from '../models/ModelManager'
+import { transcribeAudioLocally, isLocalWhisperAvailable } from './localWhisperTranscription'
 
 export interface TranscriptionResult {
   success: boolean
@@ -7,7 +8,36 @@ export interface TranscriptionResult {
   error?: string
 }
 
+// Check if local dictation is enabled
+function isLocalDictationEnabled(): boolean {
+  const enabled = localStorage.getItem('localDictationEnabled')
+  return enabled === 'true'
+}
+
 export async function transcribeAudio(audioBlob: Blob): Promise<TranscriptionResult> {
+  // Check if local dictation is enabled and available
+  const useLocal = isLocalDictationEnabled()
+  
+  if (useLocal) {
+    const isLocalAvailable = await isLocalWhisperAvailable()
+    if (isLocalAvailable) {
+      console.log('Using local Whisper for transcription')
+      const localResult = await transcribeAudioLocally(audioBlob)
+      
+      // If local transcription succeeds, return it
+      if (localResult.success) {
+        return localResult
+      } else {
+        console.warn('Local transcription failed, falling back to cloud:', localResult.error)
+        // Fall through to cloud transcription as fallback
+      }
+    } else {
+      console.warn('Local Whisper not available, falling back to cloud transcription')
+      // Fall through to cloud transcription
+    }
+  }
+
+  // Use cloud transcription (existing OpenAI Whisper implementation)
   try {
     // Get OpenAI API key using existing infrastructure
     const apiKey = await getApiKey('openai')
@@ -23,7 +53,7 @@ export async function transcribeAudio(audioBlob: Blob): Promise<TranscriptionRes
       type: audioBlob.type
     })
 
-    console.log('Transcribing audio...', {
+    console.log('Transcribing audio with OpenAI Whisper...', {
       size: audioBlob.size,
       type: audioBlob.type
     })

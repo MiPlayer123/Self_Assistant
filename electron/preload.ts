@@ -64,6 +64,10 @@ interface ElectronAPI {
   isModelLoaded: (args: { modelPath: string }) => Promise<{ success: boolean; data?: boolean; error?: string }>
   resetLocalModelChat: () => Promise<{ success: boolean; data?: string; error?: string }>
   cleanupLocalModel: () => Promise<{ success: boolean; data?: string; error?: string }>
+  // Local Whisper methods
+  invokeLocalWhisper: (method: string, args: any) => Promise<any>
+  getAvailableWhisperModels: () => Promise<{ success: boolean; data?: string[]; error?: string }>
+  isLocalWhisperLoaded: () => Promise<{ success: boolean; data?: boolean; error?: string }>
   // Generic listener methods for streaming support
   addListener: (channel: string, callback: (data: any) => void) => () => void
   removeListener: (channel: string, callback: (data: any) => void) => void
@@ -295,6 +299,12 @@ const electronAPI = {
     ipcRenderer.invoke("resetLocalModelChat"),
   cleanupLocalModel: () => 
     ipcRenderer.invoke("cleanupLocalModel"),
+  // Local Whisper methods
+  invokeLocalWhisper: async (method: string, args: any) => {
+    return ipcRenderer.invoke("invokeLocalWhisper", { method, args })
+  },
+  getAvailableWhisperModels: () => ipcRenderer.invoke("getAvailableWhisperModels"),
+  isLocalWhisperLoaded: () => ipcRenderer.invoke("isLocalWhisperLoaded"),
   // Generic listener methods for streaming support
   addListener: (channel: string, callback: (data: any) => void) => {
     const subscription = (_: any, data: any) => callback(data);

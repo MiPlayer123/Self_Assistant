@@ -2,6 +2,7 @@ import { app, BrowserWindow, screen, shell, ipcMain } from "electron"
 import path from "path"
 import { initializeIpcHandlers } from "./ipcHandlers"
 import { initializeLocalModelIpcHandlers } from "./localModelIpcHandlers"
+import { initializeLocalWhisperIpcHandlers } from "./localWhisperIpcHandlers"
 import { LocalProcessingHelper } from "./LocalProcessingHelper"
 import { ScreenshotHelper } from "./ScreenshotHelper"
 import { ShortcutsHelper } from "./shortcuts"
@@ -539,6 +540,7 @@ async function initializeApp() {
       moveWindowDown: () => moveWindowVertical((y) => y + state.step)
     })
     await initializeLocalModelIpcHandlers()
+    await initializeLocalWhisperIpcHandlers()
     await createWindow()
     await createButtonWindow()
     state.shortcutsHelper?.registerGlobalShortcuts()
