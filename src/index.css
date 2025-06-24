@@ -213,6 +213,63 @@ body {
 }
 
 /* =============================================
+   COMPONENT CLASSES - LOGO
+   ============================================= */
+
+.wagoo-logo {
+  @apply flex items-center justify-center;
+  transition: var(--wagoo-transition-fast);
+}
+
+.wagoo-logo img {
+  transition: var(--wagoo-transition-fast);
+  box-shadow: var(--wagoo-shadow-sm);
+}
+
+.wagoo-logo:hover img {
+  transform: scale(1.05);
+  box-shadow: var(--wagoo-shadow-md);
+}
+
+/* =============================================
+   COMPONENT CLASSES - MODEL PICKER
+   ============================================= */
+
+.model-picker-container select {
+  background-image: url("data:image/svg+xml;charset=US-ASCII,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'><path fill='rgba(255, 255, 255, 0.7)' d='M2 0L0 2h4zm0 5L0 3h4z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 8px;
+  padding-right: 24px;
+}
+
+.model-picker-container select:focus {
+  background-image: url("data:image/svg+xml;charset=US-ASCII,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'><path fill='rgba(79, 172, 254, 1)' d='M2 0L0 2h4zm0 5L0 3h4z'/></svg>");
+}
+
+/* =============================================
+   COMPONENT CLASSES - INPUT BUTTONS
+   ============================================= */
+
+.wagoo-chat-input-container button {
+  transition: var(--wagoo-transition-fast);
+  backdrop-filter: var(--wagoo-backdrop-blur);
+}
+
+.wagoo-chat-input-container button:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: var(--wagoo-shadow-md);
+}
+
+.wagoo-chat-input-container button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.wagoo-chat-input-container button svg {
+  transition: var(--wagoo-transition-fast);
+}
+
+/* =============================================
    COMPONENT CLASSES - INPUTS & BUTTONS
    ============================================= */
 

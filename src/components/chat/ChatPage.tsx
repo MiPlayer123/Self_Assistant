@@ -398,13 +398,22 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
       {/* Chat header */}
       <div className="wagoo-chat-header">
         <div className="flex items-center justify-between">
-          <div>
+          <div className="flex items-center gap-3">
+            {/* Wagoo Logo */}
+            <div className="wagoo-logo">
+              <img
+                src="W-logo.png"
+                alt="Wagoo Logo"
+                className="w-8 h-8 rounded-lg object-contain"
+              />
+            </div>
+            {/* Wagoo Brand */}
             <h1 className="text-xl font-semibold wagoo-text-primary">Wagoo</h1>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={handleResetChat}
-              className="p-1 rounded-md hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="p-1 rounded-md hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
               aria-label="Reset Chat History"
               title="Reset Chat History"
             >
@@ -414,11 +423,11 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
             {selectedModelId.startsWith('local-') && (
               <button
                 onClick={toggleLocalModelSettings}
-                className="p-1 rounded-md hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="p-1 rounded-md hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                 aria-label="Local Model Settings"
                 title="Local Model Settings"
               >
-                <span className="text-lg">⚙️</span> {/* Gear icon */}
+                <span className="text-lg">⚙️</span>
               </button>
             )}
           </div>

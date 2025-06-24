@@ -110,19 +110,28 @@ export function ChatInput({
   };
 
   return (
-    <div className="wagoo-chat-input-container flex items-center justify-center py-2 px-4">
-      <form onSubmit={handleSubmit} className="flex items-center gap-2 w-full max-w-2xl">
+    <div className="wagoo-chat-input-container flex items-center justify-center py-3 px-4">
+      <form onSubmit={handleSubmit} className="flex items-center gap-3 w-full max-w-2xl">
         {/* Screenshot button */}
         <button
           type="button"
           onClick={onTakeScreenshot}
           disabled={isProcessing}
-          className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-lg transition-colors
-            ${hasScreenshot ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}
+          className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-colors
+            ${hasScreenshot ? 'text-white' : 'text-gray-300 hover:text-white'}
             disabled:opacity-50 disabled:cursor-not-allowed`}
+          style={{
+            backgroundColor: hasScreenshot 
+              ? 'var(--wagoo-accent-primary)' 
+              : 'var(--wagoo-bg-tertiary)',
+            border: '1px solid var(--wagoo-border-secondary)'
+          }}
           title={hasScreenshot ? 'Screenshot attached' : 'Take screenshot'}
         >
-          📸
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5zm0-5c-0.83 0-1.5 0.67-1.5 1.5s0.67 1.5 1.5 1.5 1.5-0.67 1.5-1.5-0.67-1.5-1.5-1.5z"/>
+            <path d="M20 4h-3.17l-1.24-1.35c-0.37-0.41-0.91-0.65-1.47-0.65h-4.24c-0.56 0-1.1 0.24-1.47 0.65l-1.24 1.35h-3.17c-1.1 0-2 0.9-2 2v12c0 1.1 0.9 2 2 2h16c1.1 0 2-0.9 2-2v-12c0-1.1-0.9-2-2-2zm0 14h-16v-12h16v12z"/>
+          </svg>
         </button>
 
         {/* Message input */}
@@ -156,13 +165,21 @@ export function ChatInput({
           type="button"
           onClick={handleMicrophoneClick}
           disabled={isProcessing}
-          className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-lg transition-colors
+          className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-colors
             ${recordingState === 'recording' 
-              ? 'bg-red-500 text-white animate-pulse' 
+              ? 'text-white animate-pulse' 
               : recordingState === 'processing'
-              ? 'bg-yellow-500 text-white'
-              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}
+              ? 'text-white'
+              : 'text-gray-300 hover:text-white'}
             disabled:opacity-50 disabled:cursor-not-allowed`}
+          style={{
+            backgroundColor: recordingState === 'recording' 
+              ? 'var(--wagoo-accent-error)' 
+              : recordingState === 'processing'
+              ? 'var(--wagoo-accent-warning)'
+              : 'var(--wagoo-bg-tertiary)',
+            border: '1px solid var(--wagoo-border-secondary)'
+          }}
           title={
             recordingState === 'recording' 
               ? 'Stop recording' 
@@ -174,7 +191,10 @@ export function ChatInput({
           {recordingState === 'processing' ? (
             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
           ) : (
-            '🎤'
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+              <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-0.49 6-3.39 6-6.92h-2z"/>
+            </svg>
           )}
         </button>
 
@@ -182,7 +202,11 @@ export function ChatInput({
         <button
           type="submit"
           disabled={!message.trim() || isProcessing}
-          className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+          style={{
+            backgroundColor: 'var(--wagoo-accent-primary)',
+            border: '1px solid var(--wagoo-border-secondary)'
+          }}
           title="Send message"
         >
           {isProcessing ? (

@@ -45,13 +45,24 @@ const ModelPicker = forwardRef<ModelPickerRef>((props, ref) => {
 
   return (
     <div className="model-picker-container flex items-center">
-      <label htmlFor="model-select" className="text-gray-300 text-sm mr-1">Model:</label>
+      <label
+        htmlFor="model-select"
+        className="text-sm mr-2"
+        style={{ color: "var(--wagoo-text-secondary)" }}
+      >
+        Model:
+      </label>
       <div className="w-fit min-w-0">
         <select
           id="model-select"
           value={selectedModelId}
           onChange={handleChange}
-          className="px-1 py-0.5 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-zinc-700 text-white text-xs appearance-none !block cursor-pointer"
+          className="px-2 py-1 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm appearance-none cursor-pointer transition-all duration-200"
+          style={{
+            borderColor: "var(--wagoo-border-primary)",
+            backgroundColor: "var(--wagoo-bg-tertiary)",
+            color: "var(--wagoo-text-primary)"
+          }}
         >
           {AI_MODEL_PROVIDERS.map((provider) => {
             if (provider.id === 'local') {

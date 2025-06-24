@@ -228,9 +228,9 @@ export function ChatMessage({ message }: ChatMessageProps) {
                 pre: ({ node, ...props }) => (
                   <pre className="overflow-x-auto p-2 rounded-md max-w-full w-full block" {...props} />
                 ),
-                p: ({ node, ...props }) => <p className="mb-2" {...props} />,
-                ul: ({ node, ...props }) => <ul className="list-disc list-inside mb-2" {...props} />,
-                ol: ({ node, ...props }) => <ol className="list-decimal list-inside mb-2" {...props} />,
+                p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
+                ul: ({ node, ...props }) => <ul className="list-disc list-inside mb-2 last:mb-0" {...props} />,
+                ol: ({ node, ...props }) => <ol className="list-decimal list-inside mb-2 last:mb-0" {...props} />,
                 li: ({ node, ...props }) => <li className="mb-1" {...props} />,
                 strong: ({ node, ...props }) => <strong className="font-bold" {...props} />,
                 em: ({ node, ...props }) => <em className="italic" {...props} />,
@@ -266,7 +266,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
         </div>
 
         {/* Timestamp and status */}
-        <div className={`wagoo-timestamp mt-2 ${isUser ? 'text-right' : 'text-left'}`}>
+        <div className={`wagoo-timestamp ${isUser ? 'text-right' : 'text-left'}`}>
           {message.timestamp.toLocaleTimeString([], { 
             hour: '2-digit', 
             minute: '2-digit' 
