@@ -52,6 +52,14 @@ export interface ElectronAPI {
   onCreditsUpdated: (callback: (credits: number) => void) => () => void
   onOutOfCredits: (callback: () => void) => () => void
   getPlatform: () => string
+  sampleBackgroundColor: (x: number, y: number) => Promise<{ 
+    success: boolean
+    isLight?: boolean
+    r?: number
+    g?: number
+    b?: number
+    error?: string 
+  }>
   // Local model methods
   invokeLocalChatModel: (method: string, args: any) => Promise<any>
   getAvailableLocalModels: () => Promise<{ success: boolean; data?: string[]; error?: string }>

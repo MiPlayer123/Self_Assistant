@@ -6,6 +6,7 @@ import { app } from "electron"
 import { v4 as uuidv4 } from "uuid"
 import { execFile } from "child_process"
 import { promisify } from "util"
+import { PNG } from "pngjs"
 
 const execFileAsync = promisify(execFile)
 
@@ -198,18 +199,112 @@ export class ScreenshotHelper {
       await fs.promises.unlink(path)
       if (this.view === "queue") {
         this.screenshotQueue = this.screenshotQueue.filter(
-          (filePath) => filePath !== path
+          (p) => p !== path
         )
       } else {
         this.extraScreenshotQueue = this.extraScreenshotQueue.filter(
-          (filePath) => filePath !== path
+          (p) => p !== path
         )
       }
       return { success: true }
     } catch (error) {
-      console.error("Error deleting file:", error)
-      return { success: false, error: error.message }
+      console.error("Error deleting screenshot:", error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error"
+      }
     }
+  }
+
+  /**
+   * Samples the color of a region by capturing it and analyzing the average color.
+   * This is the most reliable method.
+   * @param x - Center X coordinate
+   * @param y - Center Y coordinate
+   * @param size - The width/height of the square area to sample.
+   * @returns An object with the lightness and average RGB values.
+   */
+  public async samplePixelsAtPosition(
+    x: number,
+    y: number,
+    size: number = 10 // Sample a 10x10 area by default for stability
+  ): Promise<{ isLight: boolean; r: number; g: number; b: number }> {
+    try {
+      const halfSize = Math.floor(size / 2)
+      const captureX = Math.max(0, x - halfSize)
+      const captureY = Math.max(0, y - halfSize)
+
+      const tmpPath = path.join(app.getPath("temp"), `region-sample-${uuidv4()}.png`)
+
+      if (process.platform === "darwin") {
+        await execFileAsync("screencapture", [
+          "-x",
+          "-R",
+          `${captureX},${captureY},${size},${size}`,
+          tmpPath
+        ])
+      } else {
+        // Windows implementation
+        const script = `
+          Add-Type -AssemblyName System.Windows.Forms
+          Add-Type -AssemblyName System.Drawing
+          $bitmap = New-Object System.Drawing.Bitmap ${size}, ${size}
+          $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+          $graphics.CopyFromScreen(${captureX}, ${captureY}, 0, 0, $bitmap.Size)
+          $bitmap.Save('${tmpPath.replace(/\\/g, "\\\\")}')
+          $graphics.Dispose()
+          $bitmap.Dispose()
+        `
+        await execFileAsync("powershell", ["-command", script])
+      }
+
+      const buffer = await fs.promises.readFile(tmpPath)
+      await fs.promises.unlink(tmpPath)
+
+      return this.getAverageColorFromPng(buffer)
+    } catch (error) {
+      console.error("Error sampling pixel color region:", error)
+      return { isLight: false, r: 0, g: 0, b: 0 } // Default to dark on error
+    }
+  }
+
+  /**
+   * Uses pngjs to parse a PNG buffer and calculate the average color.
+   * @param buffer - The PNG image data.
+   * @returns A promise resolving to the color analysis.
+   */
+  private getAverageColorFromPng(
+    buffer: Buffer
+  ): Promise<{ isLight: boolean; r: number; g: number; b: number }> {
+    return new Promise((resolve, reject) => {
+      new PNG().parse(buffer, (err, data) => {
+        if (err) {
+          console.error("PNG parsing error:", err)
+          return reject(err)
+        }
+
+        let totalR = 0,
+          totalG = 0,
+          totalB = 0
+        const pixelCount = data.width * data.height
+
+        for (let y = 0; y < data.height; y++) {
+          for (let x = 0; x < data.width; x++) {
+            const idx = (data.width * y + x) << 2
+            totalR += data.data[idx]
+            totalG += data.data[idx + 1]
+            totalB += data.data[idx + 2]
+          }
+        }
+
+        const avgR = totalR / pixelCount
+        const avgG = totalG / pixelCount
+        const avgB = totalB / pixelCount
+
+        const luminance = (0.299 * avgR + 0.587 * avgG + 0.114 * avgB) / 255
+        resolve({ isLight: luminance > 0.5, r: avgR, g: avgG, b: avgB })
+      })
+    })
   }
 
   public clearExtraScreenshotQueue(): void {

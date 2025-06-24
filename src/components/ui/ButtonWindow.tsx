@@ -3,6 +3,41 @@ import React, { useState, useEffect } from 'react'
 export const ButtonWindow: React.FC = () => {
   const [isHovered, setIsHovered] = useState(false)
   const [isReady, setIsReady] = useState(false)
+  const [isDarkMode, setIsDarkMode] = useState(true) // Default to dark mode styling
+
+  // Sample background color periodically
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout
+
+    const sampleBackgroundColor = async () => {
+      try {
+        // Get button window position - assuming it's near bottom right
+        const buttonSize = 56
+        const margin = 10
+        const x = window.screen.width - buttonSize/2 - margin
+        const y = window.screen.height - buttonSize/2 - margin
+
+        if (window.electronAPI?.sampleBackgroundColor) {
+          const result = await window.electronAPI.sampleBackgroundColor(x, y)
+          if (result.success && typeof result.isLight === 'boolean') {
+            setIsDarkMode(!result.isLight) // Dark mode when background is light
+          }
+        }
+      } catch (error) {
+        console.error('Error sampling background color:', error)
+      }
+    }
+
+    // Sample immediately and then every 1 second
+    sampleBackgroundColor()
+    intervalId = setInterval(sampleBackgroundColor, 1000)
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId)
+      }
+    }
+  }, [])
 
   // Ensure the body background is transparent for the button window
   useEffect(() => {
@@ -56,6 +91,13 @@ export const ButtonWindow: React.FC = () => {
     }
   }
 
+  // Dynamic colors based on background
+  const buttonColors = {
+    background: 'rgba(255, 255, 255, 0.15)',
+    border: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)',
+    plusIcon: isDarkMode ? '#fff' : '#000'
+  }
+
   return (
     <div 
       className="w-full h-full flex items-center justify-center relative"
@@ -103,10 +145,10 @@ export const ButtonWindow: React.FC = () => {
           width: '56px',
           height: '56px',
           borderRadius: '50%',
-          background: 'rgba(255, 255, 255, 0.15)',
-          border: '2px solid transparent',
+          background: buttonColors.background,
+          border: `2px solid transparent`,
           boxShadow: `
-            0 0 0 2px rgba(255, 255, 255, 0.6),
+            0 0 0 2px ${buttonColors.border},
             0 ${isHovered ? '20px 40px' : '16px 32px'} rgba(0, 0, 0, 0.12)
           `,
           backdropFilter: 'url(#frosted), blur(10px)',
@@ -123,14 +165,14 @@ export const ButtonWindow: React.FC = () => {
         title="Toggle Chat Window"
       />
 
-      {/* Add CSS for pseudo-elements */}
+      {/* Add CSS for pseudo-elements with dynamic colors */}
       <style dangerouslySetInnerHTML={{
         __html: `
           .glass-button::before,
           .glass-button::after {
             content: "";
             position: absolute;
-            background: #fff;
+            background: ${buttonColors.plusIcon};
             border-radius: 4px;
           }
           .glass-button::before {

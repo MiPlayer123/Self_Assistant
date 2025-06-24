@@ -146,6 +146,22 @@ export function initializeIpcHandlers(deps: IIpcHandlerDeps): void {
     }
   })
 
+  // Pixel sampling handler for button background detection
+  ipcMain.handle("sample-background-color", async (event, x: number, y: number) => {
+    try {
+      const screenshotHelper = deps.getScreenshotHelper()
+      if (!screenshotHelper) {
+        return { error: "Screenshot helper not available" }
+      }
+      
+      const colorData = await screenshotHelper.samplePixelsAtPosition(x, y)
+      return { success: true, ...colorData }
+    } catch (error) {
+      console.error("Error sampling background color:", error)
+      return { error: "Failed to sample background color" }
+    }
+  })
+
   // Auth related handlers
   ipcMain.handle("get-pkce-verifier", () => {
     return randomBytes(32).toString("base64url")

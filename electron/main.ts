@@ -105,6 +105,7 @@ export interface IIpcHandlerDeps {
   PROCESSING_EVENTS: typeof state.PROCESSING_EVENTS
   takeScreenshot: () => Promise<string>
   getView: () => "queue" | "solutions" | "debug"
+  getScreenshotHelper: () => ScreenshotHelper | null
   toggleMainWindow: () => void
   toggleButtonWindow: () => void
   clearQueues: () => void
@@ -523,6 +524,7 @@ async function initializeApp() {
       PROCESSING_EVENTS: state.PROCESSING_EVENTS,
       takeScreenshot,
       getView,
+      getScreenshotHelper,
       toggleMainWindow,
       toggleButtonWindow,
       clearQueues,
