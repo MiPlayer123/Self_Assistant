@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 
 export const ButtonWindow: React.FC = () => {
   const [isHovered, setIsHovered] = useState(false)
+  const [isReady, setIsReady] = useState(false)
 
   // Ensure the body background is transparent for the button window
   useEffect(() => {
@@ -10,23 +11,32 @@ export const ButtonWindow: React.FC = () => {
     document.documentElement.style.backgroundColor = 'transparent'
     document.documentElement.style.background = 'transparent'
     
-    // Also ensure any potential CSS resets don't interfere
+    // Only make the page background transparent, not all elements
     const style = document.createElement('style')
     style.textContent = `
-      * {
-        background: rgba(0, 0, 0, 0.3) !important;
-      }
       html, body {
         background: transparent !important;
         background-color: transparent !important;
+        margin: 0;
+        padding: 0;
       }
       #root {
+        background: transparent !important;
+        background-color: transparent !important;
+      }
+      /* Ensure container divs are transparent but not buttons */
+      body > div, #root > div {
         background: transparent !important;
         background-color: transparent !important;
       }
     `
     document.head.appendChild(style)
     
+      // Small delay to ensure content is ready after transparency is set
+      setTimeout(() => {
+        setIsReady(true)
+      }, 100)
+      
     return () => {
       // Clean up when component unmounts
       document.body.style.backgroundColor = ''
@@ -48,7 +58,7 @@ export const ButtonWindow: React.FC = () => {
 
   return (
     <div 
-      className="w-full h-full flex items-center justify-center"
+      className="w-full h-full flex items-center justify-center relative"
       style={{ 
         width: '68px', 
         height: '68px',
@@ -56,62 +66,83 @@ export const ButtonWindow: React.FC = () => {
         background: 'transparent'
       }}
     >
-      {/* SVG Filter Definition */}
+
+      
+      {/* SVG Filter Definition - Using gradient.PNG for liquid displacement effect */}
       <svg style={{ position: 'absolute', width: 0, height: 0 }}>
         <defs>
+          {/* Liquid glass filter using reference implementation */}
           <filter id="frosted" primitiveUnits="objectBoundingBox">
-            <feImage 
-              href="renderer/public/gradient.png"
-              x="0" y="0" width="1" height="1" result="map"
-            />
+            <feImage href="/gradient.PNG" x="0" y="0" width="1" height="1" result="map"/>
             <feGaussianBlur in="SourceGraphic" stdDeviation="0.02" result="blur"/>
-            <feDisplacementMap 
-              id="disp" 
-              in="blur" 
-              in2="map" 
-              scale={isHovered ? "1.4" : "1"} 
-              xChannelSelector="R" 
-              yChannelSelector="G"
-            />
+            <feDisplacementMap id="disp" in="blur" in2="map" scale="1" xChannelSelector="R" yChannelSelector="G">
+              <animate attributeName="scale" to="1.4" dur="0.3s" begin="glass-btn.mouseover" fill="freeze"/>
+              <animate attributeName="scale" to="1" dur="0.3s" begin="glass-btn.mouseout" fill="freeze"/>
+            </feDisplacementMap>
+          </filter>
+          
+          {/* Fallback filter without image for visibility */}
+          <filter id="frosted-fallback">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur"/>
+            <feColorMatrix in="blur" type="saturate" values="1.2"/>
           </filter>
         </defs>
       </svg>
 
       {/* Floating Glass Button */}
       <button
+        id="glass-btn"
         className={`
-          w-14 h-14 rounded-full
-          bg-white/8 border-2 border-transparent
-          backdrop-blur-sm
-          transition-all duration-300 ease-out
+          glass-button
+          transition-transform duration-300 ease-out
           cursor-pointer outline-none
-          flex items-center justify-center
-          hover:scale-110
-          ${isHovered ? 'shadow-lg' : 'shadow-md'}
+          ${isReady ? 'opacity-100' : 'opacity-0'}
         `}
         style={{
-          backdropFilter: 'url(#frosted)',
-          WebkitBackdropFilter: 'url(#frosted)',
+          position: 'relative',
+          width: '56px',
+          height: '56px',
+          borderRadius: '50%',
+          background: 'rgba(255, 255, 255, 0.15)',
+          border: '2px solid transparent',
           boxShadow: `
             0 0 0 2px rgba(255, 255, 255, 0.6),
             0 ${isHovered ? '20px 40px' : '16px 32px'} rgba(0, 0, 0, 0.12)
           `,
+          backdropFilter: 'url(#frosted), blur(10px)',
+          WebkitBackdropFilter: 'url(#frosted), blur(10px)',
+          display: 'grid',
+          placeItems: 'center',
+          transform: isHovered ? 'scale(1.1)' : 'scale(1)',
+          transition: 'all 0.3s ease-out',
+          zIndex: 1,
         }}
         onClick={handleClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         title="Toggle Chat Window"
-      >
-        {/* Plus Icon */}
-        <div className="relative">
-          <div 
-            className="absolute w-5 h-0.5 bg-white rounded-full top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-          />
-          <div 
-            className="absolute w-0.5 h-5 bg-white rounded-full top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-          />
-        </div>
-      </button>
+      />
+
+      {/* Add CSS for pseudo-elements */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          .glass-button::before,
+          .glass-button::after {
+            content: "";
+            position: absolute;
+            background: #fff;
+            border-radius: 4px;
+          }
+          .glass-button::before {
+            width: 40%;
+            height: 3px;
+          }
+          .glass-button::after {
+            width: 3px;
+            height: 40%;
+          }
+        `
+      }} />
     </div>
   )
 } 

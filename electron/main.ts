@@ -330,7 +330,8 @@ async function createWindow(): Promise<void> {
   })
 
   // Enhanced screen capture resistance
-  state.mainWindow.setContentProtection(true)
+  // TEMPORARY: Disabled for screenshot visibility testing
+  // state.mainWindow.setContentProtection(true)
 
   state.mainWindow.setVisibleOnAllWorkspaces(true, {
     visibleOnFullScreen: true
@@ -420,7 +421,8 @@ function showMainWindow(): void {
     state.mainWindow.setVisibleOnAllWorkspaces(true, {
       visibleOnFullScreen: true
     })
-    state.mainWindow.setContentProtection(true)
+    // TEMPORARY: Disabled for screenshot visibility testing
+    // state.mainWindow.setContentProtection(true)
     state.mainWindow.setOpacity(0)
     state.mainWindow.showInactive()
     state.mainWindow.setOpacity(1)
@@ -627,7 +629,7 @@ async function createButtonWindow(): Promise<void> {
       preload: isDev
         ? path.join(__dirname, "../dist-electron/preload.js")
         : path.join(__dirname, "preload.js"),
-      scrollBounce: true
+              scrollBounce: true
     },
     show: state.isButtonVisible,
     frame: false,
@@ -670,19 +672,19 @@ async function createButtonWindow(): Promise<void> {
   }
   
   // Enhanced screen capture resistance
-  state.buttonWindow.setContentProtection(true)
+  // TEMPORARY: Disabled for screenshot visibility testing
+  // state.buttonWindow.setContentProtection(true)
   
   state.buttonWindow.setVisibleOnAllWorkspaces(true, {
     visibleOnFullScreen: true
   })
   state.buttonWindow.setAlwaysOnTop(true, "screen-saver", 2) // Higher level than main window
 
-  // Additional screen capture resistance settings and transparency
+  // Additional screen capture resistance settings
   if (process.platform === "darwin") {
     // Prevent window from being captured in screenshots
     state.buttonWindow.setHiddenInMissionControl(true)
     state.buttonWindow.setWindowButtonVisibility(false)
-    state.buttonWindow.setBackgroundColor("#00000000")
 
     // Prevent window from being included in window switcher
     state.buttonWindow.setSkipTaskbar(true)
@@ -690,8 +692,6 @@ async function createButtonWindow(): Promise<void> {
     // Disable window shadow
     state.buttonWindow.setHasShadow(false)
   }
-
-  // Ensure complete transparency across all platforms
 
   // Prevent the window from being captured by screen recording
   state.buttonWindow.webContents.setBackgroundThrottling(false)
