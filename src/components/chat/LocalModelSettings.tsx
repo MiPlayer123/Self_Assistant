@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
+import { Button } from '../ui/button';
 
 interface LocalModelSettingsProps {
   onSelectLocalModel: (modelPath: string) => void;
@@ -135,119 +137,101 @@ export const LocalModelSettings: React.FC<LocalModelSettingsProps> = ({ onSelect
   };
 
   return (
-    <div className="local-model-settings p-4 border rounded-md shadow-sm bg-zinc-700">
-      <h3 className="text-lg font-semibold mb-4 text-white">Local Model Settings</h3>
+    <Card className="local-model-settings bg-zinc-800/95 border-zinc-600">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-white">Local Model Settings</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
 
       {/* Popular Models Section */}
-      <div className="mb-6">
-        <h4 className="text-md font-semibold mb-3 text-white">Available Model:</h4>
-        <div className="space-y-3">
-          {POPULAR_MODELS.map((model) => (
-            <div key={model.uri} className="border border-gray-600 rounded-md p-3 bg-zinc-800">
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <h5 className="font-medium text-white">{model.name}</h5>
-                  <p className="text-sm text-gray-400">{model.description}</p>
-                  <p className="text-xs text-gray-500">Size: {model.size}</p>
-                </div>
-                <button
-                  onClick={() => handleDownloadModel(model.uri)}
-                  disabled={downloadingModel === model.uri || isLocalModelDownloaded}
-                  className="px-3 py-1 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {downloadingModel === model.uri ? 'Downloading...' : isLocalModelDownloaded ? 'Already Downloaded' : 'Download'}
-                </button>
+      <div>
+        <h4 className="text-md font-semibold mb-2 text-white">Available Model:</h4>
+        {POPULAR_MODELS.map((model) => (
+          <Card key={model.uri} className="p-4 bg-zinc-700/80 border-zinc-600">
+            <div className="flex justify-between items-start gap-4">
+              <div className="flex-1">
+                <h5 className="font-medium text-white mb-1">{model.name}</h5>
+                <p className="text-sm text-gray-300 mb-1">{model.description}</p>
+                <p className="text-xs text-gray-400">Size: {model.size}</p>
               </div>
+              <Button
+                onClick={() => handleDownloadModel(model.uri)}
+                disabled={downloadingModel === model.uri || isLocalModelDownloaded}
+                className="bg-blue-500 hover:bg-blue-600 text-white shrink-0"
+                size="sm"
+              >
+                {downloadingModel === model.uri ? 'Downloading...' : isLocalModelDownloaded ? 'Downloaded' : 'Download'}
+              </Button>
             </div>
-          ))}
-        </div>
+          </Card>
+        ))}
       </div>
 
       {/* Local Dictation Settings Section */}
-      <div className="mb-6">
-        <h4 className="text-md font-semibold mb-3 text-white">Local Dictation Settings:</h4>
-        <div className="border border-gray-600 rounded-md p-3 bg-zinc-800">
-          <label className="flex items-center space-x-3">
+      <div>
+        <h4 className="text-md font-semibold mb-2 text-white">Local Dictation Settings:</h4>
+        <Card className="p-4 bg-zinc-700/80 border-zinc-600">
+          <label className="flex items-start space-x-3 cursor-pointer">
             <input
               type="checkbox"
               checked={localDictationEnabled}
               onChange={(e) => handleLocalDictationToggle(e.target.checked)}
-              className="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
+              className="w-4 h-4 mt-0.5 text-blue-500 bg-zinc-600 border-zinc-500 rounded focus:ring-blue-500 focus:ring-2"
             />
             <div>
-              <span className="text-white font-medium">Enable Local Dictation</span>
-              <p className="text-sm text-gray-400">
+              <span className="font-medium text-white">Enable Local Dictation</span>
+              <p className="text-sm text-gray-300 mt-1">
                 Use local Whisper model for voice transcription across all AI models. The model will download automatically when first used.
               </p>
             </div>
           </label>
-        </div>
+        </Card>
       </div>
 
       {/* Status Messages */}
       {downloadStatus && (
-        <div className="mb-2">
-          <p className="text-sm text-gray-300 mb-1">{downloadStatus}</p>
+        <Card className="p-4 bg-zinc-700/80 border-zinc-600">
+          <p className="text-sm text-white mb-2">{downloadStatus}</p>
           {downloadingModel && downloadProgress > 0 && (
-            <div className="w-full bg-gray-600 rounded-full h-2">
+            <div className="w-full bg-zinc-600 rounded-full h-2">
               <div 
                 className="bg-blue-500 h-2 rounded-full transition-all duration-300 ease-out"
                 style={{ width: `${downloadProgress}%` }}
               />
             </div>
           )}
-        </div>
+        </Card>
       )}
 
-      {error && <p className="mb-2 text-sm text-red-400">Error: {error}</p>}
-
-
+      {error && (
+        <Card className="p-4 bg-red-900/20 border-red-500/50">
+          <p className="text-sm text-red-300">Error: {error}</p>
+        </Card>
+      )}
 
       {/* Search Settings Section */}
-      <div className="mb-6">
-        <h4 className="text-md font-semibold mb-3 text-white">Search Settings:</h4>
-        <div className="border border-gray-600 rounded-md p-3 bg-zinc-800">
-          <label className="flex items-center space-x-3">
+      <div>
+        <h4 className="text-md font-semibold mb-2 text-white">Search Settings:</h4>
+        <Card className="p-4 bg-zinc-700/80 border-zinc-600">
+          <label className="flex items-start space-x-3 cursor-pointer">
             <input
               type="checkbox"
               checked={searchEnabled}
               onChange={(e) => handleSearchToggle(e.target.checked)}
-              className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+              className="w-4 h-4 mt-0.5 text-blue-500 bg-zinc-600 border-zinc-500 rounded focus:ring-blue-500 focus:ring-2"
             />
             <div>
-              <span className="text-white font-medium">Enable Web Search</span>
-              <p className="text-sm text-gray-400">
+              <span className="font-medium text-white">Enable Web Search</span>
+              <p className="text-sm text-gray-300 mt-1">
                 Allow the local model to search the web for current information when needed. (Requires internet)
               </p>
             </div>
           </label>
-        </div>
+        </Card>
       </div>
 
-      {/* Available Models Section */}
-      <div>
-        <h4 className="text-md font-semibold mb-2 text-white">Downloaded Models:</h4>
-        {availableModels.length === 0 ? (
-          <p className="text-sm text-gray-400">No local models downloaded yet. Download the model above!</p>
-        ) : (
-          <ul className="space-y-1">
-            {availableModels.map((model) => (
-              <li key={model.filename} className="flex justify-between items-center py-1">
-                <span className="text-sm text-gray-300">
-                  {model.filename === 'LocalModel.gguf' ? 'Local AI Model (Ready)' : model.filename}
-                </span>
-                <button
-                  onClick={() => onSelectLocalModel(model.filename)}
-                  className="ml-4 px-3 py-1 bg-green-500 text-white text-xs rounded-md hover:bg-green-600"
-                >
-                  Use Model
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
 
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }; 
