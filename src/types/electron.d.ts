@@ -31,6 +31,8 @@ export interface ElectronAPI {
   onDebugError: (callback: (error: string) => void) => () => void
   onKeyboardToggleWindow: (callback: () => void) => () => void
   onKeyboardToggleButton: (callback: () => void) => () => void
+  onTriggerScreenshotButton: (callback: () => void) => () => void
+  onTriggerSendButton: (callback: () => void) => () => void
   openExternal: (url: string) => void
   getEnvVar: (varName: string) => Promise<string | undefined>
   getImagePreview: (path: string) => Promise<string>

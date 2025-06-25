@@ -49,6 +49,8 @@ interface ElectronAPI {
   onSubscriptionPortalClosed: (callback: () => void) => () => void
   onKeyboardToggleWindow: (callback: () => void) => () => void
   onKeyboardToggleButton: (callback: () => void) => () => void
+  onTriggerScreenshotButton: (callback: () => void) => () => void
+  onTriggerSendButton: (callback: () => void) => () => void
   startUpdate: () => Promise<{ success: boolean; error?: string }>
   installUpdate: () => void
   onUpdateAvailable: (callback: (info: any) => void) => () => void
@@ -260,6 +262,20 @@ const electronAPI = {
     ipcRenderer.on("keyboard-toggle-button", subscription)
     return () => {
       ipcRenderer.removeListener("keyboard-toggle-button", subscription)
+    }
+  },
+  onTriggerScreenshotButton: (callback: () => void) => {
+    const subscription = () => callback()
+    ipcRenderer.on("trigger-screenshot-button", subscription)
+    return () => {
+      ipcRenderer.removeListener("trigger-screenshot-button", subscription)
+    }
+  },
+  onTriggerSendButton: (callback: () => void) => {
+    const subscription = () => callback()
+    ipcRenderer.on("trigger-send-button", subscription)
+    return () => {
+      ipcRenderer.removeListener("trigger-send-button", subscription)
     }
   },
   onReset: (callback: () => void) => {

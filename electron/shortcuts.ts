@@ -15,8 +15,8 @@ export class ShortcutsHelper {
   }
 
   private getWindowMovementModifier(): string {
-    // Use Cmd on Mac for window movement, Alt on Windows/Linux
-    return process.platform === "darwin" ? "Ctrl" : "Alt"
+    // Use Ctrl+Option on Mac for window movement, Alt on Windows/Linux
+    return process.platform === "darwin" ? "Ctrl+Option" : "Alt"
   }
 
   private isWindowHidden(): boolean {
@@ -39,30 +39,27 @@ export class ShortcutsHelper {
     const modifier = this.getModifierKey()
     const windowMovementModifier = this.getWindowMovementModifier()
 
-    // Screenshot shortcut
+    // Screenshot shortcut - triggers the same action as clicking the screenshot button
     globalShortcut.register(`${modifier}+H`, async () => {
       this.executeIfWindowVisible(async () => {
         const mainWindow = this.deps.getMainWindow()
         if (mainWindow) {
-          console.log("Taking screenshot...")
-          try {
-            const screenshotPath = await this.deps.takeScreenshot()
-            const preview = await this.deps.getImagePreview(screenshotPath)
-            mainWindow.webContents.send("screenshot-taken", {
-              path: screenshotPath,
-              preview
-            })
-          } catch (error) {
-            console.error("Error capturing screenshot:", error)
-          }
+          console.log("Triggering screenshot button action...")
+          // Send message to renderer to trigger the screenshot button functionality
+          mainWindow.webContents.send("trigger-screenshot-button")
         }
       })
     })
 
-    // Process screenshots shortcut
+    // Send message shortcut - triggers the same action as clicking the send button
     globalShortcut.register(`${modifier}+Enter`, async () => {
       this.executeIfWindowVisible(async () => {
-        await this.deps.processingHelper?.processScreenshots()
+        const mainWindow = this.deps.getMainWindow()
+        if (mainWindow) {
+          console.log("Triggering send button action...")
+          // Send message to renderer to trigger the send button functionality
+          mainWindow.webContents.send("trigger-send-button")
+        }
       })
     })
 

@@ -29,8 +29,9 @@ export function ChatInput({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (message.trim() && !isProcessing) {
-      onSendMessage(message.trim())
+    // Send if there's text OR if there's a screenshot, and not processing
+    if ((message.trim() || hasScreenshot) && !isProcessing) {
+      onSendMessage(message.trim()) // Send the message (can be empty if only screenshot)
       setMessage('')
       // Reset textarea height and border radius
       if (textareaRef.current) {
@@ -62,6 +63,17 @@ export function ChatInput({
       handleSubmit(e)
     }
   }
+
+  // Listen for send button trigger from global shortcut
+  React.useEffect(() => {
+    const cleanup = (window as any).electronAPI?.onTriggerSendButton?.(() => {
+      // Create a synthetic event and trigger handleSubmit
+      const syntheticEvent = { preventDefault: () => {} } as React.FormEvent
+      handleSubmit(syntheticEvent)
+    })
+    
+    return cleanup
+  }, [message, isProcessing, hasScreenshot])
 
   const handleMicrophoneClick = async () => {
     if (isProcessing) return
@@ -201,7 +213,7 @@ export function ChatInput({
         {/* Send button */}
         <button
           type="submit"
-          disabled={!message.trim() || isProcessing}
+          disabled={(!message.trim() && !hasScreenshot) || isProcessing}
           className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg"
           style={{
             backgroundColor: 'var(--wagoo-accent-primary)',

@@ -161,6 +161,15 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
     }
   }, [state.messages.length, addMessage])
 
+  // Listen for screenshot button trigger from global shortcut
+  useEffect(() => {
+    const cleanup = (window as any).electronAPI?.onTriggerScreenshotButton?.(() => {
+      handleTakeScreenshot()
+    })
+    
+    return cleanup
+  }, [])
+
   // Helper to take screenshot without sending chat message, returns ContextData if successful
   const takeScreenshotForCheck = async (): Promise<ContextData | null> => {
     try {

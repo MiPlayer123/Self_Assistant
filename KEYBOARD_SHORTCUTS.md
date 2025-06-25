@@ -6,7 +6,7 @@ This document provides a comprehensive list of all keyboard shortcuts available 
 
 | Platform | General Actions | Window Movement | Toggle Window |
 |----------|-----------------|-----------------|---------------|
-| **macOS** | `Ctrl` | `Cmd` | `Ctrl` |
+| **macOS** | `Ctrl` | `Ctrl + Option` | `Ctrl` |
 | **Windows/Linux** | `Alt` | `Alt` | `Alt` |
 
 ## Shortcut Categories
@@ -16,7 +16,7 @@ This document provides a comprehensive list of all keyboard shortcuts available 
 | Action | macOS | Windows/Linux | Description |
 |--------|-------|---------------|-------------|
 | **Take Screenshot** | `Ctrl + H` | `Alt + H` | Captures a screenshot and adds it to the queue for analysis |
-| **Process Screenshots** | `Ctrl + Enter` | `Alt + Enter` | Processes all queued screenshots and generates solutions |
+| **Send Message** | `Ctrl + Enter` | `Alt + Enter` | Sends the current message or screenshot (equivalent to clicking the send button) |
 
 ### 🔄 Application Control
 
@@ -30,10 +30,10 @@ This document provides a comprehensive list of all keyboard shortcuts available 
 
 | Action | macOS | Windows/Linux | Description |
 |--------|-------|---------------|-------------|
-| **Move Left** | `Cmd + ←` | `Alt + ←` | Moves the window to the left |
-| **Move Right** | `Cmd + →` | `Alt + →` | Moves the window to the right |
-| **Move Up** | `Cmd + ↑` | `Alt + ↑` | Moves the window up |
-| **Move Down** | `Cmd + ↓` | `Alt + ↓` | Moves the window down |
+| **Move Left** | `Ctrl + Option + ←` | `Alt + ←` | Moves the window to the left |
+| **Move Right** | `Ctrl + Option + →` | `Alt + →` | Moves the window to the right |
+| **Move Up** | `Ctrl + Option + ↑` | `Alt + ↑` | Moves the window up |
+| **Move Down** | `Ctrl + Option + ↓` | `Alt + ↓` | Moves the window down |
 
 ## Behavior Rules
 
@@ -47,7 +47,7 @@ This document provides a comprehensive list of all keyboard shortcuts available 
 #### Most Common Actions
 ```
 Take Screenshot:     Ctrl+H (Mac) / Alt+H (Win/Linux)
-Process & Analyze:   Ctrl+Enter (Mac) / Alt+Enter (Win/Linux)
+Send Message:        Ctrl+Enter (Mac) / Alt+Enter (Win/Linux)
 Toggle Window:       Ctrl+B (Mac) / Alt+B (Win/Linux)
 Hide Float Button:   Ctrl+Shift+B (Mac) / Alt+Shift+B (Win/Linux)
 Reset Everything:    Ctrl+R (Mac) / Alt+R (Win/Linux)
@@ -55,15 +55,15 @@ Reset Everything:    Ctrl+R (Mac) / Alt+R (Win/Linux)
 
 #### Window Positioning
 ```
-Move Window:  Cmd+Arrow Keys (Mac) / Alt+Arrow Keys (Win/Linux)
+Move Window:  Ctrl+Option+Arrow Keys (Mac) / Alt+Arrow Keys (Win/Linux)
 ```
 
 ## Workflow Examples
 
-### Basic Screenshot Analysis
-1. `Ctrl/Alt + H` - Take a screenshot
-2. `Ctrl/Alt + Enter` - Process and analyze the screenshot
-3. Review the AI-generated solution in the chat
+### Basic Chat Interaction
+1. `Ctrl/Alt + H` - Take a screenshot (optional)
+2. Type your message in the chat input
+3. `Ctrl/Alt + Enter` - Send the message and get AI response
 
 ### Quick Window Management
 1. `Ctrl/Alt + B` - Hide the window when not needed
