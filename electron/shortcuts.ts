@@ -129,17 +129,17 @@ export class ShortcutsHelper {
       this.deps.toggleButtonWindow()
     })
 
-    // Quit app shortcut
+    // Quit app shortcut (only when main window is visible)
+    const quitShortcutHandler = () => {
+      this.executeIfWindowVisible(() => {
+        console.log((process.platform === "darwin" ? "Cmd+Q" : "Alt+Q") + " pressed. Quitting app.")
+        app.quit()
+      })
+    }
     if (process.platform === "darwin") {
-      globalShortcut.register("CommandOrControl+Q", () => {
-        console.log("Cmd+Q pressed. Quitting app.")
-        app.quit()
-      })
+      globalShortcut.register("CommandOrControl+Q", quitShortcutHandler)
     } else {
-      globalShortcut.register("Alt+Q", () => {
-        console.log("Alt+Q pressed. Quitting app.")
-        app.quit()
-      })
+      globalShortcut.register("Alt+Q", quitShortcutHandler)
     }
 
     this.shortcutsRegistered = true
