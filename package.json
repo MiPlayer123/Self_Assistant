@@ -1,6 +1,6 @@
 {
   "name": "wagoo-v1",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "main": "dist-electron/main.js",
   "scripts": {
     "clean": "rimraf dist dist-electron",
