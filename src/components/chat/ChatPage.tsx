@@ -183,6 +183,15 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onM
     return cleanup
   }, [])
 
+  // Listen for reset trigger from global shortcut
+  useEffect(() => {
+    const cleanup = (window as any).electronAPI?.onReset?.(() => {
+      handleResetChat()
+    })
+    
+    return cleanup
+  }, [])
+
   // Helper to take screenshot without sending chat message, returns ContextData if successful
   const takeScreenshotForCheck = async (): Promise<ContextData | null> => {
     try {

@@ -223,7 +223,7 @@ export function ChatInput({
         {/* Send button */}
         <Tooltip content={
           (!message.trim() && !hasScreenshot) 
-            ? `Send message (disabled - no content) • ${sendShortcut}` 
+            ? `Send message (no content) • ${sendShortcut}` 
             : isProcessing 
             ? 'Processing...' 
             : `Send message • ${sendShortcut}`
