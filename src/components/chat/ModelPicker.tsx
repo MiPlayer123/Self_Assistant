@@ -84,8 +84,8 @@ const ModelPicker = forwardRef<ModelPickerRef, ModelPickerProps>(({ usageStats }
             borderColor: "var(--wagoo-border-primary)",
             backgroundColor: "var(--wagoo-bg-tertiary)",
             color: "var(--wagoo-text-primary)",
-            width: "140px", // Slightly smaller fixed width
-            maxWidth: "140px",
+            width: "150px", // Increased width to fit longer model names
+            maxWidth: "150px",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
             overflow: "hidden"

@@ -93,11 +93,29 @@ When using search results, cite the sources with their URLs when relevant.
       // Handle image if present
       if (contextData?.screenshot) {
         console.log('GeminiChatModel: Attaching image for analysis...');
-        promptText += `Analyze the attached screenshot in the context of my query: "${userMessage}". Please provide a direct and relevant response.`;
+        
+        // Create an intelligent prompt based on whether the user provided a query or not
+        let imagePrompt: string;
+        
+        if (userMessage.trim()) {
+          // User provided a specific query - analyze in context of that query
+          imagePrompt = promptText + `Analyze the attached screenshot in the context of my query: "${userMessage}". Please provide a direct and relevant response.`;
+        } else {
+          // No user query - provide intelligent assistance based on what's visible on screen
+          imagePrompt = promptText + `I've taken a screenshot but didn't provide a specific question. Please analyze what's on my screen and provide helpful assistance. Look for:
+
+- Questions, problems, or errors that need solving
+- Forms, interfaces, or tasks that might need completion
+- Content that could benefit from explanation or guidance
+- Any issues, prompts, or decisions that require attention
+- Learning opportunities or educational content visible
+
+Provide practical, actionable help based on what you see. If there's a clear question or problem visible, solve it. If there's content that could be explained or improved, do so. Be proactive and helpful while being concise and relevant.`;
+        }
         
         // For image handling, we need to use a different approach
         const contentParts = [
-          { text: promptText },
+          { text: imagePrompt },
           {
             inlineData: {
               mimeType: 'image/png',
@@ -200,6 +218,12 @@ When using search results, cite the sources with their URLs when relevant.
   async isScreenshotRequired(message: string, base64ImageData: string): Promise<boolean> {
     try {
       console.log('GeminiChatModel: Checking if screenshot is required...');
+      
+      // If there's no message text, always use the screenshot for intelligent analysis
+      if (!message.trim()) {
+        console.log('GeminiChatModel: Empty message, screenshot will be analyzed');
+        return true;
+      }
       
       const response = await this.client.models.generateContent({
         model: this.config.model,

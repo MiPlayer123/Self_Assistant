@@ -2,6 +2,8 @@ import React, { useRef, useState, useEffect } from 'react'
 import { ChatPage } from './chat/ChatPage'
 import { ChatProvider } from '../contexts/ChatContext'
 import { User } from '@supabase/supabase-js'
+import { useOfflineMode } from '../hooks/useOfflineMode'
+import { getCachedSubscription, getSubscriptionCacheInfo } from '../utils/offlineStorage'
 import type { Profile, Subscription } from '../types/database'
 
 interface WagooChatAppProps {
@@ -18,6 +20,13 @@ export function WagooChatApp({ user, profile, subscription, usageTracking, curre
   const containerRef = useRef<HTMLDivElement>(null)
   const [showUserInfo, setShowUserInfo] = useState(false)
   const [showEmailDropdown, setShowEmailDropdown] = useState(false)
+  
+  // Offline mode integration
+  const { isOnline, canUseOffline, subscriptionStatus, refresh: refreshOfflineMode } = useOfflineMode()
+  
+  // Use cached subscription data when offline or as fallback
+  const effectiveSubscription = subscription || subscriptionStatus || getCachedSubscription()
+  const cacheInfo = getSubscriptionCacheInfo()
 
   // Screenshot handlers (moved from SubscribedApp)
   const handleTakeScreenshot = async (): Promise<string> => {
@@ -67,17 +76,21 @@ export function WagooChatApp({ user, profile, subscription, usageTracking, curre
       localStorage.removeItem('wagoo_user_data')
       console.log('✅ Cleared localStorage items')
       
-      // Sign out from Supabase - this will trigger the auth state change listener
-      console.log('📡 Calling supabase.auth.signOut()...')
-      const { error } = await (await import('../lib/supabase')).supabase.auth.signOut()
-      if (error) {
-        console.error('❌ Sign out error:', error)
+      // Only attempt Supabase sign out if online
+      if (isOnline) {
+        console.log('📡 Calling supabase.auth.signOut()...')
+        const { error } = await (await import('../lib/supabase')).supabase.auth.signOut()
+        if (error) {
+          console.error('❌ Sign out error:', error)
+        } else {
+          console.log('✅ Successfully signed out from Supabase')
+        }
       } else {
-        console.log('✅ Successfully signed out from Supabase')
+        console.log('🔌 Offline - clearing local auth state without Supabase call')
+        // When offline, just clear local state and reload the page to show auth form
+        window.location.reload()
       }
       
-      // The useWagooAuth hook will automatically detect the sign out
-      // and update the state to 'auth_required'
       console.log('⏳ Waiting for auth state change listener...')
     } catch (err) {
       console.error('💥 Error during sign out:', err)
@@ -94,6 +107,11 @@ export function WagooChatApp({ user, profile, subscription, usageTracking, curre
   }
 
   const handleManageSubscription = async () => {
+    if (!isOnline) {
+      console.log('Cannot manage subscription while offline')
+      return
+    }
+    
     // Open wagoo.vercel.app for subscription management in default browser
     console.log('Opening subscription management...')
     try {
@@ -112,6 +130,11 @@ export function WagooChatApp({ user, profile, subscription, usageTracking, curre
   }
 
   const handleRefreshSubscription = async () => {
+    if (!isOnline) {
+      console.log('Cannot refresh subscription while offline')
+      return
+    }
+    
     console.log('Refreshing subscription status...')
     try {
       await refreshUserData()
@@ -120,6 +143,23 @@ export function WagooChatApp({ user, profile, subscription, usageTracking, curre
       console.error('Failed to refresh subscription status:', error)
     }
     setShowEmailDropdown(false)
+  }
+
+  const handleOfflineRefresh = async () => {
+    console.log('Refreshing offline data...')
+    try {
+              // Force refresh the offline mode evaluation
+        refreshOfflineMode()
+      
+      // Force reload usage stats from cached subscription
+      await usageTracking.loadUsageStats()
+      console.log('Offline data refreshed successfully')
+      
+      // Close dropdown after refresh
+      setShowEmailDropdown(false)
+    } catch (error) {
+      console.error('Failed to refresh offline data:', error)
+    }
   }
 
   // Close dropdown when clicking outside
@@ -147,17 +187,29 @@ export function WagooChatApp({ user, profile, subscription, usageTracking, curre
           <div className="flex items-center justify-between">
             {/* Left: User email (clickable) and subscription tier */}
             <div className="flex items-center gap-3 relative">
-              <button 
-                onClick={toggleEmailDropdown}
-                className="text-white text-sm hover:text-blue-400 transition-colors cursor-pointer"
-              >
-                {user.email}
-              </button>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={toggleEmailDropdown}
+                  className="text-white text-sm hover:text-blue-400 transition-colors cursor-pointer"
+                >
+                  {user.email}
+                </button>
+                
+                {/* Offline indicator */}
+                {!isOnline && (
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                    <span className="text-xs text-orange-400">Offline</span>
+                  </div>
+                )}
+              </div>
+              
               <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">
-                {subscription?.tier === 'pro' ? 'Pro' : 
-                 subscription?.tier === 'enterprise' ? 'Enterprise' : 
-                 subscription?.tier === 'free' ? 'Free' : 
-                 subscription?.tier || 'Free'}
+                {effectiveSubscription?.tier === 'pro' ? 'Pro' : 
+                 effectiveSubscription?.tier === 'enterprise' ? 'Enterprise' : 
+                 effectiveSubscription?.tier === 'free' ? 'Free' : 
+                 effectiveSubscription?.tier || 'Free'}
+                {!isOnline && effectiveSubscription === getCachedSubscription() && ' (Cached)'}
               </span>
               
               {/* Show usage for free users */}
@@ -188,18 +240,48 @@ export function WagooChatApp({ user, profile, subscription, usageTracking, curre
               {/* Email dropdown */}
               {showEmailDropdown && (
                 <div className="absolute top-full left-0 mt-2 bg-black border border-gray-500 rounded-lg shadow-lg py-2 min-w-[200px] z-50">
-                  <button
-                    onClick={handleManageSubscription}
-                    className="w-full px-4 py-2 text-left text-white text-sm hover:bg-gray-900 transition-colors"
-                  >
-                    Manage Subscription
-                  </button>
-                  <button
-                    onClick={handleRefreshSubscription}
-                    className="w-full px-4 py-1.5 text-left text-gray-400 text-xs hover:bg-gray-900 hover:text-gray-300 transition-colors"
-                  >
-                    ↻ Refresh
-                  </button>
+                  {isOnline ? (
+                    <>
+                      <button
+                        onClick={handleManageSubscription}
+                        className="w-full px-4 py-2 text-left text-white text-sm hover:bg-gray-900 transition-colors"
+                      >
+                        Manage Subscription
+                      </button>
+                      <button
+                        onClick={handleRefreshSubscription}
+                        className="w-full px-4 py-1.5 text-left text-gray-400 text-xs hover:bg-gray-900 hover:text-gray-300 transition-colors"
+                      >
+                        ↻ Refresh
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="px-4 py-2 text-gray-500 text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                          <span>Offline Mode</span>
+                        </div>
+                        <div className="text-xs mt-1">
+                          {effectiveSubscription === getCachedSubscription() ? 
+                            `Using cached data${cacheInfo.cachedAt ? ` from ${cacheInfo.cachedAt.toLocaleDateString()}` : ''}` :
+                            'Limited functionality available'
+                          }
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleOfflineRefresh}
+                        className="w-full px-4 py-1.5 text-left text-gray-400 text-xs hover:bg-gray-900 hover:text-gray-300 transition-colors"
+                      >
+                        ↻ Refresh Cache
+                      </button>
+                      <div className="border-t border-gray-600 mt-2 pt-2">
+                        <div className="px-4 py-1 text-gray-400 text-xs">
+                          Connect to internet for full features
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </div>

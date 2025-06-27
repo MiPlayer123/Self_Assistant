@@ -10,6 +10,7 @@ import {
   createUserProfile,
   createUserSubscription
 } from '../lib/supabase'
+import { cacheSubscription, clearSubscriptionCache, getCachedSubscription } from '../utils/offlineStorage'
 import type { Profile, Subscription } from '../types/database'
 
 interface AuthState {
@@ -33,6 +34,23 @@ export const useSupabaseAuth = () => {
   
   const [isLoadingUserData, setIsLoadingUserData] = useState(false)
 
+  // Helper function to check if we're online
+  const isOnline = () => {
+    return navigator.onLine
+  }
+
+  // Helper function to create a basic profile for offline use
+  const createOfflineProfile = (user: User): Profile => {
+    return {
+      id: user.id,
+      email: user.email || '',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+      subscription_tier: null
+    }
+  }
+
   const loadUserData = useCallback(async (user: User) => {
     console.log('Starting loadUserData for user:', user.id, user.email)
     
@@ -47,8 +65,35 @@ export const useSupabaseAuth = () => {
     try {
       setAuthState(prev => ({ ...prev, loading: true, error: null }))
 
-      // Get user profile
-      console.log('Fetching user profile...')
+      // Check if we're offline
+      if (!isOnline()) {
+        console.log('Device is offline, using cached data and creating offline profile')
+        
+        // Get current session (this should work offline from local storage)
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        
+        // Get cached subscription if available
+        const cachedSubscription = getCachedSubscription()
+        
+        // Create a basic profile for offline use
+        const offlineProfile = createOfflineProfile(user)
+        
+        console.log('Setting offline auth state with cached/basic data')
+        setAuthState({
+          user,
+          profile: offlineProfile,
+          subscription: cachedSubscription, // Could be null if no cache
+          session: sessionError ? null : session,
+          loading: false,
+          error: null
+        })
+        
+        setIsLoadingUserData(false)
+        return
+      }
+
+      // Online flow - proceed with normal API calls
+      console.log('Device is online, fetching user profile...')
       const { profile, error: profileError } = await getUserProfile(user.id)
       console.log('Profile fetch result:', { profile, profileError })
       
@@ -98,6 +143,12 @@ export const useSupabaseAuth = () => {
         throw sessionError
       }
 
+      // Cache subscription data for offline access
+      if (userSubscription) {
+        console.log('Caching subscription data for offline access')
+        cacheSubscription(userSubscription)
+      }
+
       console.log('Setting final auth state with all user data loaded')
       setAuthState({
         user,
@@ -110,11 +161,29 @@ export const useSupabaseAuth = () => {
 
     } catch (error) {
       console.error('Error loading user data:', error)
-      setAuthState(prev => ({
-        ...prev,
-        error: error instanceof Error ? error.message : 'Failed to load user data',
-        loading: false
-      }))
+      
+      // If we're offline or have connection issues, try using cached data
+      if (!isOnline() || (error instanceof Error && error.message.includes('Failed to fetch'))) {
+        console.log('Network error detected, falling back to offline mode')
+        
+        const cachedSubscription = getCachedSubscription()
+        const offlineProfile = createOfflineProfile(user)
+        
+        setAuthState({
+          user,
+          profile: offlineProfile,
+          subscription: cachedSubscription,
+          session: null,
+          loading: false,
+          error: null
+        })
+      } else {
+        setAuthState(prev => ({
+          ...prev,
+          error: error instanceof Error ? error.message : 'Failed to load user data',
+          loading: false
+        }))
+      }
     } finally {
       setIsLoadingUserData(false)
     }
@@ -209,8 +278,9 @@ export const useSupabaseAuth = () => {
             return prev
           })
         } else if (event === 'SIGNED_OUT') {
-          // User signed out, clear state
-          console.log('User signed out, clearing auth state')
+          // User signed out, clear state and cached subscription
+          console.log('User signed out, clearing auth state and subscription cache')
+          clearSubscriptionCache()
           setAuthState({
             user: null,
             profile: null,

@@ -7,6 +7,8 @@ import { useModel } from '../../contexts/ModelContext'
 import ModelPicker, { ModelPickerRef } from '../chat/ModelPicker'
 import { getChatModel } from '../../models/ModelManager'
 import { LocalModelSettings } from './LocalModelSettings'
+import { isMacOS } from '../../utils/platform'
+import { Tooltip } from '../ui/Tooltip'
 // Removed UsageLimitModal import - using inline upgrade prompt instead
 
 interface ChatPageProps {
@@ -44,6 +46,9 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onM
   // State for toggling local model settings visibility
   const [showLocalModelSettings, setShowLocalModelSettings] = useState(false)
   // Removed usage limit modal - using inline upgrade prompt instead
+
+  // Platform-specific shortcuts for tooltips
+  const resetShortcut = isMacOS ? 'Ctrl+R' : 'Alt+R'
 
   // Handler for selecting a local model
   const handleSelectLocalModel = (modelFilename: string) => {
@@ -454,14 +459,15 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onM
             <h1 className="text-xl font-semibold wagoo-text-primary">Wagoo</h1>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleResetChat}
-              className="p-1 rounded-md hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-              aria-label="Reset Chat History"
-              title="Reset Chat History"
-            >
-              <span className="text-lg">↺</span>
-            </button>
+            <Tooltip content={`Reset chat history • ${resetShortcut}`}>
+              <button
+                onClick={handleResetChat}
+                className="p-1 rounded-md hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                aria-label="Reset Chat History"
+              >
+                <span className="text-lg">↺</span>
+              </button>
+            </Tooltip>
             <ModelPicker ref={modelPickerRef} usageStats={usageStats} />
             {selectedModelId.startsWith('local-') && (
               <button

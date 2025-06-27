@@ -54,10 +54,29 @@ export function buildOpenAIMessages(userMessage: string, chatHistory: ChatMessag
   if (contextData?.screenshot) {
     console.log('Attaching image for targeted analysis...');
     
+    // Create an intelligent prompt based on whether the user provided a query or not
+    let imagePrompt: string;
+    
+    if (userMessage.trim()) {
+      // User provided a specific query - analyze in context of that query
+      imagePrompt = `Analyze the attached screenshot in the context of my query: "${userMessage}". Please provide a direct and relevant response.`;
+    } else {
+      // No user query - provide intelligent assistance based on what's visible on screen
+      imagePrompt = `I've taken a screenshot but didn't provide a specific question. Please analyze what's on my screen and provide helpful assistance. Look for:
+
+- Questions, problems, or errors that need solving
+- Forms, interfaces, or tasks that might need completion
+- Content that could benefit from explanation or guidance
+- Any issues, prompts, or decisions that require attention
+- Learning opportunities or educational content visible
+
+Provide practical, actionable help based on what you see. If there's a clear question or problem visible, solve it. If there's content that could be explained or improved, do so. Be proactive and helpful while being concise and relevant.`;
+    }
+    
     userMessageContent = [
       {
         type: "text",
-        text: `Analyze the attached screenshot in the context of my query: "${userMessage}". Please provide a direct and relevant response.`
+        text: imagePrompt
       },
       {
         type: "image_url",

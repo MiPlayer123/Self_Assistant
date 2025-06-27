@@ -4,8 +4,10 @@ import { UpdateNotification } from "./components/UpdateNotification"
 import { ButtonWindow } from "./components/ui/ButtonWindow"
 import { ConnectionErrorScreen } from "./components/ConnectionErrorScreen"
 import { WagooChatApp } from "./components/WagooChatApp"
+import { OfflineNotification } from "./components/OfflineNotification"
 import { useSupabaseAuth } from "./hooks/useSupabaseAuth"
 import { useUsageTracking } from "./hooks/useUsageTracking"
+import { useOfflineMode } from "./hooks/useOfflineMode"
 
 import {
   QueryClient,
@@ -431,7 +433,9 @@ function AppContent({ isInitialized }: { isInitialized: boolean }) {
   const auth = useSupabaseAuth()
   const usageTracking = useUsageTracking(auth.user?.id)
   const [currentLanguage, setCurrentLanguage] = useState<string>("english")
+  const [offlineAppAccess, setOfflineAppAccess] = useState(false)
   const queryClient = useQueryClient()
+  const offlineMode = useOfflineMode()
 
   // Check subscription status whenever user changes
   useEffect(() => {
@@ -484,6 +488,12 @@ function AppContent({ isInitialized }: { isInitialized: boolean }) {
     }
   }, [auth.user?.id, auth.subscription, queryClient])
 
+  // Handle offline scenarios first, before auth checks
+  const handleContinueOffline = () => {
+    console.log('User chose to continue offline')
+    setOfflineAppAccess(true)
+  }
+
   // Show loading state while system initializes or auth is loading
   if (!isInitialized || auth.loading) {
     return (
@@ -506,7 +516,80 @@ function AppContent({ isInitialized }: { isInitialized: boolean }) {
     )
   }
 
-  // Show error if there's an auth error
+  // Handle offline scenarios
+  if (!offlineMode.isOnline) {
+    // Check subscription tier for direct access
+    const subscriptionTier = offlineMode.subscriptionStatus?.tier
+    const isProOrEnterprise = subscriptionTier === 'pro' || subscriptionTier === 'enterprise'
+    
+    // Pro/Enterprise users go straight to chat app when offline
+    if (offlineMode.canUseOffline && isProOrEnterprise) {
+      // Create a mock auth state for offline access using cached subscription
+      const offlineAuthState = {
+        user: { id: 'offline-user', email: 'offline@wagoo.app' } as any,
+        profile: null,
+        subscription: offlineMode.subscriptionStatus,
+        isAuthenticated: true,
+        loading: false,
+        error: null,
+        refreshUserData: async () => {}
+      }
+
+      return (
+        <>
+          <WagooChatApp 
+            user={offlineAuthState.user} 
+            profile={offlineAuthState.profile}
+            subscription={offlineAuthState.subscription} 
+            usageTracking={usageTracking}
+            currentLanguage={currentLanguage}
+            setLanguage={setCurrentLanguage}
+            refreshUserData={offlineAuthState.refreshUserData}
+          />
+          <OfflineNotification />
+        </>
+      )
+    }
+    
+    // Free users need to explicitly grant offline access via connection error screen
+    if (offlineMode.canUseOffline && !offlineAppAccess) {
+      return <ConnectionErrorScreen onContinueOffline={handleContinueOffline} />
+    }
+    
+    // If user granted access (free users who clicked continue), proceed to app
+    if (offlineMode.canUseOffline && offlineAppAccess) {
+      // Create a mock auth state for offline access using cached subscription
+      const offlineAuthState = {
+        user: { id: 'offline-user', email: 'offline@wagoo.app' } as any,
+        profile: null,
+        subscription: offlineMode.subscriptionStatus,
+        isAuthenticated: true,
+        loading: false,
+        error: null,
+        refreshUserData: async () => {}
+      }
+
+      return (
+        <>
+          <WagooChatApp 
+            user={offlineAuthState.user} 
+            profile={offlineAuthState.profile}
+            subscription={offlineAuthState.subscription} 
+            usageTracking={usageTracking}
+            currentLanguage={currentLanguage}
+            setLanguage={setCurrentLanguage}
+            refreshUserData={offlineAuthState.refreshUserData}
+          />
+          <OfflineNotification />
+        </>
+      )
+    }
+    
+    // If user cannot use offline, show connection error
+    return <ConnectionErrorScreen />
+  }
+
+  // Online scenarios - handle auth errors and authentication
   if (auth.error) {
     return <ConnectionErrorScreen />
   }
@@ -522,15 +605,21 @@ function AppContent({ isInitialized }: { isInitialized: boolean }) {
   
   // Ready - show the new chat-first app
   return (
-    <WagooChatApp 
-      user={auth.user!} 
-      profile={auth.profile}
-      subscription={auth.subscription} 
-      usageTracking={usageTracking}
-      currentLanguage={currentLanguage}
-      setLanguage={setCurrentLanguage}
-      refreshUserData={auth.refreshUserData}
-    />
+    <>
+      <WagooChatApp 
+        user={auth.user!} 
+        profile={auth.profile}
+        subscription={auth.subscription} 
+        usageTracking={usageTracking}
+        currentLanguage={currentLanguage}
+        setLanguage={setCurrentLanguage}
+        refreshUserData={auth.refreshUserData}
+      />
+      {/* Show offline notification when transitioning to offline */}
+      {!offlineMode.isOnline && offlineMode.canUseOffline && (
+        <OfflineNotification />
+      )}
+    </>
   )
 }
 

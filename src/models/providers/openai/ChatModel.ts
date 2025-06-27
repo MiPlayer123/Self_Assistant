@@ -100,6 +100,11 @@ export class OpenAIChatModel implements IChatModel {
 
   async isScreenshotRequired(message: string, screenshot: string): Promise<boolean> {
     try {
+      // If there's no message text, always use the screenshot for intelligent analysis
+      if (!message.trim()) {
+        return true;
+      }
+      
       const response = await this.openai.chat.completions.create({
         model: this.config.model,
         messages: [

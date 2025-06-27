@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from 'react'
+import { isMacOS } from '../../utils/platform'
+import { Tooltip } from './Tooltip'
 
 export const ButtonWindow: React.FC = () => {
   const [isHovered, setIsHovered] = useState(false)
   const [isReady, setIsReady] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(true) // Default to dark mode styling
+
+  // Platform-specific shortcuts for tooltips
+  const toggleShortcut = isMacOS ? 'Ctrl+B' : 'Alt+B'
 
   // Sample background color periodically
   useEffect(() => {
@@ -132,38 +137,39 @@ export const ButtonWindow: React.FC = () => {
       </svg>
 
       {/* Floating Glass Button */}
-      <button
-        id="glass-btn"
-        className={`
-          glass-button
-          transition-transform duration-300 ease-out
-          cursor-pointer outline-none
-          ${isReady ? 'opacity-100' : 'opacity-0'}
-        `}
-        style={{
-          position: 'relative',
-          width: '56px',
-          height: '56px',
-          borderRadius: '50%',
-          background: buttonColors.background,
-          border: `2px solid transparent`,
-          boxShadow: `
-            0 0 0 2px ${buttonColors.border},
-            0 ${isHovered ? '20px 40px' : '16px 32px'} rgba(0, 0, 0, 0.12)
-          `,
-          backdropFilter: 'url(#frosted), blur(10px)',
-          WebkitBackdropFilter: 'url(#frosted), blur(10px)',
-          display: 'grid',
-          placeItems: 'center',
-          transform: isHovered ? 'scale(1.1)' : 'scale(1)',
-          transition: 'all 0.3s ease-out',
-          zIndex: 1,
-        }}
-        onClick={handleClick}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        title="Toggle Chat Window"
-      />
+      <Tooltip content={`Toggle chat window • ${toggleShortcut}`} position="left">
+        <button
+          id="glass-btn"
+          className={`
+            glass-button
+            transition-transform duration-300 ease-out
+            cursor-pointer outline-none
+            ${isReady ? 'opacity-100' : 'opacity-0'}
+          `}
+          style={{
+            position: 'relative',
+            width: '56px',
+            height: '56px',
+            borderRadius: '50%',
+            background: buttonColors.background,
+            border: `2px solid transparent`,
+            boxShadow: `
+              0 0 0 2px ${buttonColors.border},
+              0 ${isHovered ? '20px 40px' : '16px 32px'} rgba(0, 0, 0, 0.12)
+            `,
+            backdropFilter: 'url(#frosted), blur(10px)',
+            WebkitBackdropFilter: 'url(#frosted), blur(10px)',
+            display: 'grid',
+            placeItems: 'center',
+            transform: isHovered ? 'scale(1.1)' : 'scale(1)',
+            transition: 'all 0.3s ease-out',
+            zIndex: 1,
+          }}
+          onClick={handleClick}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        />
+      </Tooltip>
 
       {/* Add CSS for pseudo-elements with dynamic colors */}
       <style dangerouslySetInnerHTML={{

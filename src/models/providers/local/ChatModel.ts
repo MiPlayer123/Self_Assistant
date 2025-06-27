@@ -128,6 +128,13 @@ export class LocalChatModel implements IChatModel {
     // COMMENTED OUT FOR TESTING - Always return false to disable screenshot functionality
     return false;
     
+    // Uncomment the following when local screenshot functionality is enabled:
+    
+    // If there's no message text, always use the screenshot for intelligent analysis
+    // if (!message.trim()) {
+    //   return true;
+    // }
+    
     // For local models, we'll implement a simple heuristic
     // In the future, this could use a smaller local model for classification
     // const screenshotKeywords = [
