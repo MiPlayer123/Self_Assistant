@@ -331,8 +331,8 @@ async function createWindow(): Promise<void> {
   })
 
   // Enhanced screen capture resistance
-  // TEMPORARY: Disabled for screenshot visibility testing
-  // state.mainWindow.setContentProtection(true)
+  // TEMPORARY: Disable for screenshot visibility testing
+  state.mainWindow.setContentProtection(true)
 
   state.mainWindow.setVisibleOnAllWorkspaces(true, {
     visibleOnFullScreen: true
@@ -422,8 +422,8 @@ function showMainWindow(): void {
     state.mainWindow.setVisibleOnAllWorkspaces(true, {
       visibleOnFullScreen: true
     })
-    // TEMPORARY: Disabled for screenshot visibility testing
-    // state.mainWindow.setContentProtection(true)
+    // TEMPORARY: Disable for screenshot visibility testing
+    state.mainWindow.setContentProtection(true)
     state.mainWindow.setOpacity(0)
     state.mainWindow.showInactive()
     state.mainWindow.setOpacity(1)
@@ -674,8 +674,8 @@ async function createButtonWindow(): Promise<void> {
   }
   
   // Enhanced screen capture resistance
-  // TEMPORARY: Disabled for screenshot visibility testing
-  // state.buttonWindow.setContentProtection(true)
+  // TEMPORARY: Disable for screenshot visibility testing
+  state.buttonWindow.setContentProtection(true)
   
   state.buttonWindow.setVisibleOnAllWorkspaces(true, {
     visibleOnFullScreen: true
