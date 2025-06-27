@@ -168,9 +168,9 @@ export class LocalChatModel implements IChatModel {
   }
 
   private getSearchEnabled(): boolean {
-    // Get search setting from localStorage
+    // Get search setting from localStorage (defaults to enabled)
     const searchEnabled = localStorage.getItem('localModelSearchEnabled');
-    return searchEnabled === 'true';
+    return searchEnabled !== 'false'; // Default to true (enabled) unless explicitly disabled
   }
 
 

@@ -11,9 +11,10 @@ interface WagooChatAppProps {
   usageTracking: any
   currentLanguage: string
   setLanguage: (language: string) => void
+  refreshUserData: () => Promise<void>
 }
 
-export function WagooChatApp({ user, profile, subscription, usageTracking, currentLanguage, setLanguage }: WagooChatAppProps) {
+export function WagooChatApp({ user, profile, subscription, usageTracking, currentLanguage, setLanguage, refreshUserData }: WagooChatAppProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [showUserInfo, setShowUserInfo] = useState(false)
   const [showEmailDropdown, setShowEmailDropdown] = useState(false)
@@ -110,6 +111,17 @@ export function WagooChatApp({ user, profile, subscription, usageTracking, curre
     setShowEmailDropdown(false)
   }
 
+  const handleRefreshSubscription = async () => {
+    console.log('Refreshing subscription status...')
+    try {
+      await refreshUserData()
+      console.log('Subscription status refreshed successfully')
+    } catch (error) {
+      console.error('Failed to refresh subscription status:', error)
+    }
+    setShowEmailDropdown(false)
+  }
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -142,7 +154,10 @@ export function WagooChatApp({ user, profile, subscription, usageTracking, curre
                 {user.email}
               </button>
               <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">
-                {subscription?.tier || 'free'}
+                {subscription?.tier === 'pro' ? 'Pro' : 
+                 subscription?.tier === 'enterprise' ? 'Enterprise' : 
+                 subscription?.tier === 'free' ? 'Free' : 
+                 subscription?.tier || 'Free'}
               </span>
               
               {/* Show usage for free users */}
@@ -166,7 +181,7 @@ export function WagooChatApp({ user, profile, subscription, usageTracking, curre
                   {/* Text indicator */}
                   <span className="text-xs text-gray-400">
                     {usageTracking.usageStats.remaining.chat_messages_count} left
-                  </span>
+                </span>
                 </div>
               )}
               
@@ -178,6 +193,12 @@ export function WagooChatApp({ user, profile, subscription, usageTracking, curre
                     className="w-full px-4 py-2 text-left text-white text-sm hover:bg-gray-900 transition-colors"
                   >
                     Manage Subscription
+                  </button>
+                  <button
+                    onClick={handleRefreshSubscription}
+                    className="w-full px-4 py-1.5 text-left text-gray-400 text-xs hover:bg-gray-900 hover:text-gray-300 transition-colors"
+                  >
+                    ↻ Refresh
                   </button>
                 </div>
               )}

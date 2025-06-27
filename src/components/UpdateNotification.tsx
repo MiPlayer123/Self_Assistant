@@ -61,7 +61,7 @@ export const UpdateNotification: React.FC = () => {
   const handleInstallUpdate = () => {
     console.log("UpdateNotification: Installing update")
     if (window.electronAPI) {
-      window.electronAPI.installUpdate()
+    window.electronAPI.installUpdate()
     }
   }
 

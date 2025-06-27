@@ -44,7 +44,7 @@ export const LocalModelSettings: React.FC<LocalModelSettingsProps> = ({ onSelect
   // Search settings state
   const [searchEnabled, setSearchEnabled] = useState<boolean>(() => {
     const saved = localStorage.getItem('localModelSearchEnabled');
-    return saved === 'true';
+    return saved !== 'false'; // Default to true (enabled) unless explicitly disabled
   });
 
   // Local dictation settings state

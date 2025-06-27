@@ -529,6 +529,7 @@ function AppContent({ isInitialized }: { isInitialized: boolean }) {
       usageTracking={usageTracking}
       currentLanguage={currentLanguage}
       setLanguage={setCurrentLanguage}
+      refreshUserData={auth.refreshUserData}
     />
   )
 }

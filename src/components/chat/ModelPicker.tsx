@@ -101,13 +101,13 @@ const ModelPicker = forwardRef<ModelPickerRef, ModelPickerProps>(({ usageStats }
                     </option>
                   ) : (
                     dynamicLocalModels.length > 0 ? (
-                      dynamicLocalModels.map((model) => (
-                        <option key={model.id} value={model.id}>
-                          {model.name}
-                        </option>
-                      ))
-                    ) : (
-                      <option key="local-none-selected" value="local-none-selected">No local models found</option>
+                    dynamicLocalModels.map((model) => (
+                      <option key={model.id} value={model.id}>
+                        {model.name}
+                      </option>
+                    ))
+                  ) : (
+                    <option key="local-none-selected" value="local-none-selected">No local models found</option>
                     )
                   )}
                 </optgroup>

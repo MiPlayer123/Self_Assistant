@@ -332,7 +332,7 @@ const electronAPI = {
 
 // Expose the API to the renderer process
 try {
-  contextBridge.exposeInMainWorld("electronAPI", electronAPI)
+contextBridge.exposeInMainWorld("electronAPI", electronAPI)
   console.log("✅ electronAPI exposed to window successfully")
 } catch (error) {
   console.error("❌ Failed to expose electronAPI:", error)
