@@ -8,10 +8,6 @@ interface ChatInputProps {
   isProcessing: boolean
   hasScreenshot: boolean
   disabled?: boolean
-  usageStats?: {
-    userTier: string
-    remaining: { chat_messages_count: number }
-  }
 }
 
 export function ChatInput({
@@ -19,8 +15,7 @@ export function ChatInput({
   onTakeScreenshot,
   isProcessing,
   hasScreenshot,
-  disabled = false,
-  usageStats
+  disabled = false
 }: ChatInputProps) {
   const [message, setMessage] = useState('')
   const textareaRef = React.useRef<HTMLTextAreaElement>(null)
@@ -42,7 +37,7 @@ export function ChatInput({
       setMessage('')
       // Reset textarea height and border radius
       if (textareaRef.current) {
-        textareaRef.current.style.height = '38px'
+        textareaRef.current.style.height = '32px'
         textareaRef.current.style.borderRadius = '12px'
       }
     }
@@ -55,11 +50,11 @@ export function ChatInput({
     if (textareaRef.current) {
       // Reset height first to get accurate scrollHeight measurement
       textareaRef.current.style.height = 'auto'
-      const newHeight = Math.min(Math.max(textareaRef.current.scrollHeight, 38), 120)
+      const newHeight = Math.min(Math.max(textareaRef.current.scrollHeight, 32), 120)
       textareaRef.current.style.height = `${newHeight}px`
       
       // Adjust border radius based on height - less rounding for taller text areas
-      const borderRadius = newHeight <= 40 ? '12px' : `${Math.max(8, 12 - (newHeight - 40) / 10)}px`
+      const borderRadius = newHeight <= 34 ? '12px' : `${Math.max(8, 12 - (newHeight - 34) / 10)}px`
       textareaRef.current.style.borderRadius = borderRadius
     }
   }
@@ -104,11 +99,11 @@ export function ChatInput({
             // Auto-resize textarea with dynamic border radius
             if (textareaRef.current) {
               textareaRef.current.style.height = 'auto'
-              const newHeight = Math.min(Math.max(textareaRef.current.scrollHeight, 38), 120)
+              const newHeight = Math.min(Math.max(textareaRef.current.scrollHeight, 32), 120)
               textareaRef.current.style.height = `${newHeight}px`
               
               // Adjust border radius based on height
-              const borderRadius = newHeight <= 40 ? '12px' : `${Math.max(8, 12 - (newHeight - 40) / 10)}px`
+              const borderRadius = newHeight <= 34 ? '12px' : `${Math.max(8, 12 - (newHeight - 34) / 10)}px`
               textareaRef.current.style.borderRadius = borderRadius
             }
           } else {
@@ -132,48 +127,9 @@ export function ChatInput({
     }
   }
 
-  // Show upgrade prompts based on usage
-  const showLowUsageWarning = usageStats?.userTier === 'free' && usageStats?.remaining.chat_messages_count === 1
-  const showOutOfCreditsUpgrade = usageStats?.userTier === 'free' && usageStats?.remaining.chat_messages_count === 0
-
   return (
-    <div className="wagoo-chat-input-container">
-      {/* Out of credits - upgrade prompt */}
-      {showOutOfCreditsUpgrade && (
-        <div className="flex items-center justify-center py-4 px-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-t border-blue-500/20">
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <span className="text-2xl">🚀</span>
-              <h3 className="text-lg font-semibold text-white">Ready for unlimited messages?</h3>
-            </div>
-            <p className="text-gray-300 text-sm mb-3">You've used all 5 free messages today. Upgrade to Pro for unlimited access!</p>
-            <button
-              onClick={handleUpgrade}
-              className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
-            >
-              Upgrade to Pro
-            </button>
-          </div>
-        </div>
-      )}
-      
-      {/* Low usage warning (1 message left) */}
-      {showLowUsageWarning && !showOutOfCreditsUpgrade && (
-        <div className="flex items-center justify-center py-2 px-4 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-t border-amber-500/20">
-          <div className="flex items-center gap-3 text-sm">
-            <span className="text-amber-400">⚠️ Last message remaining!</span>
-            <button
-              onClick={handleUpgrade}
-              className="px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs rounded-full hover:from-blue-600 hover:to-purple-700 transition-all duration-200 font-medium"
-            >
-              Upgrade for unlimited
-            </button>
-          </div>
-        </div>
-      )}
-      
-      <div className="flex items-center justify-center py-3 px-4">
-        <form onSubmit={handleSubmit} className="flex items-center gap-3 w-full max-w-2xl">
+    <div className="wagoo-chat-input-container flex items-center justify-center py-3 px-4">
+      <form onSubmit={handleSubmit} className="flex items-center gap-3 w-full max-w-2xl">
         {/* Screenshot button */}
         <button
           type="button"
@@ -197,7 +153,7 @@ export function ChatInput({
         </button>
 
         {/* Message input */}
-        <div className="flex-1">
+        <div className="flex-1 flex items-center">
           <textarea
             ref={textareaRef}
             value={message}
@@ -205,19 +161,14 @@ export function ChatInput({
             onKeyDown={handleKeyDown}
             placeholder={disabled ? "Daily message limit reached" : "Ask Wagoo anything..."}
             disabled={isProcessing || recordingState === 'processing' || disabled}
-            className="wagoo-input disabled:opacity-50 disabled:cursor-not-allowed focus:ring-0 focus:border-transparent"
+            className="wagoo-input disabled:opacity-50 disabled:cursor-not-allowed w-full"
             rows={1}
             style={{
-              minHeight: '38px',
+              minHeight: '32px',
               maxHeight: '120px',
               height: 'auto',
               resize: 'none',
-              padding: '8px 12px',
-              borderRadius: '12px', // Less rounded, will adjust dynamically
-              border: '1px solid var(--wagoo-border-secondary)',
-              backgroundColor: 'var(--wagoo-bg-tertiary)',
-              color: 'var(--wagoo-text-primary)',
-              marginBottom: '-5px', // Bring text box down to align with buttons
+              borderRadius: '12px' // Dynamic border radius handled in JS
             }}
           />
         </div>
@@ -254,8 +205,7 @@ export function ChatInput({
             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
           ) : (
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-              <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-0.49 6-3.39 6-6.92h-2z"/>
+              <path d="M12 2c1.1 0 2 .9 2 2v6c0 1.1-.9 2-2 2s-2-.9-2-2V4c0-1.1.9-2 2-2zm0 12c-2.2 0-4-1.8-4-4v-1H6v1c0 3.3 2.7 6 6 6s6-2.7 6-6v-1h-2v1c0 2.2-1.8 4-4 4zm-1 2v2h2v-2h-1z"/>
             </svg>
           )}
         </button>
@@ -277,8 +227,7 @@ export function ChatInput({
             '↑'
           )}
         </button>
-        </form>
-      </div>
+      </form>
     </div>
   )
 } 

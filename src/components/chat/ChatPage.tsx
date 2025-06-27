@@ -406,6 +406,20 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onM
     }
   }
 
+  // Show upgrade prompts based on usage
+  const showLowUsageWarning = usageStats?.userTier === 'free' && usageStats?.remaining.chat_messages_count === 1
+  const showOutOfCreditsUpgrade = usageStats?.userTier === 'free' && usageStats?.remaining.chat_messages_count === 0
+
+  const handleUpgrade = () => {
+    // Use the existing IPC handler to open wagoo.vercel.app
+    if (window.electronAPI?.openSubscriptionPortal) {
+      window.electronAPI.openSubscriptionPortal({ id: 'temp', email: 'temp' })
+    } else {
+      // Fallback for web version
+      window.open('https://wagoo.vercel.app', '_blank')
+    }
+  }
+
   console.log('ChatPage rendering...')
   
   return (
@@ -523,13 +537,45 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onM
 
       {/* Input */}
       <div className="flex-shrink-0">
+        {/* Out of credits - upgrade prompt */}
+        {showOutOfCreditsUpgrade && (
+          <div className="flex items-center justify-center py-4 px-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-t border-blue-500/20">
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <span className="text-2xl">🚀</span>
+                <h3 className="text-lg font-semibold text-white">Ready for unlimited messages?</h3>
+              </div>
+              <p className="text-gray-300 text-sm mb-3">You've used all 5 free messages today. Upgrade to Pro for unlimited access!</p>
+              <button
+                onClick={handleUpgrade}
+                className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                Upgrade to Pro
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {/* Low usage warning (1 message left) */}
+        {showLowUsageWarning && !showOutOfCreditsUpgrade && (
+          <div className="flex items-center justify-center py-2 px-4 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-t border-amber-500/20">
+            <div className="flex items-center gap-3 text-sm">
+              <span className="text-amber-400">⚠️ Last message remaining!</span>
+              <button
+                onClick={handleUpgrade}
+                className="px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs rounded-full hover:from-blue-600 hover:to-purple-700 transition-all duration-200 font-medium"
+              >
+                Upgrade for unlimited
+              </button>
+            </div>
+          </div>
+        )}
         <ChatInput
           onSendMessage={handleSendMessage}
           onTakeScreenshot={handleTakeScreenshot}
           isProcessing={state.isProcessing || isModelLoading}
           hasScreenshot={!!state.currentContext?.screenshot}
           disabled={usageStats?.userTier === 'free' && usageStats?.remaining.chat_messages_count === 0}
-          usageStats={usageStats}
         />
       </div>
 
