@@ -19,15 +19,14 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
     } = await supabase.auth.getUser()
 
     if (user) {
-      const { error } = await supabase
-        .from("subscriptions")
-        .update({ preferred_language: newLanguage })
-        .eq("user_id", user.id)
+      // Language preference is now handled in profile, not subscription
+      // TODO: Update profile table with language preference if needed
+      const error = null // Placeholder for now
 
       if (error) {
         console.error("Error updating language:", error)
       } else {
-        window.__LANGUAGE__ = newLanguage
+        // Language is now managed by React state only
         setLanguage(newLanguage)
       }
     }

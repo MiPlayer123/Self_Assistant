@@ -55,9 +55,7 @@ interface ElectronAPI {
   installUpdate: () => void
   onUpdateAvailable: (callback: (info: any) => void) => () => void
   onUpdateDownloaded: (callback: (info: any) => void) => () => void
-  decrementCredits: () => Promise<void>
-  onCreditsUpdated: (callback: (credits: number) => void) => () => void
-  onOutOfCredits: (callback: () => void) => () => void
+
   getPlatform: () => string
   sampleBackgroundColor: (x: number, y: number) => Promise<{ 
     success: boolean
@@ -191,13 +189,7 @@ const electronAPI = {
       ipcRenderer.removeListener(PROCESSING_EVENTS.NO_SCREENSHOTS, subscription)
     }
   },
-  onOutOfCredits: (callback: () => void) => {
-    const subscription = () => callback()
-    ipcRenderer.on(PROCESSING_EVENTS.OUT_OF_CREDITS, subscription)
-    return () => {
-      ipcRenderer.removeListener(PROCESSING_EVENTS.OUT_OF_CREDITS, subscription)
-    }
-  },
+
   onProblemExtracted: (callback: (data: any) => void) => {
     const subscription = (_: any, data: any) => callback(data)
     ipcRenderer.on(PROCESSING_EVENTS.PROBLEM_EXTRACTED, subscription)
@@ -301,14 +293,7 @@ const electronAPI = {
       ipcRenderer.removeListener("update-downloaded", subscription)
     }
   },
-  decrementCredits: () => ipcRenderer.invoke("decrement-credits"),
-  onCreditsUpdated: (callback: (credits: number) => void) => {
-    const subscription = (_event: any, credits: number) => callback(credits)
-    ipcRenderer.on("credits-updated", subscription)
-    return () => {
-      ipcRenderer.removeListener("credits-updated", subscription)
-    }
-  },
+
   getPlatform: () => process.platform,
   sampleBackgroundColor: async (x: number, y: number) => {
     return ipcRenderer.invoke("sample-background-color", x, y)
@@ -345,16 +330,13 @@ const electronAPI = {
   }
 } as ElectronAPI
 
-// Before exposing the API
-console.log(
-  "About to expose electronAPI with methods:",
-  Object.keys(electronAPI)
-)
-
-// Expose the API
-contextBridge.exposeInMainWorld("electronAPI", electronAPI)
-
-console.log("electronAPI exposed to window")
+// Expose the API to the renderer process
+try {
+  contextBridge.exposeInMainWorld("electronAPI", electronAPI)
+  console.log("✅ electronAPI exposed to window successfully")
+} catch (error) {
+  console.error("❌ Failed to expose electronAPI:", error)
+}
 
 // Add this focus restoration handler
 ipcRenderer.on("restore-focus", () => {

@@ -50,9 +50,7 @@ export interface ElectronAPI {
   installUpdate: () => void
   onUpdateAvailable: (callback: (info: any) => void) => () => void
   onUpdateDownloaded: (callback: (info: any) => void) => () => void
-  decrementCredits: () => Promise<void>
-  onCreditsUpdated: (callback: (credits: number) => void) => () => void
-  onOutOfCredits: (callback: () => void) => () => void
+
   getPlatform: () => string
   sampleBackgroundColor: (x: number, y: number) => Promise<{ 
     success: boolean
@@ -84,7 +82,7 @@ declare global {
         ) => void
       }
     }
-    __CREDITS__: number
+
   }
 }
 

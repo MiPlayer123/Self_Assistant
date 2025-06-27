@@ -1,30 +1,19 @@
 import { supabase } from "./lib/supabase"
-import SubscribedApp from "./_pages/SubscribedApp"
 import SubscribePage from "./_pages/SubscribePage"
 import { UpdateNotification } from "./components/UpdateNotification"
 import { ButtonWindow } from "./components/ui/ButtonWindow"
+import { ConnectionErrorScreen } from "./components/ConnectionErrorScreen"
+import { WagooChatApp } from "./components/WagooChatApp"
+import { useSupabaseAuth } from "./hooks/useSupabaseAuth"
+import { useUsageTracking } from "./hooks/useUsageTracking"
+
 import {
   QueryClient,
   QueryClientProvider,
   useQueryClient
 } from "@tanstack/react-query"
 import { useEffect, useState, useCallback } from "react"
-// import { User } from "@supabase/supabase-js" // Temporarily disabled - using mock type
-type User = {
-  id: string
-  email?: string
-  created_at: string
-  confirmed_at?: string
-  email_confirmed_at?: string
-  phone_confirmed_at?: string
-  last_sign_in_at?: string
-  role?: string
-  updated_at: string
-  identities?: any[]
-  factors?: any[]
-  user_metadata?: any
-  app_metadata?: any
-}
+import { User } from "@supabase/supabase-js"
 import {
   Toast,
   ToastDescription,
@@ -76,25 +65,20 @@ function App() {
     variant: "neutral"
   })
   const [credits, setCredits] = useState<number>(0)
-  const [currentLanguage, setCurrentLanguage] = useState<string>("python")
+  const [currentLanguage, setCurrentLanguage] = useState<string>("english")
   const [isInitialized, setIsInitialized] = useState(false)
 
   // Helper function to safely update credits
-  const updateCredits = useCallback((newCredits: number) => {
-    setCredits(newCredits)
-    window.__CREDITS__ = newCredits
-  }, [])
+
 
   // Helper function to safely update language
   const updateLanguage = useCallback((newLanguage: string) => {
     setCurrentLanguage(newLanguage)
-    window.__LANGUAGE__ = newLanguage
   }, [])
 
   // Helper function to mark initialization complete
   const markInitialized = useCallback(() => {
     setIsInitialized(true)
-    window.__IS_INITIALIZED__ = true
   }, [])
 
   // Show toast method
@@ -157,101 +141,11 @@ function App() {
     }
   }, [])
 
-  // Handle credits initialization and updates
+  // Simple initialization
   useEffect(() => {
-    const initializeAndSubscribe = async () => {
-      const {
-        data: { user }
-      } = await supabase.auth.getUser()
-      if (!user) {
-        updateCredits(1)
-        updateLanguage("python")
-        markInitialized()
-        return
-      }
-
-      // Initial fetch
-      const { data: subscription } = await supabase
-        .from("subscriptions")
-        .select("credits, preferred_language")
-        .eq("user_id", user.id)
-        .single()
-
-      // Set defaults if no subscription
-      updateCredits(subscription?.credits ?? 1)
-      updateLanguage(subscription?.preferred_language ?? "python")
-      markInitialized()
-
-      // Subscribe to changes
-      const channel = supabase
-        .channel("credits")
-        .on(
-          "postgres_changes",
-          {
-            event: "UPDATE",
-            schema: "public",
-            table: "subscriptions",
-            filter: `user_id=eq.${user.id}`
-          },
-          (payload) => {
-            const newCredits = payload.new.credits
-            updateCredits(newCredits)
-          }
-        )
-        .subscribe()
-
-      // Listen for solution success to decrement credits
-      const unsubscribeSolutionSuccess = window.electronAPI.onSolutionSuccess(
-        async () => {
-          // Wait for initialization before proceeding
-          if (!isInitialized) {
-            console.warn("Attempted to decrement credits before initialization")
-            return
-          }
-
-          // Get current credits before updating
-          const { data: currentSubscription } = await supabase
-            .from("subscriptions")
-            .select("credits")
-            .eq("user_id", user.id)
-            .single()
-
-          if (!currentSubscription) {
-            console.error(
-              "No subscription found when trying to decrement credits"
-            )
-            return
-          }
-
-          const { data: updatedSubscription, error } = await supabase
-            .from("subscriptions")
-            .update({ credits: currentSubscription.credits - 1 })
-            .eq("user_id", user.id)
-            .select("credits")
-            .single()
-
-          if (error) {
-            console.error("Error updating credits:", error)
-            return
-          }
-
-          updateCredits(updatedSubscription.credits)
-        }
-      )
-
-      // Cleanup function
-      return () => {
-        channel.unsubscribe()
-        unsubscribeSolutionSuccess()
-
-        // Reset initialization state on cleanup
-        window.__IS_INITIALIZED__ = false
-        setIsInitialized(false)
-      }
-    }
-
-    initializeAndSubscribe()
-  }, [updateCredits, updateLanguage, markInitialized, showToast, isInitialized])
+    // Just mark as initialized since auth is handled by the AppContent component
+    markInitialized()
+  }, [markInitialized])
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -278,6 +172,7 @@ function App() {
 }
 
 function AuthForm() {
+  const auth = useSupabaseAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -376,35 +271,44 @@ function AuthForm() {
   async function handleGoogleAuth() {
     setIsLoading(true)
     setError("")
-    console.log("isdev", import.meta.env.DEV)
+    console.log("Starting Google authentication...")
+    
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          // Mock: disabled callback redirects for testing
-          redirectTo: import.meta.env.DEV
-            ? "http://localhost:54321"
-            : window.location.origin,
-          skipBrowserRedirect: true // Skip browser redirects in mock mode
-        }
-      })
-
-      if (error) throw error
+      await auth.signInWithGoogle()
+      // The auth state change will be handled by the useSupabaseAuth hook
+      // So we don't need to do anything else here
     } catch (error) {
       console.error(`Error with Google auth:`, error)
       setError("Something went wrong with Google authentication")
       setShake(true)
       setTimeout(() => setShake(false), 500)
+    } finally {
       setIsLoading(false)
     }
   }
 
-  const toggleMode = () => {
-    setIsSignUp(!isSignUp)
-    setError("")
-    setPasswordError("")
-    setEmail("")
-    setPassword("")
+  const toggleMode = async () => {
+    if (!isSignUp) {
+      // User wants to sign up - open wagoo.vercel.app in default browser
+      try {
+        if (window.electronAPI?.openSubscriptionPortal) {
+          await window.electronAPI.openSubscriptionPortal({ id: 'temp', email: 'temp' })
+        } else {
+          // Fallback for web version or if electronAPI is not available
+          window.open('https://wagoo.vercel.app', '_blank')
+        }
+      } catch (error) {
+        console.log('Electron method failed, using fallback...')
+        window.open('https://wagoo.vercel.app', '_blank')
+      }
+    } else {
+      // User wants to switch back to sign in
+      setIsSignUp(false)
+      setError("")
+      setPasswordError("")
+      setEmail("")
+      setPassword("")
+    }
   }
 
   return (
@@ -524,157 +428,106 @@ function AuthForm() {
 
 // Main App component that handles conditional rendering based on auth and subscription state
 function AppContent({ isInitialized }: { isInitialized: boolean }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [subscriptionLoading, setSubscriptionLoading] = useState(false)
-  const [isSubscribed, setIsSubscribed] = useState(false)
-  const [credits, setCredits] = useState<number | undefined>(undefined)
-  const [currentLanguage, setCurrentLanguage] = useState<string>("python")
+  const auth = useSupabaseAuth()
+  const usageTracking = useUsageTracking(auth.user?.id)
+  const [currentLanguage, setCurrentLanguage] = useState<string>("english")
   const queryClient = useQueryClient()
 
-  // Check auth state on mount
+  // Check subscription status whenever user changes
   useEffect(() => {
-    const {
-      data: { subscription }
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
-
-  // Check subscription and credits status whenever user changes
-  useEffect(() => {
-    const checkSubscriptionAndCredits = async () => {
-      if (!user?.id) {
-        setIsSubscribed(false)
-        setCredits(0)
-        setCurrentLanguage("python")
+    const checkSubscriptionData = async () => {
+      if (!auth.user?.id || !auth.subscription) {
+        setCurrentLanguage("english")
         return
       }
 
-      setSubscriptionLoading(true)
       try {
-        const { data: subscription } = await supabase
-          .from("subscriptions")
-          .select("*, credits, preferred_language")
-          .eq("user_id", user.id)
-          .single()
-
-        setIsSubscribed(!!subscription)
-        setCredits(subscription?.credits ?? 0)
-        if (subscription?.preferred_language) {
-          setCurrentLanguage(subscription.preferred_language)
-          window.__LANGUAGE__ = subscription.preferred_language
-        }
-      } finally {
-        setSubscriptionLoading(false)
+        // Set language based on profile subscription tier
+        // You can customize this logic based to your business rules
+        setCurrentLanguage("english") // Default for now
+      } catch (error) {
+        console.error('Error checking subscription:', error)
       }
     }
 
-    checkSubscriptionAndCredits()
+    checkSubscriptionData()
 
-    // Set up real-time subscription for both subscription status and credits
-    const channel = supabase
-      .channel(`sub-and-credits-${user?.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "subscriptions",
-          filter: user?.id ? `user_id=eq.${user.id}` : undefined
-        },
-        async (payload) => {
-          console.log("Subscription/credits event received:", {
-            eventType: payload.eventType,
-            old: payload.old,
-            new: payload.new
-          })
+    // Set up real-time subscription for subscription changes
+    if (auth.user?.id) {
+      const channel = supabase
+        .channel(`subscription-${auth.user.id}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "subscriptions",
+            filter: `user_id=eq.${auth.user.id}`
+          },
+          async (payload) => {
+            console.log("Subscription event received:", {
+              eventType: payload.eventType,
+              old: payload.old,
+              new: payload.new
+            })
 
-          // For any subscription event, check current subscription status
-          if (
-            payload.eventType === "DELETE" ||
-            payload.eventType === "UPDATE"
-          ) {
-            console.log("Checking current subscription and credits status...")
-            const { data: subscription } = await supabase
-              .from("subscriptions")
-              .select("*, credits, preferred_language")
-              .eq("user_id", user?.id)
-              .single()
-
-            console.log("Current subscription check result:", subscription)
-            setIsSubscribed(!!subscription)
-            setCredits(subscription?.credits ?? 0)
-            if (subscription?.preferred_language) {
-              setCurrentLanguage(subscription.preferred_language)
-              window.__LANGUAGE__ = subscription.preferred_language
-            }
+            // Refresh user data when subscription changes
+            await auth.refreshUserData()
             await queryClient.invalidateQueries({ queryKey: ["user"] })
           }
+        )
+        .subscribe()
 
-          // Handle INSERT events
-          if (
-            payload.eventType === "INSERT" &&
-            payload.new?.user_id === user?.id
-          ) {
-            console.log("New subscription detected")
-            setIsSubscribed(true)
-            setCredits(payload.new.credits ?? 0)
-            if (payload.new.preferred_language) {
-              setCurrentLanguage(payload.new.preferred_language)
-              window.__LANGUAGE__ = payload.new.preferred_language
-            }
-            await queryClient.invalidateQueries({ queryKey: ["user"] })
-          }
-        }
-      )
-      .subscribe()
-
-    return () => {
-      channel.unsubscribe()
+      return () => {
+        channel.unsubscribe()
+      }
     }
-  }, [user?.id, queryClient])
+  }, [auth.user?.id, auth.subscription, queryClient])
 
-  // Show loading state while checking auth, subscription, initialization, or credits
-  if (
-    loading ||
-    (user && (subscriptionLoading || !isInitialized || credits === undefined))
-  ) {
+  // Show loading state while system initializes or auth is loading
+  if (!isInitialized || auth.loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="w-6 h-6 border-2 border-white/20 border-t-white/80 rounded-full animate-spin"></div>
           <p className="text-white/60 text-sm">
-            {loading
-              ? "Loading..."
-              : !isInitialized
+            {!isInitialized 
               ? "Initializing...If you see this screen for more than 10 seconds, please quit and restart the app."
-              : credits === undefined
-              ? "Loading credits..."
-              : "Checking subscription..."}
+              : "Loading user data..."
+            }
           </p>
+          {auth.loading && (
+            <p className="text-white/40 text-xs">
+              Connecting to database...
+            </p>
+          )}
         </div>
       </div>
     )
   }
 
-  // MIGRATION: Temporarily disable auth and subscription checks - keep for reference
-  // TODO: Re-enable auth system for Wagoo
-  // if (!user) {
-  //   return <AuthForm />
-  // }
-  // if (!isSubscribed) {
-  //   return <SubscribePage user={user} />
-  // }
+  // Show error if there's an auth error
+  if (auth.error) {
+    return <ConnectionErrorScreen />
+  }
 
-  // For local development, always show the app regardless of auth/subscription
+  // Auth required - show existing AuthForm
+  if (!auth.isAuthenticated) {
+    return <AuthForm />
+  }
+
+  // Check if user needs subscription upgrade (optional)
+  // For now, we'll assume all users can use the app
+  // You can add subscription logic here based on your business rules
+  
+  // Ready - show the new chat-first app
   return (
-    <SubscribedApp
-      credits={999} // Default to high credits for local development
-      currentLanguage={currentLanguage || "python"}
+    <WagooChatApp 
+      user={auth.user!} 
+      profile={auth.profile}
+      subscription={auth.subscription} 
+      usageTracking={usageTracking}
+      currentLanguage={currentLanguage}
       setLanguage={setCurrentLanguage}
     />
   )

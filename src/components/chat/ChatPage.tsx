@@ -11,9 +11,11 @@ import { LocalModelSettings } from './LocalModelSettings'
 interface ChatPageProps {
   onTakeScreenshot: () => Promise<string>
   onGetImagePreview: (path: string) => Promise<string>
+  onLogoClick?: () => void
+  onMessageSent?: () => void // Callback when user sends a message
 }
 
-export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps) {
+export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onMessageSent }: ChatPageProps) {
   const { state, addMessage, addMessageWithId, updateMessage, appendToMessage, setProcessing, setContext, clearMessages, setFirstMessage } = useChat()
   const { 
     selectedModelId, 
@@ -215,7 +217,8 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
       return
     }
 
-    // Add user message immediately
+    // Track usage and add user message immediately
+    onMessageSent?.() // Call the usage tracking callback
     addMessage({
       role: 'user',
       content: message,
@@ -408,14 +411,18 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview }: ChatPageProps)
       <div className="wagoo-chat-header">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {/* Wagoo Logo */}
-            <div className="wagoo-logo">
+            {/* Wagoo Logo - clickable */}
+            <button 
+              onClick={onLogoClick}
+              className="wagoo-logo hover:opacity-75 transition-opacity focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg"
+              aria-label="Toggle user menu"
+            >
               <img
                 src="W-logo.png"
                 alt="Wagoo Logo"
                 className="w-8 h-8 rounded-lg object-contain"
               />
-            </div>
+            </button>
             {/* Wagoo Brand */}
             <h1 className="text-xl font-semibold wagoo-text-primary">Wagoo</h1>
           </div>

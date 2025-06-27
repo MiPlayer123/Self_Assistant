@@ -12,6 +12,11 @@ export const UpdateNotification: React.FC = () => {
   useEffect(() => {
     console.log("UpdateNotification: Setting up event listeners")
 
+    if (!window.electronAPI) {
+      console.log("UpdateNotification: electronAPI not available")
+      return
+    }
+
     const unsubscribeAvailable = window.electronAPI.onUpdateAvailable(
       (info) => {
         console.log("UpdateNotification: Update available received", info)
@@ -37,9 +42,17 @@ export const UpdateNotification: React.FC = () => {
   const handleStartUpdate = async () => {
     console.log("UpdateNotification: Starting update download")
     setIsDownloading(true)
+    
+    if (!window.electronAPI) {
+      console.error("UpdateNotification: electronAPI not available")
+      setIsDownloading(false)
+      showToast("Error", "Update system not available", "error")
+      return
+    }
+    
     const result = await window.electronAPI.startUpdate()
     console.log("UpdateNotification: Update download result", result)
-    if (!result.success) {
+    if (!result?.success) {
       setIsDownloading(false)
       showToast("Error", "Failed to download update", "error")
     }
@@ -47,7 +60,9 @@ export const UpdateNotification: React.FC = () => {
 
   const handleInstallUpdate = () => {
     console.log("UpdateNotification: Installing update")
-    window.electronAPI.installUpdate()
+    if (window.electronAPI) {
+      window.electronAPI.installUpdate()
+    }
   }
 
   console.log("UpdateNotification: Render state", {

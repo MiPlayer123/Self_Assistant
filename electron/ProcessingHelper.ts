@@ -21,7 +21,7 @@ export class ProcessingHelper {
 
   constructor(deps: IProcessingHelperDeps) {
     this.deps = deps
-    this.screenshotHelper = deps.getScreenshotHelper()
+    this.screenshotHelper = deps.getScreenshotHelper()!  // Non-null assertion since this is initialized in main
   }
 
   private async waitForInitialization(

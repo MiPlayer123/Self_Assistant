@@ -10,7 +10,7 @@ import { ChatMessage } from '../types/chat';
  */
 export async function shouldPerformSearch(message: string, chatHistory?: ChatMessage[]): Promise<boolean> {
   // Keywords that suggest current/recent information is needed
-  const searchTriggers = /\b(latest|current|recent|news|whats happening|today|now|2024|2025|this year|this month|what happened|today|yesterday)\b/i;
+  const searchTriggers = /\b(search|onlinelatest|current|recent|news|whats happening|today|now|2024|2025|this year|this month|what happened|today|yesterday)\b/i;
   
   // Question patterns that often need real-time data
   const factualQuestions = /\b(what is|who is|when did|when was|tell me about|what are|how much|the price)\b/i;

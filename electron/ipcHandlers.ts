@@ -25,25 +25,7 @@ export function initializeIpcHandlers(deps: IIpcHandlerDeps): void {
     }
   })
 
-  ipcMain.handle("decrement-credits", async () => {
-    const mainWindow = deps.getMainWindow()
-    if (!mainWindow) return
 
-    try {
-      const currentCredits = await mainWindow.webContents.executeJavaScript(
-        "window.__CREDITS__"
-      )
-      if (currentCredits > 0) {
-        const newCredits = currentCredits - 1
-        await mainWindow.webContents.executeJavaScript(
-          `window.__CREDITS__ = ${newCredits}`
-        )
-        mainWindow.webContents.send("credits-updated", newCredits)
-      }
-    } catch (error) {
-      console.error("Error decrementing credits:", error)
-    }
-  })
 
   // Screenshot queue handlers
   ipcMain.handle("get-screenshot-queue", () => {
@@ -173,21 +155,21 @@ export function initializeIpcHandlers(deps: IIpcHandlerDeps): void {
 
   // Subscription handlers
   ipcMain.handle("open-settings-portal", () => {
-    shell.openExternal("https://www.wagoo.co/settings")
+    shell.openExternal("https://wagoo.vercel.app")
   })
   ipcMain.handle("open-subscription-portal", async (_event, authData) => {
     try {
-      const url = "https://www.wagoo.co/checkout"
+      const url = "https://wagoo.vercel.app"
       await shell.openExternal(url)
       return { success: true }
     } catch (error) {
-      console.error("Error opening checkout page:", error)
+      console.error("Error opening subscription page:", error)
       return {
         success: false,
         error:
           error instanceof Error
             ? error.message
-            : "Failed to open checkout page"
+            : "Failed to open subscription page"
       }
     }
   })

@@ -1,21 +1,6 @@
 import { useState, useRef, useEffect } from "react"
 import { supabase } from "../lib/supabase"
-// import { User } from "@supabase/supabase-js" // Temporarily disabled - using mock type
-type User = {
-  id: string
-  email?: string
-  created_at: string
-  confirmed_at?: string
-  email_confirmed_at?: string
-  phone_confirmed_at?: string
-  last_sign_in_at?: string
-  role?: string
-  updated_at: string
-  identities?: any[]
-  factors?: any[]
-  user_metadata?: any
-  app_metadata?: any
-}
+import { User } from "@supabase/supabase-js"
 
 interface SubscribePageProps {
   user: User
@@ -28,7 +13,7 @@ export default function SubscribePage({ user }: SubscribePageProps) {
   useEffect(() => {
     const updateDimensions = () => {
       if (containerRef.current) {
-        window.electronAPI.updateContentDimensions({
+        window.electronAPI?.updateContentDimensions({
           width: 400, // Fixed width
           height: 400 // Fixed height
         })
@@ -53,18 +38,16 @@ export default function SubscribePage({ user }: SubscribePageProps) {
     if (!user) return
 
     try {
-      const result = await window.electronAPI.openSubscriptionPortal({
-        id: user.id,
-        email: user.email!
-      })
-
-      if (!result.success) {
-        throw new Error(result.error || "Failed to open subscription portal")
+      // Open wagoo.vercel.app for subscription in default browser
+      if (window.electronAPI?.openSubscriptionPortal) {
+        await window.electronAPI.openSubscriptionPortal({ id: user.id, email: user.email! })
+      } else {
+        // Fallback for web version or if electronAPI is not available
+        window.open('https://wagoo.vercel.app', '_blank')
       }
     } catch (err) {
-      console.error("Error opening subscription portal:", err)
-      setError("Failed to open subscription portal. Please try again.")
-      setTimeout(() => setError(null), 3000)
+      console.log('Electron method failed, using fallback...')
+      window.open('https://wagoo.vercel.app', '_blank')
     }
   }
 

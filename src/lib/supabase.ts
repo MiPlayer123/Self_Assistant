@@ -1,210 +1,213 @@
-// Mock Supabase implementation - temporarily disabled
-// import { createClient } from "@supabase/supabase-js"
+import { createClient } from "@supabase/supabase-js"
+import type { Database } from '../types/database'
 
-console.log("Supabase DISABLED - using mock implementation")
+// Supabase configuration
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-// Mock user object
-const mockUser = {
-  id: "mock-user-123",
-  email: "mock@example.com",
-  created_at: new Date().toISOString(),
-  confirmed_at: new Date().toISOString(),
-  email_confirmed_at: new Date().toISOString(),
-  phone_confirmed_at: null,
-  last_sign_in_at: new Date().toISOString(),
-  role: "authenticated",
-  updated_at: new Date().toISOString(),
-  identities: [],
-  factors: [],
-  user_metadata: {},
-  app_metadata: {}
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables. Please check your .env file.')
 }
 
-// Mock session object
-const mockSession = {
-  access_token: "mock-access-token",
-  refresh_token: "mock-refresh-token",
-  expires_in: 3600,
-  expires_at: Date.now() / 1000 + 3600,
-  token_type: "bearer",
-  user: mockUser
-}
-
-// Mock subscription data - set as active with good credits
-const mockSubscription = {
-  id: "mock-subscription-123",
-  user_id: mockUser.id,
-  credits: 999, // Plenty of credits for testing
-  preferred_language: "python",
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString()
-}
-
-// Mock Supabase client
-export const supabase = {
+// Create and export the Supabase client with extended session configuration
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
-    // Mock authentication methods
-    signInWithOAuth: async (options: any) => {
-      console.log("Mock: signInWithOAuth called with options:", options)
-      // Simulate immediate success without any redirects
-      // Trigger the auth state change callback immediately
-      setTimeout(() => {
-        // Simulate successful OAuth sign-in
-        console.log("Mock: Simulating successful OAuth sign-in")
-      }, 100)
-      return { data: { url: null, provider: options?.provider || "google" }, error: null }
-    },
-    
-    signUp: async () => {
-      console.log("Mock: signUp called")
-      return { data: { user: mockUser, session: mockSession }, error: null }
-    },
-    
-    signInWithPassword: async () => {
-      console.log("Mock: signInWithPassword called")
-      return { data: { user: mockUser, session: mockSession }, error: null }
-    },
-    
-    signOut: async () => {
-      console.log("Mock: signOut called")
-      return { error: null }
-    },
-    
-    getUser: async () => {
-      console.log("Mock: getUser called - returning active user")
-      return { data: { user: mockUser }, error: null }
-    },
-    
-    getSession: async () => {
-      console.log("Mock: getSession called")
-      return { data: { session: mockSession }, error: null }
-    },
-    
-    setSession: async () => {
-      console.log("Mock: setSession called")
-      return { data: { session: mockSession, user: mockUser }, error: null }
-    },
-    
-    exchangeCodeForSession: async () => {
-      console.log("Mock: exchangeCodeForSession called")
-      return { data: { session: mockSession, user: mockUser }, error: null }
-    },
-    
-    onAuthStateChange: (callback: (event: string, session: any) => void) => {
-      console.log("Mock: onAuthStateChange listener registered")
-      // Simulate authenticated state immediately
-      setTimeout(() => {
-        callback("SIGNED_IN", mockSession)
-      }, 100)
-      
-      return {
-        data: { subscription: { unsubscribe: () => {} } }
-      }
-    }
-  },
-  
-  // Mock database operations
-  from: (table: string) => ({
-    select: (columns: string) => ({
-      eq: (column: string, value: any) => ({
-        single: async () => {
-          console.log(`Mock: Database query - SELECT ${columns} FROM ${table} WHERE ${column} = ${value}`)
-          if (table === "subscriptions") {
-            return { data: mockSubscription, error: null }
-          }
-          return { data: null, error: null }
-        }
-      })
-    }),
-    
-    update: (data: any) => ({
-      eq: (column: string, value: any) => ({
-        select: (columns: string) => ({
-          single: async () => {
-            console.log(`Mock: Database update - UPDATE ${table} SET ${JSON.stringify(data)} WHERE ${column} = ${value}`)
-            if (table === "subscriptions") {
-              const updatedSubscription = { ...mockSubscription, ...data }
-              return { data: updatedSubscription, error: null }
-            }
-            return { data: null, error: null }
-          }
-        })
-      })
-    }),
-    
-    insert: (data: any) => ({
-      select: (columns: string) => ({
-        single: async () => {
-          console.log(`Mock: Database insert - INSERT INTO ${table} VALUES ${JSON.stringify(data)}`)
-          if (table === "subscriptions") {
-            return { data: { ...mockSubscription, ...data }, error: null }
-          }
-          return { data: null, error: null }
-        }
-      })
-    })
-  }),
-  
-  // Mock realtime channel
-  channel: (name: string, options?: any) => {
-    console.log(`Mock: Creating realtime channel "${name}"`)
-    return {
-      on: (event: string, config: any, callback: (payload: any) => void) => {
-        console.log(`Mock: Listening to ${event} on channel ${name}`)
-        return {
-          subscribe: (statusCallback?: (status: string) => void) => {
-            console.log(`Mock: Subscribing to channel ${name}`)
-            setTimeout(() => {
-              if (statusCallback) statusCallback("SUBSCRIBED")
-            }, 100)
-            return { unsubscribe: () => console.log(`Mock: Unsubscribed from channel ${name}`) }
-          }
-        }
-      },
-      subscribe: (callback?: (status: string) => void) => {
-        console.log(`Mock: Direct subscribe to channel ${name}`)
-        setTimeout(() => {
-          if (callback) callback("SUBSCRIBED")
-        }, 100)
-        return { unsubscribe: () => console.log(`Mock: Unsubscribed from channel ${name}`) }
-      },
-      unsubscribe: () => {
-        console.log(`Mock: Unsubscribed from channel ${name}`)
-      }
-    }
+    // Keep users logged in longer
+    persistSession: true,
+    detectSessionInUrl: true,
+    // Automatically refresh tokens when they're about to expire
+    autoRefreshToken: true,
+    // Storage key for session data (optional customization)
+    storageKey: 'wagoo-auth-token',
+    // Flow type for OAuth flows
+    flowType: 'pkce'
   }
-}
+})
 
+// Helper functions for common operations
 export const signInWithGoogle = async () => {
+  console.log("Attempting Google OAuth sign-in...")
   try {
-    console.log("Mock: Initiating Google sign in...")
-    // Simulate successful Google sign in
-    return { 
-      data: { url: null, provider: "google" }, 
-      error: null 
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        }
+      }
+    })
+    
+    if (error) {
+      console.error("Google sign-in error:", error)
+      throw error
     }
+    
+    console.log("Google OAuth initiated:", data)
+    return { data, error: null }
   } catch (error) {
-    console.error("Mock: Unexpected error during Google sign in:", error)
-    throw error
+    console.error("Sign-in failed:", error)
+    return { data: null, error }
   }
 }
 
-// Mock realtime connection management - simplified
-let channel: any = null
-
-// Simulate auth state monitoring without actual connection
-console.log("Mock: Setting up auth state monitoring")
-setTimeout(() => {
-  console.log("Mock: Simulating SIGNED_IN event")
-  
-  // Create mock channel
-  channel = {
-    on: () => channel,
-    subscribe: (callback?: (status: string) => void) => {
-      console.log("Mock: Realtime connection established")
-      if (callback) callback("SUBSCRIBED")
-      return { unsubscribe: () => console.log("Mock: Realtime connection cleaned up") }
-    },
-    unsubscribe: () => console.log("Mock: Channel unsubscribed")
+export const signOut = async () => {
+  console.log("Signing out...")
+  try {
+    const { error } = await supabase.auth.signOut()
+    if (error) {
+      console.error("Sign-out error:", error)
+      throw error
+    }
+    return { error: null }
+  } catch (error) {
+    console.error("Sign-out failed:", error)
+    return { error }
   }
-}, 200)
+}
+
+export const getCurrentUser = async () => {
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser()
+    if (error) {
+      console.error("Get user error:", error)
+      return { user: null, error }
+    }
+    return { user, error: null }
+  } catch (error) {
+    console.error("Get user failed:", error)
+    return { user: null, error }
+      }
+}
+
+export const getUserProfile = async (userId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single()
+    
+    if (error) {
+      console.error("Get profile error:", error)
+      return { profile: null, error }
+    }
+    
+    return { profile: data, error: null }
+  } catch (error) {
+    console.error("Get profile failed:", error)
+    return { profile: null, error }
+  }
+}
+
+export const getUserSubscription = async (userId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', userId)
+      .single()
+    
+    if (error) {
+      console.error("Get subscription error:", error)
+      return { subscription: null, error }
+    }
+    
+    return { subscription: data, error: null }
+  } catch (error) {
+    console.error("Get subscription failed:", error)
+    return { subscription: null, error }
+  }
+}
+
+export const createUserProfile = async (user: any) => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .insert({
+        id: user.id,
+        email: user.email,
+        full_name: user.user_metadata?.full_name || null,
+        subscription_tier: 'free'
+      })
+      .select()
+      .single()
+    
+    if (error) {
+      console.error("Create profile error:", error)
+      return { profile: null, error }
+    }
+    
+    return { profile: data, error: null }
+  } catch (error) {
+    console.error("Create profile failed:", error)
+    return { profile: null, error }
+        }
+}
+
+export const createUserSubscription = async (userId: string, tier: 'free' | 'pro' | 'enterprise' = 'free') => {
+  try {
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .insert({
+        user_id: userId,
+        tier,
+        status: 'active'
+      })
+      .select()
+      .single()
+    
+    if (error) {
+      console.error("Create subscription error:", error)
+      return { subscription: null, error }
+            }
+    
+    return { subscription: data, error: null }
+  } catch (error) {
+    console.error("Create subscription failed:", error)
+    return { subscription: null, error }
+        }
+}
+
+export const incrementUsage = async (userId: string, usageType: 'chat_messages_count' | 'voice_transcriptions_count' | 'screen_context_requests', incrementBy: number = 1) => {
+  try {
+    const { error } = await supabase.rpc('increment_usage', {
+      user_uuid: userId,
+      usage_type: usageType,
+      increment_by: incrementBy
+    })
+    
+    if (error) {
+      console.error("Increment usage error:", error)
+      return { error }
+    }
+    
+    return { error: null }
+  } catch (error) {
+    console.error("Increment usage failed:", error)
+    return { error }
+          }
+        }
+
+export const checkDailyUsageLimit = async (userId: string, usageType: 'chat_messages_count' | 'voice_transcriptions_count' | 'screen_context_requests') => {
+  try {
+    const { data, error } = await supabase.rpc('check_daily_usage_limit', {
+      user_uuid: userId,
+      usage_type: usageType
+    })
+    
+    if (error) {
+      console.error("Check usage limit error:", error)
+      return { withinLimit: false, error }
+    }
+    
+    return { withinLimit: data, error: null }
+  } catch (error) {
+    console.error("Check usage limit failed:", error)
+    return { withinLimit: false, error }
+  }
+}
+
+// Export all functions for easy access
+export { supabase as default }
