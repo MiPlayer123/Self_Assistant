@@ -129,6 +129,19 @@ export class ShortcutsHelper {
       this.deps.toggleButtonWindow()
     })
 
+    // Quit app shortcut
+    if (process.platform === "darwin") {
+      globalShortcut.register("CommandOrControl+Q", () => {
+        console.log("Cmd+Q pressed. Quitting app.")
+        app.quit()
+      })
+    } else {
+      globalShortcut.register("Alt+Q", () => {
+        console.log("Alt+Q pressed. Quitting app.")
+        app.quit()
+      })
+    }
+
     this.shortcutsRegistered = true
 
     // Unregister shortcuts when quitting
