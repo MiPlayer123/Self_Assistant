@@ -1,18 +1,45 @@
-import { useState, useCallback } from 'react'
-import { incrementUsage, checkDailyUsageLimit } from '../lib/supabase'
+import { useState, useCallback, useEffect } from 'react'
+import { incrementUsage, checkDailyUsageLimit, getCurrentUsageStats } from '../lib/supabase'
 
 type UsageType = 'chat_messages_count' | 'voice_transcriptions_count' | 'screen_context_requests'
 
 interface UsageState {
   loading: boolean
   error: string | null
+  usageStats?: {
+    userTier: string
+    date: string
+    usage: Record<UsageType, number>
+    limits: Record<UsageType, number>
+    remaining: Record<UsageType, number>
+  }
 }
 
 export const useUsageTracking = (userId?: string) => {
   const [state, setState] = useState<UsageState>({
     loading: false,
-    error: null
+    error: null,
+    usageStats: undefined
   })
+  
+  // Load usage stats when userId changes
+  const loadUsageStats = useCallback(async () => {
+    if (!userId) return
+    
+    try {
+      const result = await getCurrentUsageStats(userId)
+      if (result.success) {
+        setState(prev => ({ ...prev, usageStats: result.data }))
+      }
+    } catch (error) {
+      console.error('Failed to load usage stats:', error)
+    }
+  }, [userId])
+  
+  // Load stats when userId changes
+  useEffect(() => {
+    loadUsageStats()
+  }, [loadUsageStats])
 
   const trackUsage = useCallback(async (usageType: UsageType, incrementBy: number = 1) => {
     if (!userId) {
@@ -20,23 +47,35 @@ export const useUsageTracking = (userId?: string) => {
       return { success: false, error: 'User not authenticated' }
     }
 
-    setState({ loading: true, error: null })
+    setState(prev => ({ ...prev, loading: true, error: null }))
 
     try {
       const { error } = await incrementUsage(userId, usageType, incrementBy)
       
       if (error) {
+        // Handle daily limit exceeded error specifically
+        if (error && typeof error === 'object' && 'code' in error && error.code === 'DAILY_LIMIT_EXCEEDED') {
+          setState(prev => ({ ...prev, loading: false, error: null }))
+          return { 
+            success: false, 
+            error: 'Daily limit exceeded',
+            code: 'DAILY_LIMIT_EXCEEDED',
+            details: 'details' in error ? error.details : null
+          }
+        }
         throw error
       }
 
-      setState({ loading: false, error: null })
+      // Reload usage stats after successful tracking
+      await loadUsageStats()
+      setState(prev => ({ ...prev, loading: false, error: null }))
       return { success: true, error: null }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to track usage'
-      setState({ loading: false, error: errorMessage })
+      setState(prev => ({ ...prev, loading: false, error: errorMessage }))
       return { success: false, error: errorMessage }
     }
-  }, [userId])
+  }, [userId, loadUsageStats])
 
   const checkUsageLimit = useCallback(async (usageType: UsageType) => {
     if (!userId) {
@@ -75,6 +114,7 @@ export const useUsageTracking = (userId?: string) => {
     ...state,
     trackUsage,
     checkUsageLimit,
+    loadUsageStats,
     // Convenience methods
     trackChatMessage,
     trackVoiceTranscription,

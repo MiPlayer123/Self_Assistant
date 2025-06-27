@@ -7,13 +7,20 @@ interface ChatInputProps {
   onTakeScreenshot: () => void
   isProcessing: boolean
   hasScreenshot: boolean
+  disabled?: boolean
+  usageStats?: {
+    userTier: string
+    remaining: { chat_messages_count: number }
+  }
 }
 
 export function ChatInput({
   onSendMessage,
   onTakeScreenshot,
   isProcessing,
-  hasScreenshot
+  hasScreenshot,
+  disabled = false,
+  usageStats
 }: ChatInputProps) {
   const [message, setMessage] = useState('')
   const textareaRef = React.useRef<HTMLTextAreaElement>(null)
@@ -29,8 +36,8 @@ export function ChatInput({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Send if there's text OR if there's a screenshot, and not processing
-    if ((message.trim() || hasScreenshot) && !isProcessing) {
+    // Send if there's text OR if there's a screenshot, and not processing, and not disabled
+    if ((message.trim() || hasScreenshot) && !isProcessing && !disabled) {
       onSendMessage(message.trim()) // Send the message (can be empty if only screenshot)
       setMessage('')
       // Reset textarea height and border radius
@@ -115,15 +122,58 @@ export function ChatInput({
     }
   }
 
-  // Adjust the opacity of the bottom bar
-  const inputBarStyle = {
-    opacity: 0.7, // Reduce this to 0.2-0.3
-    // ... other styles ...
-  };
+  const handleUpgrade = () => {
+    // Use the existing IPC handler to open wagoo.vercel.app
+    if (window.electronAPI?.openSubscriptionPortal) {
+      window.electronAPI.openSubscriptionPortal({ id: 'temp', email: 'temp' })
+    } else {
+      // Fallback for web version
+      window.open('https://wagoo.vercel.app', '_blank')
+    }
+  }
+
+  // Show upgrade prompts based on usage
+  const showLowUsageWarning = usageStats?.userTier === 'free' && usageStats?.remaining.chat_messages_count === 1
+  const showOutOfCreditsUpgrade = usageStats?.userTier === 'free' && usageStats?.remaining.chat_messages_count === 0
 
   return (
-    <div className="wagoo-chat-input-container flex items-center justify-center py-3 px-4">
-      <form onSubmit={handleSubmit} className="flex items-center gap-3 w-full max-w-2xl">
+    <div className="wagoo-chat-input-container">
+      {/* Out of credits - upgrade prompt */}
+      {showOutOfCreditsUpgrade && (
+        <div className="flex items-center justify-center py-4 px-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-t border-blue-500/20">
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <span className="text-2xl">🚀</span>
+              <h3 className="text-lg font-semibold text-white">Ready for unlimited messages?</h3>
+            </div>
+            <p className="text-gray-300 text-sm mb-3">You've used all 5 free messages today. Upgrade to Pro for unlimited access!</p>
+            <button
+              onClick={handleUpgrade}
+              className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              Upgrade to Pro
+            </button>
+          </div>
+        </div>
+      )}
+      
+      {/* Low usage warning (1 message left) */}
+      {showLowUsageWarning && !showOutOfCreditsUpgrade && (
+        <div className="flex items-center justify-center py-2 px-4 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-t border-amber-500/20">
+          <div className="flex items-center gap-3 text-sm">
+            <span className="text-amber-400">⚠️ Last message remaining!</span>
+            <button
+              onClick={handleUpgrade}
+              className="px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs rounded-full hover:from-blue-600 hover:to-purple-700 transition-all duration-200 font-medium"
+            >
+              Upgrade for unlimited
+            </button>
+          </div>
+        </div>
+      )}
+      
+      <div className="flex items-center justify-center py-3 px-4">
+        <form onSubmit={handleSubmit} className="flex items-center gap-3 w-full max-w-2xl">
         {/* Screenshot button */}
         <button
           type="button"
@@ -153,8 +203,8 @@ export function ChatInput({
             value={message}
             onChange={handleMessageChange}
             onKeyDown={handleKeyDown}
-            placeholder="Ask Wagoo anything..."
-            disabled={isProcessing || recordingState === 'processing'}
+            placeholder={disabled ? "Daily message limit reached" : "Ask Wagoo anything..."}
+            disabled={isProcessing || recordingState === 'processing' || disabled}
             className="wagoo-input disabled:opacity-50 disabled:cursor-not-allowed focus:ring-0 focus:border-transparent"
             rows={1}
             style={{
@@ -227,7 +277,8 @@ export function ChatInput({
             '↑'
           )}
         </button>
-      </form>
+        </form>
+      </div>
     </div>
   )
 } 

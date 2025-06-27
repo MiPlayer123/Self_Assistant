@@ -7,15 +7,20 @@ import { useModel } from '../../contexts/ModelContext'
 import ModelPicker, { ModelPickerRef } from '../chat/ModelPicker'
 import { getChatModel } from '../../models/ModelManager'
 import { LocalModelSettings } from './LocalModelSettings'
+// Removed UsageLimitModal import - using inline upgrade prompt instead
 
 interface ChatPageProps {
   onTakeScreenshot: () => Promise<string>
   onGetImagePreview: (path: string) => Promise<string>
   onLogoClick?: () => void
-  onMessageSent?: () => void // Callback when user sends a message
+  onMessageSent?: () => Promise<{ success: boolean; error?: string; code?: string; details?: any }> // Callback when user sends a message
+  usageStats?: {
+    userTier: string
+    remaining: { chat_messages_count: number }
+  }
 }
 
-export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onMessageSent }: ChatPageProps) {
+export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onMessageSent, usageStats }: ChatPageProps) {
   const { state, addMessage, addMessageWithId, updateMessage, appendToMessage, setProcessing, setContext, clearMessages, setFirstMessage } = useChat()
   const { 
     selectedModelId, 
@@ -37,7 +42,8 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onM
   // New state for controlling the 'Searching' message
   const [isSearching, setIsSearching] = useState(false)
   // State for toggling local model settings visibility
-  const [showLocalModelSettings, setShowLocalModelSettings] = useState(false);
+  const [showLocalModelSettings, setShowLocalModelSettings] = useState(false)
+  // Removed usage limit modal - using inline upgrade prompt instead
 
   // Handler for selecting a local model
   const handleSelectLocalModel = (modelFilename: string) => {
@@ -217,8 +223,15 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onM
       return
     }
 
-    // Track usage and add user message immediately
-    onMessageSent?.() // Call the usage tracking callback
+    // Track usage - this will check daily limits for free users
+    const trackingResult = await onMessageSent?.()
+    
+    // If daily limit exceeded, just return (upgrade prompt will show above input)
+    if (trackingResult && !trackingResult.success && trackingResult.code === 'DAILY_LIMIT_EXCEEDED') {
+      // Don't send message, upgrade prompt will show above input
+      return
+    }
+    
     addMessage({
       role: 'user',
       content: message,
@@ -435,7 +448,7 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onM
             >
               <span className="text-lg">↺</span>
             </button>
-            <ModelPicker ref={modelPickerRef} />
+            <ModelPicker ref={modelPickerRef} usageStats={usageStats} />
             {selectedModelId.startsWith('local-') && (
               <button
                 onClick={toggleLocalModelSettings}
@@ -515,8 +528,12 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onM
           onTakeScreenshot={handleTakeScreenshot}
           isProcessing={state.isProcessing || isModelLoading}
           hasScreenshot={!!state.currentContext?.screenshot}
+          disabled={usageStats?.userTier === 'free' && usageStats?.remaining.chat_messages_count === 0}
+          usageStats={usageStats}
         />
       </div>
+
+      {/* Usage limit handling moved to inline prompt above input */}
     </div>
   )
 } 

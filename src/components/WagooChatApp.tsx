@@ -145,6 +145,31 @@ export function WagooChatApp({ user, profile, subscription, usageTracking, curre
                 {subscription?.tier || 'free'}
               </span>
               
+              {/* Show usage for free users */}
+              {usageTracking.usageStats && usageTracking.usageStats.userTier === 'free' && (
+                <div className="flex items-center gap-2">
+                  {/* Progress dots */}
+                  <div className="flex items-center gap-0.5">
+                    {Array.from({ length: 5 }, (_, i) => {
+                      const used = usageTracking.usageStats.usage.chat_messages_count || 0
+                      const isUsed = i < used
+                      return (
+                        <div
+                          key={i}
+                          className={`w-1.5 h-1.5 rounded-full ${
+                            isUsed ? 'bg-blue-400' : 'bg-gray-600'
+                          }`}
+                        />
+                      )
+                    })}
+                  </div>
+                  {/* Text indicator */}
+                  <span className="text-xs text-gray-400">
+                    {usageTracking.usageStats.remaining.chat_messages_count} left
+                  </span>
+                </div>
+              )}
+              
               {/* Email dropdown */}
               {showEmailDropdown && (
                 <div className="absolute top-full left-0 mt-2 bg-black border border-gray-500 rounded-lg shadow-lg py-2 min-w-[200px] z-50">
@@ -181,7 +206,8 @@ export function WagooChatApp({ user, profile, subscription, usageTracking, curre
             onTakeScreenshot={handleTakeScreenshot}
             onGetImagePreview={handleGetImagePreview}
             onLogoClick={toggleUserInfo}
-            onMessageSent={() => usageTracking.trackChatMessage()}
+            onMessageSent={async () => await usageTracking.trackChatMessage()}
+            usageStats={usageTracking.usageStats}
           />
         </ChatProvider>
       </div>

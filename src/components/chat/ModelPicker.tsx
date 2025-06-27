@@ -6,9 +6,18 @@ export interface ModelPickerRef {
   refreshLocalModels: () => void;
 }
 
-const ModelPicker = forwardRef<ModelPickerRef>((props, ref) => {
+interface ModelPickerProps {
+  usageStats?: {
+    userTier: string
+    remaining: { chat_messages_count: number }
+  }
+}
+
+const ModelPicker = forwardRef<ModelPickerRef, ModelPickerProps>(({ usageStats }, ref) => {
   const { selectedModelId, setSelectedModelId } = useModel();
   const [dynamicLocalModels, setDynamicLocalModels] = useState<AiModel[]>([]);
+  
+  const isFreeTier = usageStats?.userTier === 'free';
 
   const fetchLocalModels = async () => {
     if (window.electronAPI) {
@@ -40,7 +49,20 @@ const ModelPicker = forwardRef<ModelPickerRef>((props, ref) => {
   }));
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedModelId(event.target.value);
+    const value = event.target.value;
+    
+    // If free user tries to select local model or upgrade option, open subscription page
+    if (isFreeTier && (value.startsWith('local-') || value === 'upgrade-for-local')) {
+      // Open subscription page
+      if (window.electronAPI?.openSubscriptionPortal) {
+        window.electronAPI.openSubscriptionPortal({ id: 'temp', email: 'temp' });
+      } else {
+        window.open('https://wagoo.vercel.app', '_blank');
+      }
+      return; // Don't change the model selection
+    }
+    
+    setSelectedModelId(value);
   };
 
   return (
@@ -52,30 +74,41 @@ const ModelPicker = forwardRef<ModelPickerRef>((props, ref) => {
       >
         Model:
       </label>
-      <div className="w-fit min-w-0">
+      <div className="relative">
         <select
           id="model-select"
           value={selectedModelId}
           onChange={handleChange}
-          className="px-2 py-1 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm appearance-none cursor-pointer transition-all duration-200"
+          className="px-2 py-1 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm appearance-none cursor-pointer transition-all duration-200 min-w-0 truncate"
           style={{
             borderColor: "var(--wagoo-border-primary)",
             backgroundColor: "var(--wagoo-bg-tertiary)",
-            color: "var(--wagoo-text-primary)"
+            color: "var(--wagoo-text-primary)",
+            width: "140px", // Slightly smaller fixed width
+            maxWidth: "140px",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            overflow: "hidden"
           }}
         >
           {AI_MODEL_PROVIDERS.map((provider) => {
             if (provider.id === 'local') {
               return (
                 <optgroup key={provider.id} label={provider.name}>
-                  {dynamicLocalModels.length > 0 ? (
-                    dynamicLocalModels.map((model) => (
-                      <option key={model.id} value={model.id}>
-                        {model.name}
-                      </option>
-                    ))
+                  {isFreeTier ? (
+                    <option key="upgrade-for-local" value="upgrade-for-local">
+                      🔒 Upgrade for Local
+                    </option>
                   ) : (
-                    <option key="local-none-selected" value="local-none-selected">No local models found</option>
+                    dynamicLocalModels.length > 0 ? (
+                      dynamicLocalModels.map((model) => (
+                        <option key={model.id} value={model.id}>
+                          {model.name}
+                        </option>
+                      ))
+                    ) : (
+                      <option key="local-none-selected" value="local-none-selected">No local models found</option>
+                    )
                   )}
                 </optgroup>
               );
