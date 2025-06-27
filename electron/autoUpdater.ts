@@ -16,6 +16,14 @@ export function initAutoUpdater() {
     return
   }
 
+  // Configure auto updater to use public releases repository
+  autoUpdater.setFeedURL({
+    provider: "github",
+    owner: "MiPlayer123",
+    repo: "wagoo-releases",
+    private: false
+  })
+
   // Configure auto updater
   autoUpdater.autoDownload = true
   autoUpdater.autoInstallOnAppQuit = true
