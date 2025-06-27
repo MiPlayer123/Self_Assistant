@@ -1,5 +1,6 @@
 import { app, BrowserWindow, screen, shell, ipcMain } from "electron"
 import path from "path"
+import fs from "fs"
 import { initializeIpcHandlers } from "./ipcHandlers"
 import { initializeLocalModelIpcHandlers } from "./localModelIpcHandlers"
 import { initializeLocalWhisperIpcHandlers } from "./localWhisperIpcHandlers"
@@ -486,16 +487,32 @@ function setWindowDimensions(width: number, height: number): void {
 
 // Environment setup
 function loadEnvVariables() {
+  let envPath: string
+
   if (isDev) {
-    console.log("Loading env variables from:", path.join(process.cwd(), ".env"))
-    dotenv.config({ path: path.join(process.cwd(), ".env") })
+    envPath = path.join(process.cwd(), ".env")
+    console.log("Looking for .env file at:", envPath)
   } else {
-    console.log(
-      "Loading env variables from:",
-      path.join(process.resourcesPath, ".env")
-    )
-    dotenv.config({ path: path.join(process.resourcesPath, ".env") })
+    envPath = path.join(process.resourcesPath, ".env")
+    console.log("Looking for .env file in production at:", envPath)
   }
+
+  if (fs.existsSync(envPath)) {
+    console.log(".env file found. Loading variables.")
+    dotenv.config({ path: envPath })
+  } else {
+    console.error(
+      "FATAL: .env file not found at",
+      envPath,
+      "Please ensure it is correctly placed."
+    )
+    // In a production environment, you might want to handle this more gracefully
+    // or quit the app, as essential configurations might be missing.
+    if (!isDev) {
+      app.quit()
+    }
+  }
+
   console.log("Loaded environment variables:", {
     VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL ? "exists" : "missing",
     VITE_SUPABASE_ANON_KEY: process.env.VITE_SUPABASE_ANON_KEY

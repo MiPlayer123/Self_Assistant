@@ -84,7 +84,12 @@
         ]
       }
     },
-    "extraResources": [],
+    "extraResources": [
+      {
+        "from": ".env",
+        "to": ".env"
+      }
+    ],
     "extraMetadata": {
       "main": "dist-electron/main.js"
     }
