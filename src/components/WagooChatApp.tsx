@@ -19,7 +19,7 @@ interface WagooChatAppProps {
 export function WagooChatApp({ user, profile, subscription, usageTracking, currentLanguage, setLanguage, refreshUserData }: WagooChatAppProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [showUserInfo, setShowUserInfo] = useState(false)
-  const [showEmailDropdown, setShowEmailDropdown] = useState(false)
+  // Removed showEmailDropdown state - using direct buttons now
   
   // Offline mode integration
   const { isOnline, canUseOffline, subscriptionStatus, refresh: refreshOfflineMode } = useOfflineMode()
@@ -99,34 +99,20 @@ export function WagooChatApp({ user, profile, subscription, usageTracking, curre
 
   const toggleUserInfo = () => {
     setShowUserInfo(!showUserInfo)
-    setShowEmailDropdown(false) // Close email dropdown when toggling user info
-  }
-
-  const toggleEmailDropdown = () => {
-    setShowEmailDropdown(!showEmailDropdown)
   }
 
   const handleManageSubscription = async () => {
-    if (!isOnline) {
-      console.log('Cannot manage subscription while offline')
-      return
-    }
-    
-    // Open wagoo.ai for subscription management in default browser
-    console.log('Opening subscription management...')
+    const url = 'https://wagoo.ai/billing'
     try {
-      // Try the electron IPC method first
-      if (window.electronAPI?.openSubscriptionPortal) {
-        await window.electronAPI.openSubscriptionPortal({ id: 'temp', email: 'temp' })
+      if (window.electronAPI?.openExternalUrl) {
+        await window.electronAPI.openExternalUrl(url)
       } else {
-        // Fallback for web version or if electronAPI is not available
-        window.open('https://wagoo.ai', '_blank')
+        window.open(url, '_blank')
       }
     } catch (error) {
-      console.log('Electron method failed, using fallback...')
-      window.open('https://wagoo.ai', '_blank')
+      console.error('Failed to open external URL:', error)
+      window.open(url, '_blank')
     }
-    setShowEmailDropdown(false)
   }
 
   const handleRefreshSubscription = async () => {
@@ -142,7 +128,7 @@ export function WagooChatApp({ user, profile, subscription, usageTracking, curre
     } catch (error) {
       console.error('Failed to refresh subscription status:', error)
     }
-    setShowEmailDropdown(false)
+    // No dropdown to close anymore
   }
 
   const handleOfflineRefresh = async () => {
@@ -155,45 +141,44 @@ export function WagooChatApp({ user, profile, subscription, usageTracking, curre
       await usageTracking.loadUsageStats()
       console.log('Offline data refreshed successfully')
       
-      // Close dropdown after refresh
-      setShowEmailDropdown(false)
+      // No dropdown to close anymore
     } catch (error) {
       console.error('Failed to refresh offline data:', error)
     }
   }
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (showEmailDropdown && containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setShowEmailDropdown(false)
+  const handleViewShortcuts = async () => {
+    const url = 'https://wagoo.ai/shortcuts'
+    try {
+      if (window.electronAPI?.openExternalUrl) {
+        await window.electronAPI.openExternalUrl(url)
+      } else {
+        window.open(url, '_blank')
       }
+    } catch (error) {
+      console.error('Failed to open external URL:', error)
+      window.open(url, '_blank')
     }
+  }
 
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [showEmailDropdown])
+  // No dropdown to close anymore - removed useEffect
 
   return (
     <div ref={containerRef} className="h-screen w-full bg-glass flex flex-col">
-      {/* User info bar - appears when logo is clicked */}
+      {/* User info bar - appears when 3-dots menu is clicked */}
       {showUserInfo && (
         <div className="flex-shrink-0 px-4 py-3 relative" style={{ 
           background: 'var(--wagoo-bg-secondary)', 
           borderBottom: '1px solid var(--wagoo-border-primary)' 
         }}>
-          <div className="flex items-center justify-between">
-            {/* Left: User email (clickable) and subscription tier */}
-            <div className="flex items-center gap-3 relative">
+          {/* First row: User info and Sign Out */}
+          <div className="flex items-center justify-between mb-3">
+            {/* Left: User email and subscription tier */}
+            <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
-                <button 
-                  onClick={toggleEmailDropdown}
-                  className="text-white text-sm hover:text-blue-400 transition-colors cursor-pointer"
-                >
+                <span className="text-white text-sm">
                   {user.email}
-                </button>
+                </span>
                 
                 {/* Offline indicator */}
                 {!isOnline && (
@@ -236,57 +221,9 @@ export function WagooChatApp({ user, profile, subscription, usageTracking, curre
                 </span>
                 </div>
               )}
-              
-              {/* Email dropdown */}
-              {showEmailDropdown && (
-                <div className="absolute top-full left-0 mt-2 bg-black border border-gray-500 rounded-lg shadow-lg py-2 min-w-[200px] z-50">
-                  {isOnline ? (
-                    <>
-                      <button
-                        onClick={handleManageSubscription}
-                        className="w-full px-4 py-2 text-left text-white text-sm hover:bg-gray-900 transition-colors"
-                      >
-                        Manage Subscription
-                      </button>
-                      <button
-                        onClick={handleRefreshSubscription}
-                        className="w-full px-4 py-1.5 text-left text-gray-400 text-xs hover:bg-gray-900 hover:text-gray-300 transition-colors"
-                      >
-                        ↻ Refresh
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <div className="px-4 py-2 text-gray-500 text-sm">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-                          <span>Offline Mode</span>
-                        </div>
-                        <div className="text-xs mt-1">
-                          {effectiveSubscription === getCachedSubscription() ? 
-                            `Using cached data${cacheInfo.cachedAt ? ` from ${cacheInfo.cachedAt.toLocaleDateString()}` : ''}` :
-                            'Limited functionality available'
-                          }
-                        </div>
-                      </div>
-                      <button
-                        onClick={handleOfflineRefresh}
-                        className="w-full px-4 py-1.5 text-left text-gray-400 text-xs hover:bg-gray-900 hover:text-gray-300 transition-colors"
-                      >
-                        ↻ Refresh Cache
-                      </button>
-                      <div className="border-t border-gray-600 mt-2 pt-2">
-                        <div className="px-4 py-1 text-gray-400 text-xs">
-                          Connect to internet for full features
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
             </div>
             
-            {/* Right: Sign Out button only */}
+            {/* Right: Sign Out button */}
             <div className="flex items-center">
               <button 
                 onClick={(e) => {
@@ -299,6 +236,62 @@ export function WagooChatApp({ user, profile, subscription, usageTracking, curre
               </button>
             </div>
           </div>
+
+          {/* Second row: Action buttons */}
+          <div className="flex items-center justify-between pt-1">
+            <div className="flex items-center gap-2">
+              {isOnline ? (
+                <>
+                  <button
+                    onClick={handleManageSubscription}
+                    className="px-3 py-1.5 wagoo-button-secondary text-xs h-auto rounded-md"
+                  >
+                    Manage Subscription
+                  </button>
+                  <button
+                    onClick={handleRefreshSubscription}
+                    className="px-3 py-1.5 wagoo-button-ghost text-xs h-auto rounded-md flex items-center gap-1"
+                  >
+                    <span>↻</span>
+                    Refresh
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={handleOfflineRefresh}
+                  className="px-3 py-1.5 wagoo-button-ghost text-xs h-auto rounded-md flex items-center gap-1"
+                >
+                  <span>↻</span>
+                  Refresh Cache
+                </button>
+              )}
+            </div>
+            
+            <button
+              onClick={handleViewShortcuts}
+              className="px-3 py-1.5 wagoo-button-secondary text-xs h-auto rounded-md"
+            >
+              View Shortcuts
+            </button>
+          </div>
+
+          {/* Offline mode info */}
+          {!isOnline && (
+            <div className="mt-3 pt-3 border-t border-gray-700">
+              <div className="text-gray-500 text-xs">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                  <span>Offline Mode</span>
+                </div>
+                <div>
+                  {effectiveSubscription === getCachedSubscription() ? 
+                    `Using cached data${cacheInfo.cachedAt ? ` from ${cacheInfo.cachedAt.toLocaleDateString()}` : ''}` :
+                    'Limited functionality available'
+                  }
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
       

@@ -35,6 +35,8 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onM
     setModelLoadingMessage
   } = useModel()
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
+  const shouldAutoScrollRef = useRef<boolean>(true)
   const chatModelRef = useRef<IChatModel | null>(null)
   const welcomeMessageAddedRef = useRef<boolean>(false)
   const modelPickerRef = useRef<ModelPickerRef>(null)
@@ -157,9 +159,47 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onM
     initializeModel()
   }, [selectedModelId]) // Re-initialize when selectedModelId changes
 
-  // Auto-scroll to bottom
+  // Check if user is near bottom of chat
+  const checkIfAtBottom = () => {
+    const container = messagesContainerRef.current
+    if (!container) return false
+    
+    const threshold = 100 // pixels from bottom
+    const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < threshold
+    shouldAutoScrollRef.current = isAtBottom
+    return isAtBottom
+  }
+
+  // Add scroll listener to detect if user scrolls away from bottom
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    const container = messagesContainerRef.current
+    if (!container) return
+
+    const handleScroll = () => {
+      checkIfAtBottom()
+    }
+
+    container.addEventListener('scroll', handleScroll)
+    return () => container.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // Auto-scroll to bottom only if user is at bottom
+  useEffect(() => {
+    if (shouldAutoScrollRef.current) {
+      // Check if the last message is from user for immediate scroll
+      const lastMessage = state.messages[state.messages.length - 1]
+      const isUserMessage = lastMessage?.role === 'user'
+      
+      if (isUserMessage) {
+        // Immediate scroll for user messages
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+      } else {
+        // Small delay for assistant messages to ensure DOM is updated
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+        }, 50)
+      }
+    }
   }, [state.messages])
 
   // Add welcome message on first load (only once)
@@ -245,6 +285,9 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onM
       // Don't send message, upgrade prompt will show above input
       return
     }
+    
+    // Ensure we scroll to bottom when user sends a message
+    shouldAutoScrollRef.current = true
     
     addMessage({
       role: 'user',
@@ -452,18 +495,14 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onM
       <div className="wagoo-chat-header">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {/* Wagoo Logo - clickable */}
-            <button 
-              onClick={onLogoClick}
-              className="wagoo-logo hover:opacity-75 transition-opacity focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg"
-              aria-label="Toggle user menu"
-            >
+            {/* Wagoo Logo - not clickable */}
+            <div className="wagoo-logo">
               <img
                 src="W-logo.png"
                 alt="Wagoo Logo"
                 className="w-8 h-8 rounded-lg object-contain"
               />
-            </button>
+            </div>
             {/* Wagoo Brand */}
             <h1 className="text-xl font-semibold wagoo-text-primary">Wagoo</h1>
           </div>
@@ -502,6 +541,30 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onM
                 </div>
               </button>
             )}
+            {/* 3-dots menu button */}
+            <button 
+              onClick={onLogoClick}
+              className="p-1 rounded-md hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+              aria-label="Open user menu"
+              title="User menu"
+            >
+              <div className="w-4 h-4 flex items-center justify-center text-white/70 hover:text-white/90 transition-colors">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="w-3.5 h-3.5"
+                >
+                  <circle cx="12" cy="12" r="1" />
+                  <circle cx="12" cy="5" r="1" />
+                  <circle cx="12" cy="19" r="1" />
+                </svg>
+              </div>
+            </button>
           </div>
         </div>
         {isModelLoading && (
@@ -541,7 +604,7 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onM
       )}
 
       {/* Messages */}
-      <div className="wagoo-chat-messages">
+      <div ref={messagesContainerRef} className="wagoo-chat-messages">
         <div className="space-y-1 py-1">
           {state.messages.map((message) => (
             <ChatMessage key={message.id} message={message} />

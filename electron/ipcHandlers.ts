@@ -149,8 +149,10 @@ export function initializeIpcHandlers(deps: IIpcHandlerDeps): void {
     return randomBytes(32).toString("base64url")
   })
 
-  ipcMain.handle("open-external-url", (event, url: string) => {
-    shell.openExternal(url)
+  ipcMain.handle("open-external-url", (event, url) => {
+    if (url && (url.startsWith('http:') || url.startsWith('https:'))) {
+      shell.openExternal(url)
+    }
   })
 
   // Subscription handlers

@@ -17,24 +17,9 @@ export const PRODUCTION_CONFIG = {
     github: import.meta.env.VITE_GH_TOKEN
   },
 
-  // Usage limits per user tier
-  limits: {
-    free: {
-      messagesPerDay: 10,
-      screenshotsPerDay: 50,
-      maxSessionLength: 30 // minutes
-    },
-    pro: {
-      messagesPerDay: 500,
-      screenshotsPerDay: 1000,
-      maxSessionLength: 180 // minutes
-    },
-    premium: {
-      messagesPerDay: 2000,
-      screenshotsPerDay: 5000,
-      maxSessionLength: 999 // unlimited
-    }
-  },
+  // Note: Usage limits are defined in src/lib/supabase.ts
+  // Free: 5 chat messages, unlimited screenshots, 10 voice transcriptions per day
+  // Pro/Enterprise: unlimited everything
 
   // App configuration
   app: {

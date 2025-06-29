@@ -50,6 +50,7 @@ export interface ElectronAPI {
   installUpdate: () => void
   onUpdateAvailable: (callback: (info: any) => void) => () => void
   onUpdateDownloaded: (callback: (info: any) => void) => () => void
+  onCheckSubscriptionValidity: (callback: () => void) => () => void
 
   getPlatform: () => string
   sampleBackgroundColor: (x: number, y: number) => Promise<{ 
@@ -68,6 +69,10 @@ export interface ElectronAPI {
   // Generic listener methods for progress updates
   addListener: (channel: string, callback: (data: any) => void) => () => void
   removeListener: (channel: string, callback: (data: any) => void) => void
+  relaunchApp: () => void
+  isUpdateAvailable: () => Promise<boolean>
+  downloadUpdate: () => Promise<void>
+  openExternalUrl: (url: string) => Promise<void>
 }
 
 declare global {

@@ -95,6 +95,12 @@ export function initAutoUpdater() {
       .catch((err) => {
         console.error("Error checking for updates (interval):", err)
       })
+
+    // Also check subscription validity periodically
+    console.log("Checking subscription validity (interval)...")
+    BrowserWindow.getAllWindows().forEach((window) => {
+      window.webContents.send("check-subscription-validity")
+    })
   }, 60 * 60 * 1000)
 
   // Handle IPC messages from renderer

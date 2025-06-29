@@ -62,13 +62,13 @@ export const useUsageTracking = (userId?: string) => {
         },
         limits: {
           chat_messages_count: 5,
-          voice_transcriptions_count: 3,
-          screen_context_requests: 2
+          voice_transcriptions_count: 10,
+          screen_context_requests: -1 // unlimited screenshots for free users
         },
         remaining: {
           chat_messages_count: 5,
-          voice_transcriptions_count: 3,
-          screen_context_requests: 2
+          voice_transcriptions_count: 10,
+          screen_context_requests: -1 // unlimited screenshots for free users
         }
       }
     }

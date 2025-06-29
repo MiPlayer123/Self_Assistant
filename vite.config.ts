@@ -51,15 +51,22 @@ export default defineConfig({
     emptyOutDir: true,
     sourcemap: process.env.NODE_ENV !== "production",
     minify: process.env.NODE_ENV === "production",
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 2000, // Increased for transformers.js
     rollupOptions: {
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
-          ui: ['@radix-ui/react-dialog', '@radix-ui/react-toast', '@radix-ui/react-tooltip']
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-toast', '@radix-ui/react-tooltip'],
+          transformers: ['@xenova/transformers']
         }
       }
     }
+  },
+  optimizeDeps: {
+    exclude: ['@xenova/transformers']
+  },
+  worker: {
+    format: 'es'
   },
   resolve: {
     alias: {

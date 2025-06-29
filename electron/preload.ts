@@ -55,6 +55,7 @@ interface ElectronAPI {
   installUpdate: () => void
   onUpdateAvailable: (callback: (info: any) => void) => () => void
   onUpdateDownloaded: (callback: (info: any) => void) => () => void
+  onCheckSubscriptionValidity: (callback: () => void) => () => void
 
   getPlatform: () => string
   sampleBackgroundColor: (x: number, y: number) => Promise<{ 
@@ -79,6 +80,12 @@ interface ElectronAPI {
   // Generic listener methods for streaming support
   addListener: (channel: string, callback: (data: any) => void) => () => void
   removeListener: (channel: string, callback: (data: any) => void) => void
+  relaunchApp: () => void
+  isUpdateAvailable: () => Promise<boolean>
+  downloadUpdate: () => Promise<void>
+  openExternalUrl: (url: string) => Promise<void>
+  // Wayland screen-capture utility
+  getScreenSources: () => Promise<{ success: boolean; data?: string[]; error?: string }>
 }
 
 export const PROCESSING_EVENTS = {
@@ -293,6 +300,13 @@ const electronAPI = {
       ipcRenderer.removeListener("update-downloaded", subscription)
     }
   },
+  onCheckSubscriptionValidity: (callback: () => void) => {
+    const subscription = () => callback()
+    ipcRenderer.on("check-subscription-validity", subscription)
+    return () => {
+      ipcRenderer.removeListener("check-subscription-validity", subscription)
+    }
+  },
 
   getPlatform: () => process.platform,
   sampleBackgroundColor: async (x: number, y: number) => {
@@ -327,7 +341,13 @@ const electronAPI = {
   },
   removeListener: (channel: string, callback: (data: any) => void) => {
     ipcRenderer.removeListener(channel, callback);
-  }
+  },
+  relaunchApp: () => ipcRenderer.send('relaunch-app'),
+  isUpdateAvailable: () => ipcRenderer.invoke('is-update-available'),
+  downloadUpdate: () => ipcRenderer.invoke('download-update'),
+  openExternalUrl: (url: string) => ipcRenderer.invoke('open-external-url', url),
+  // Wayland screen-capture utility
+  getScreenSources: () => ipcRenderer.invoke('get-screen-sources')
 } as ElectronAPI
 
 // Expose the API to the renderer process

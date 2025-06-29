@@ -46,11 +46,9 @@
       "artifactName": "Wagoo-${arch}.${ext}",
       "icon": "assets/icons/mac/icon.icns",
       "hardenedRuntime": true,
-      "gatekeeperAssess": false,
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.plist",
-      "identity": "Developer ID Application",
-      "notarize": true,
+      "notarize": {},
       "protocols": {
         "name": "wagoo-protocol",
         "schemes": [
@@ -95,7 +93,7 @@
     }
   },
   "keywords": [],
-  "author": "",
+  "author": "Your Company Name",
   "license": "ISC",
   "description": "An invisible desktop application that serves as your general-purpose AI assistant overlay.",
   "dependencies": {

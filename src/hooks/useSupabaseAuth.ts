@@ -348,6 +348,20 @@ export const useSupabaseAuth = () => {
     }
   }
 
+  // Set up periodic subscription validity check listener
+  useEffect(() => {
+    if (!window.electronAPI?.onCheckSubscriptionValidity) return
+
+    const unsubscribe = window.electronAPI.onCheckSubscriptionValidity(() => {
+      console.log('Periodic subscription validity check triggered')
+      if (authState.user) {
+        loadUserData(authState.user)
+      }
+    })
+
+    return unsubscribe
+  }, [authState.user, loadUserData])
+
   return {
     ...authState,
     signInWithGoogle: handleSignInWithGoogle,

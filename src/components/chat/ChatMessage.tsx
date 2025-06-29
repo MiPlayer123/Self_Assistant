@@ -189,12 +189,13 @@ export function ChatMessage({ message }: ChatMessageProps) {
         >
           <div 
             ref={messageContentRef}
-            className="whitespace-pre-wrap break-words max-w-full"
+            className="break-words max-w-full"
             style={{ 
               userSelect: 'text',
               WebkitUserSelect: 'text',
               MozUserSelect: 'text',
-              msUserSelect: 'text'
+              msUserSelect: 'text',
+              whiteSpace: 'pre-line' // Preserve line breaks but collapse multiple spaces
             }}
           >
             <ReactMarkdown
@@ -228,10 +229,10 @@ export function ChatMessage({ message }: ChatMessageProps) {
                 pre: ({ node, ...props }) => (
                   <pre className="overflow-x-auto p-2 rounded-md max-w-full w-full block" {...props} />
                 ),
-                p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
-                ul: ({ node, ...props }) => <ul className="list-disc list-inside mb-2 last:mb-0" {...props} />,
-                ol: ({ node, ...props }) => <ol className="list-decimal list-inside mb-2 last:mb-0" {...props} />,
-                li: ({ node, ...props }) => <li className="mb-1" {...props} />,
+                p: ({ node, ...props }) => <p className="mb-1 last:mb-0" {...props} />,
+                ul: ({ node, ...props }) => <ul className="list-disc list-outside ml-6 mb-1 last:mb-0" {...props} />,
+                ol: ({ node, ...props }) => <ol className="list-decimal list-outside ml-6 mb-1 last:mb-0" {...props} />,
+                li: ({ node, ...props }) => <li className="mb-0.5" {...props} />,
                 strong: ({ node, ...props }) => <strong className="font-bold" {...props} />,
                 em: ({ node, ...props }) => <em className="italic" {...props} />,
               }}
