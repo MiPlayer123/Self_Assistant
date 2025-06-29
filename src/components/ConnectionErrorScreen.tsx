@@ -32,11 +32,11 @@ export function ConnectionErrorScreen({ onContinueOffline }: ConnectionErrorScre
         await window.electronAPI.openSubscriptionPortal({ id: 'temp', email: 'temp' })
       } else {
         // Fallback for web version
-        window.open('https://wagoo.vercel.app', '_blank')
+        window.open('https://wagoo.ai', '_blank')
       }
     } catch (error) {
       console.log('Electron method failed, using fallback...')
-      window.open('https://wagoo.vercel.app', '_blank')
+      window.open('https://wagoo.ai', '_blank')
     }
   }
 

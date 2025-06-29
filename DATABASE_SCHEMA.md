@@ -107,7 +107,7 @@ The application performs the following operations:
 
 The application also integrates with external APIs for AI processing:
 - **Development**: `http://localhost:3000`
-- **Production**: `https://www.wagoo.co`
+- **Production**: `https://wagoo.ai`
 
 ### API Endpoints Used:
 - `/api/extract` - Extract problem information from screenshots
@@ -122,7 +122,7 @@ The application also integrates with external APIs for AI processing:
 4. Enable RLS and create the security policies
 5. Enable realtime for the `subscriptions` table
 6. Configure environment variables in your application
-7. Set up the external API service (wagoo.co backend)
+7. Set up the external API service (wagoo.ai backend)
 
 ## Notes
 

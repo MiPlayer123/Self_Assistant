@@ -204,7 +204,7 @@ npm run build  # Production build with electron-builder
 // Development vs Production API endpoints
 const API_BASE_URL = isDev 
   ? "http://localhost:3000" 
-  : "https://www.interviewcoder.co"
+  : "https://wagoo.ai"
 ```
 
 ## Deployment Architecture

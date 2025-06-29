@@ -291,17 +291,17 @@ function AuthForm() {
 
   const toggleMode = async () => {
     if (!isSignUp) {
-      // User wants to sign up - open wagoo.vercel.app in default browser
+      // User wants to sign up - open wagoo.ai in default browser
       try {
         if (window.electronAPI?.openSubscriptionPortal) {
           await window.electronAPI.openSubscriptionPortal({ id: 'temp', email: 'temp' })
         } else {
           // Fallback for web version or if electronAPI is not available
-          window.open('https://wagoo.vercel.app', '_blank')
+          window.open('https://wagoo.ai', '_blank')
         }
       } catch (error) {
         console.log('Electron method failed, using fallback...')
-        window.open('https://wagoo.vercel.app', '_blank')
+        window.open('https://wagoo.ai', '_blank')
       }
     } else {
       // User wants to switch back to sign in

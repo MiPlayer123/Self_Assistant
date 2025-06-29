@@ -28,7 +28,7 @@
   - Changed package name to "wagoo-v1"
   - Updated protocol from "interview-coder://" to "wagoo://"
   - Changed all UI text references to Wagoo
-  - Updated URLs from interviewcoder.co to wagoo.co
+  - Updated URLs from interviewcoder.co to wagoo.ai
   - Updated documentation and README files
   - Changed application description to reflect general-purpose AI assistant
 - **Result**: App is now fully rebranded as Wagoo
@@ -150,7 +150,7 @@ Wagoo (Future)
 - `src/App.tsx` - Updated login text and references
 - `src/_pages/SubscribePage.tsx` - Updated welcome text
 - `src/components/UpdateNotification.tsx` - Updated notification text
-- All URL references updated from interviewcoder.co to wagoo.co
+- All URL references updated from interviewcoder.co to wagoo.ai
 - All documentation files updated to reflect Wagoo branding
 - `README.md` - Complete rebranding and updated description
 

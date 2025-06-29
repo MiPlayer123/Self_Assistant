@@ -2,7 +2,7 @@
 
 An invisible desktop application that serves as your general-purpose AI assistant overlay.
 
-https://www.wagoo.co
+https://wagoo.ai
 
 
 https://github.com/user-attachments/assets/0615b110-2670-4b0e-bc69-3c32a2d8a996
@@ -80,7 +80,7 @@ The application uses unidentifiable global keyboard shortcuts that won't be dete
 
 - Node.js (v16 or higher)
 - npm or bun package manager
-- Subscription on https://www.wagoo.co/settings
+- Subscription on https://wagoo.ai/settings
 - Screen Recording Permission for Terminal/IDE
   - On macOS:
     1. Go to System Preferences > Security & Privacy > Privacy > Screen Recording

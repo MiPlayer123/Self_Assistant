@@ -9,7 +9,7 @@ import { BrowserWindow } from "electron"
 const isDev = !app.isPackaged
 const API_BASE_URL = isDev
   ? "http://localhost:3000"
-  : "https://www.wagoo.co"
+  : "https://wagoo.ai"
 
 export class ProcessingHelper {
   private deps: IProcessingHelperDeps

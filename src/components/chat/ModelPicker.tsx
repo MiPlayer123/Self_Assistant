@@ -57,7 +57,7 @@ const ModelPicker = forwardRef<ModelPickerRef, ModelPickerProps>(({ usageStats }
       if (window.electronAPI?.openSubscriptionPortal) {
         window.electronAPI.openSubscriptionPortal({ id: 'temp', email: 'temp' });
       } else {
-        window.open('https://wagoo.vercel.app', '_blank');
+        window.open('https://wagoo.ai', '_blank');
       }
       return; // Don't change the model selection
     }

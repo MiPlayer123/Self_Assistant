@@ -38,16 +38,16 @@ export default function SubscribePage({ user }: SubscribePageProps) {
     if (!user) return
 
     try {
-      // Open wagoo.vercel.app for subscription in default browser
+      // Open wagoo.ai for subscription in default browser
       if (window.electronAPI?.openSubscriptionPortal) {
         await window.electronAPI.openSubscriptionPortal({ id: user.id, email: user.email! })
       } else {
         // Fallback for web version or if electronAPI is not available
-        window.open('https://wagoo.vercel.app', '_blank')
+        window.open('https://wagoo.ai', '_blank')
       }
     } catch (err) {
       console.log('Electron method failed, using fallback...')
-      window.open('https://wagoo.vercel.app', '_blank')
+      window.open('https://wagoo.ai', '_blank')
     }
   }
 

@@ -425,12 +425,12 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onM
   const showOutOfCreditsUpgrade = usageStats?.userTier === 'free' && usageStats?.remaining.chat_messages_count === 0
 
   const handleUpgrade = () => {
-    // Use the existing IPC handler to open wagoo.vercel.app
+    // Use the existing IPC handler to open wagoo.ai
     if (window.electronAPI?.openSubscriptionPortal) {
       window.electronAPI.openSubscriptionPortal({ id: 'temp', email: 'temp' })
     } else {
       // Fallback for web version
-      window.open('https://wagoo.vercel.app', '_blank')
+      window.open('https://wagoo.ai', '_blank')
     }
   }
 

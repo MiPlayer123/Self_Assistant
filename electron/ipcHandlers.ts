@@ -155,11 +155,11 @@ export function initializeIpcHandlers(deps: IIpcHandlerDeps): void {
 
   // Subscription handlers
   ipcMain.handle("open-settings-portal", () => {
-    shell.openExternal("https://wagoo.vercel.app")
+    shell.openExternal("https://wagoo.ai")
   })
   ipcMain.handle("open-subscription-portal", async (_event, authData) => {
     try {
-      const url = "https://wagoo.vercel.app"
+      const url = "https://wagoo.ai"
       await shell.openExternal(url)
       return { success: true }
     } catch (error) {

@@ -112,7 +112,7 @@ export function WagooChatApp({ user, profile, subscription, usageTracking, curre
       return
     }
     
-    // Open wagoo.vercel.app for subscription management in default browser
+    // Open wagoo.ai for subscription management in default browser
     console.log('Opening subscription management...')
     try {
       // Try the electron IPC method first
@@ -120,11 +120,11 @@ export function WagooChatApp({ user, profile, subscription, usageTracking, curre
         await window.electronAPI.openSubscriptionPortal({ id: 'temp', email: 'temp' })
       } else {
         // Fallback for web version or if electronAPI is not available
-        window.open('https://wagoo.vercel.app', '_blank')
+        window.open('https://wagoo.ai', '_blank')
       }
     } catch (error) {
       console.log('Electron method failed, using fallback...')
-      window.open('https://wagoo.vercel.app', '_blank')
+      window.open('https://wagoo.ai', '_blank')
     }
     setShowEmailDropdown(false)
   }
