@@ -14,8 +14,8 @@ export default defineConfig({
         vite: {
           build: {
             outDir: "dist-electron",
-            sourcemap: true,
-            minify: false,
+            sourcemap: process.env.NODE_ENV !== "production",
+            minify: process.env.NODE_ENV === "production",
             rollupOptions: {
               external: ["electron", "node-llama-cpp"]
             }
@@ -28,7 +28,8 @@ export default defineConfig({
         vite: {
           build: {
             outDir: "dist-electron",
-            sourcemap: true,
+            sourcemap: process.env.NODE_ENV !== "production",
+            minify: process.env.NODE_ENV === "production",
             rollupOptions: {
               external: ["electron"]
             }
@@ -48,7 +49,17 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: true,
-    sourcemap: true
+    sourcemap: process.env.NODE_ENV !== "production",
+    minify: process.env.NODE_ENV === "production",
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-toast', '@radix-ui/react-tooltip']
+        }
+      }
+    }
   },
   resolve: {
     alias: {

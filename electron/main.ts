@@ -13,6 +13,14 @@ import * as dotenv from "dotenv"
 // Constants
 const isDev = !app.isPackaged
 
+// Performance optimization: Disable console logging in production
+if (!isDev) {
+  console.log = () => {}
+  console.warn = () => {}
+  console.info = () => {}
+  // Keep console.error for debugging critical issues
+}
+
 // Application State
 const state = {
   // Window management properties
