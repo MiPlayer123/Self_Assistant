@@ -42,7 +42,9 @@ jobs:
         run: bun run build:release
         env:
           NODE_ENV: production
-          # Code signing environment variables - only set for macOS
+          # Disable Windows code signing
+          WIN_CSC_LINK: ""
+          WIN_CSC_KEY_PASSWORD: ""
           CSC_LINK: ${{ matrix.os == 'macos-latest' && secrets.CSC_LINK || '' }}
           CSC_KEY_PASSWORD: ${{ matrix.os == 'macos-latest' && secrets.CSC_KEY_PASSWORD || '' }}
           # macOS notarization (only for macOS)
