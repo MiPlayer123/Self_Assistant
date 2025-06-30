@@ -10,6 +10,11 @@ on:
         description: '1.0.0'
         required: true
         type: string
+      skip_notarization:
+        description: 'Set to true to skip macOS notarization during the build.'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -38,9 +43,9 @@ jobs:
           echo "VITE_TAVILY_API_KEY=${{ secrets.VITE_TAVILY_API_KEY }}" >> .env
           echo "VITE_GH_TOKEN=${{ secrets.VITE_GH_TOKEN }}" >> .env
 
-      # yamllint disable rule:duplicate-key
+      # Build with notarization (default)
       - name: Build application (macOS)
-        if: matrix.os == 'macos-latest'
+        if: matrix.os == 'macos-latest' && (github.event_name != 'workflow_dispatch' || github.event.inputs.skip_notarization != 'true')
         run: bun run build:release
         env:
           NODE_ENV: production
@@ -49,7 +54,17 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-      # yamllint enable rule:duplicate-key
+
+      # Build without notarization when the flag is set
+      - name: Build application (macOS – skip notarization)
+        if: matrix.os == 'macos-latest' && github.event_name == 'workflow_dispatch' && github.event.inputs.skip_notarization == 'true'
+        run: bun run build:release -- -c.mac.notarize=false
+        env:
+          NODE_ENV: production
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          # explicitly disable identity auto-discovery so electron-builder doesn't try to find a signing cert
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
 
       - name: Build application (Windows/Linux)
         if: matrix.os != 'macos-latest'
