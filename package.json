@@ -93,7 +93,7 @@
     }
   },
   "keywords": [],
-  "author": "Your Company Name",
+  "author": "Wagoo",
   "license": "ISC",
   "description": "An invisible desktop application that serves as your general-purpose AI assistant overlay.",
   "dependencies": {

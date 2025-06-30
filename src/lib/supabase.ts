@@ -103,18 +103,34 @@ export const getUserProfile = async (userId: string) => {
 
 export const getUserSubscription = async (userId: string) => {
   try {
+    // Get subscription data from the profiles table since subscription info is stored there
+    // Using type assertion to bypass outdated type definitions
     const { data, error } = await supabase
-      .from('subscriptions')
+      .from('profiles')
       .select('*')
-      .eq('user_id', userId)
-      .single()
+      .eq('id', userId)
+      .single() as any
     
     if (error) {
-      console.error("Get subscription error:", error)
+      console.error("Get subscription from profile error:", error)
       return { subscription: null, error }
     }
     
-    return { subscription: data, error: null }
+    // Transform profile data to subscription format
+    const subscription = {
+      id: `sub_${data.id}`,
+      user_id: data.id,
+      tier: data.subscription_tier || 'free',
+      status: data.subscription_status || 'active',
+      stripe_subscription_id: data.stripe_subscription_id,
+      stripe_customer_id: data.stripe_customer_id,
+      current_period_start: data.current_period_start,
+      current_period_end: data.current_period_end,
+      created_at: data.created_at,
+      updated_at: data.updated_at
+    }
+    
+    return { subscription, error: null }
   } catch (error) {
     console.error("Get subscription failed:", error)
     return { subscription: null, error }
@@ -148,26 +164,43 @@ export const createUserProfile = async (user: any) => {
 
 export const createUserSubscription = async (userId: string, tier: 'free' | 'pro' | 'enterprise' = 'free') => {
   try {
+    // Update the subscription info in the profiles table since that's where it's stored
+    // Using type assertion to bypass outdated type definitions
     const { data, error } = await supabase
-      .from('subscriptions')
-      .insert({
-        user_id: userId,
-        tier,
-        status: 'active'
+      .from('profiles')
+      .update({
+        subscription_tier: tier,
+        subscription_status: 'active',
+        updated_at: new Date().toISOString()
       })
-      .select()
-      .single()
+      .eq('id', userId)
+      .select('*')
+      .single() as any
     
     if (error) {
-      console.error("Create subscription error:", error)
+      console.error("Create subscription in profile error:", error)
       return { subscription: null, error }
-            }
+    }
     
-    return { subscription: data, error: null }
+    // Transform profile data to subscription format
+    const subscription = {
+      id: `sub_${data.id}`,
+      user_id: data.id,
+      tier: data.subscription_tier || tier,
+      status: data.subscription_status || 'active',
+      stripe_subscription_id: data.stripe_subscription_id,
+      stripe_customer_id: data.stripe_customer_id,
+      current_period_start: data.current_period_start,
+      current_period_end: data.current_period_end,
+      created_at: data.created_at,
+      updated_at: data.updated_at
+    }
+    
+    return { subscription, error: null }
   } catch (error) {
     console.error("Create subscription failed:", error)
     return { subscription: null, error }
-        }
+  }
 }
 
 export const incrementUsage = async (userId: string, usageType: 'chat_messages_count' | 'voice_transcriptions_count' | 'screen_context_requests', incrementBy: number = 1) => {
@@ -201,14 +234,14 @@ export const incrementUsage = async (userId: string, usageType: 'chat_messages_c
         .eq('date', today)
         .single(),
       supabase
-        .from('subscriptions')
-        .select('tier')
-        .eq('user_id', userId)
-        .single()
+        .from('profiles')
+        .select('subscription_tier')
+        .eq('id', userId)
+        .single() as any
     ])
     
     const usage = usageResult.data
-    const userTier = subscriptionResult.data?.tier || 'free'
+    const userTier = subscriptionResult.data?.subscription_tier || 'free'
     const currentCount = usage?.[usageType] || 0
     
     // Check limits for free users
@@ -262,12 +295,12 @@ export const checkDailyUsageLimit = async (userId: string, usageType: 'chat_mess
     
     // Get user's subscription tier
     const { data: subscription } = await supabase
-      .from('subscriptions')
-      .select('tier')
-      .eq('user_id', userId)
-      .single()
+      .from('profiles')
+      .select('subscription_tier')
+      .eq('id', userId)
+      .single() as any
     
-    const userTier = subscription?.tier || 'free'
+    const userTier = subscription?.subscription_tier || 'free'
     
     // Set limits based on tier
     const limits = {
@@ -341,12 +374,12 @@ export const getCurrentUsageStats = async (userId: string) => {
     
     // Get user's subscription tier
     const { data: subscription } = await supabase
-      .from('subscriptions')
-      .select('tier')
-      .eq('user_id', userId)
-      .single()
+      .from('profiles')
+      .select('subscription_tier')
+      .eq('id', userId)
+      .single() as any
     
-    const userTier = subscription?.tier || 'free'
+    const userTier = subscription?.subscription_tier || 'free'
     
     // Get today's usage
     const { data: usage } = await supabase
