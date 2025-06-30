@@ -5,8 +5,8 @@
   "scripts": {
     "clean": "rimraf dist dist-electron",
     "dev": "cross-env NODE_ENV=development npm run clean && concurrently \"tsc -w -p tsconfig.electron.json\" \"vite\" \"wait-on http://localhost:54321 && electron .\"",
-    "build": "cross-env WIN_CSC_LINK= NODE_ENV=production rimraf dist dist-electron && vite build && tsc -p tsconfig.electron.json && electron-builder",
-    "build:release": "cross-env WIN_CSC_LINK= NODE_ENV=production rimraf dist dist-electron && vite build && tsc -p tsconfig.electron.json && electron-builder --publish never",
+    "build": "cross-env NODE_ENV=production rimraf dist dist-electron && vite build && tsc -p tsconfig.electron.json && electron-builder",
+    "build:release": "cross-env NODE_ENV=production rimraf dist dist-electron && vite build && tsc -p tsconfig.electron.json && electron-builder --publish never",
     "package:all": "npm run build:release -- --mac --win --linux"
   },
   "build": {
@@ -70,7 +70,8 @@
           "wagoo"
         ]
       },
-      "sign": false
+      "sign": false,
+      "publisherName": null
     },
     "linux": {
       "target": [
