@@ -70,9 +70,9 @@
           "wagoo"
         ]
       },
-      "sign": false,
-      "publisherName": null,
-      "certificateSubjectName": null
+      "signAndEditExecutable": false,
+      "verifyUpdateCodeSignature": false,
+      "forceCodeSigning": false
     },
     "linux": {
       "target": [
