@@ -69,7 +69,8 @@
         "schemes": [
           "wagoo"
         ]
-      }
+      },
+      "sign": false
     },
     "linux": {
       "target": [
