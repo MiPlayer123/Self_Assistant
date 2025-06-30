@@ -37,12 +37,17 @@ jobs:
           echo "VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}" >> .env
           echo "VITE_TAVILY_API_KEY=${{ secrets.VITE_TAVILY_API_KEY }}" >> .env
           echo "VITE_GH_TOKEN=${{ secrets.VITE_GH_TOKEN }}" >> .env
-          echo "GH_TOKEN=${{ secrets.GH_TOKEN }}" >> .env
 
       - name: Build application
         run: bun run build:release
         env:
           NODE_ENV: production
+          # Code signing environment variables
+          CSC_LINK: ${{ matrix.os == 'macos-latest' && secrets.CSC_LINK || (matrix.os == 'windows-latest' && secrets.WIN_CSC_LINK) }}
+          CSC_KEY_PASSWORD: ${{ matrix.os == 'macos-latest' && secrets.CSC_KEY_PASSWORD || (matrix.os == 'windows-latest' && secrets.WIN_CSC_KEY_PASSWORD) }}
+          # macOS notarization (only for macOS)
+          APPLE_ID: ${{ matrix.os == 'macos-latest' && secrets.APPLE_ID || '' }}
+          APPLE_ID_PASSWORD: ${{ matrix.os == 'macos-latest' && secrets.APPLE_ID_PASSWORD || '' }}
 
       - name: Upload artifacts (macOS)
         if: matrix.os == 'macos-latest'
