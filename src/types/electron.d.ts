@@ -66,6 +66,12 @@ export interface ElectronAPI {
   getAvailableLocalModels: () => Promise<{ success: boolean; data?: string[]; error?: string }>
   loadLocalModel: (args: { modelPath: string }) => Promise<{ success: boolean; error?: string }>
   isModelLoaded: (args: { modelPath: string }) => Promise<{ success: boolean; data?: boolean; error?: string }>
+  
+  // Whisper.cpp methods
+  invokeLocalWhisper: (method: string, args: any) => Promise<any>
+  getAvailableWhisperModels: () => Promise<{ success: boolean; data?: string[]; error?: string }>
+  isLocalWhisperLoaded: () => Promise<{ success: boolean; data?: boolean; error?: string }>
+  
   // Generic listener methods for progress updates
   addListener: (channel: string, callback: (data: any) => void) => () => void
   removeListener: (channel: string, callback: (data: any) => void) => void

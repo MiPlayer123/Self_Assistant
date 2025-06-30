@@ -476,8 +476,6 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onM
       window.open('https://wagoo.ai', '_blank')
     }
   }
-
-  console.log('ChatPage rendering...')
   
   return (
     <div className="wagoo-chat-container wagoo-fade-in">

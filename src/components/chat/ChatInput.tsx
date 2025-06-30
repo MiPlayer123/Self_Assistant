@@ -97,7 +97,7 @@ export function ChatInput({
         if (audioBlob) {
           const result = await transcribeAudio(audioBlob)
           
-          if (result.success && result.text) {
+          if (result && result.success && result.text) {
             // Add transcribed text to the current message
             const newText = message ? `${message} ${result.text}` : result.text
             setMessage(newText)
@@ -113,7 +113,8 @@ export function ChatInput({
               textareaRef.current.style.borderRadius = borderRadius
             }
           } else {
-            console.error('Transcription failed:', result.error)
+            const errorMessage = result?.error || 'Unknown transcription error'
+            console.error('Transcription failed:', errorMessage)
             // You could show an error toast here if desired
           }
         }

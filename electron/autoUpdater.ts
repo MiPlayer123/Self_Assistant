@@ -11,8 +11,8 @@ export function initAutoUpdater() {
     return
   }
 
-  if (!process.env.GH_TOKEN) {
-    console.error("GH_TOKEN environment variable is not set")
+  if (!process.env.VITE_GH_TOKEN) {
+    console.error("VITE_GH_TOKEN environment variable is not set")
     return
   }
 

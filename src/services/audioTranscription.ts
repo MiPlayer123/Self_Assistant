@@ -1,6 +1,6 @@
 import OpenAI from 'openai'
 import { getApiKey } from '../models/ModelManager'
-import { transcribeAudioLocally, isLocalWhisperAvailable } from './localWhisperTranscription'
+import { transcribeAudioWithWhisperCpp, isWhisperCppAvailable } from './whisperCppTranscription'
 
 export interface TranscriptionResult {
   success: boolean
@@ -10,6 +10,12 @@ export interface TranscriptionResult {
 
 // Check if local dictation is enabled
 function isLocalDictationEnabled(): boolean {
+  // Allow override via environment variable for production use
+  if (import.meta.env.PROD && !import.meta.env.VITE_ENABLE_LOCAL_WHISPER) {
+    console.log('Local transcription disabled in production build (set VITE_ENABLE_LOCAL_WHISPER=true to enable)')
+    return false
+  }
+  
   const enabled = localStorage.getItem('localDictationEnabled')
   return enabled === 'true'
 }
@@ -19,28 +25,37 @@ export async function transcribeAudio(audioBlob: Blob): Promise<TranscriptionRes
   const useLocal = isLocalDictationEnabled()
   
   if (useLocal) {
-    const isLocalAvailable = await isLocalWhisperAvailable()
+    console.log('Local transcription enabled, checking availability...')
+    const isLocalAvailable = await isWhisperCppAvailable()
     if (isLocalAvailable) {
-      console.log('Using local Whisper for transcription')
-      const localResult = await transcribeAudioLocally(audioBlob)
+      console.log('✅ Using local whisper.cpp for transcription')
+      const localResult = await transcribeAudioWithWhisperCpp(audioBlob)
       
       // If local transcription succeeds, return it
       if (localResult.success) {
+        console.log('🎯 Local transcription successful')
         return localResult
       } else {
-        console.warn('Local transcription failed, falling back to cloud:', localResult.error)
+        console.warn('❌ Local transcription failed, falling back to cloud:', localResult.error)
         // Fall through to cloud transcription as fallback
       }
     } else {
-      console.warn('Local Whisper not available, falling back to cloud transcription')
+      console.warn('⚠️ Local transcription not available, using cloud transcription')
       // Fall through to cloud transcription
     }
+  } else {
+    console.log('📡 Local transcription disabled, using cloud transcription')
   }
 
-  // Use cloud transcription (existing OpenAI Whisper implementation)
+  // Use cloud transcription (OpenAI Whisper API)
   try {
+    console.log('☁️ Starting cloud transcription with OpenAI Whisper...')
+    
     // Get OpenAI API key using existing infrastructure
     const apiKey = await getApiKey('openai')
+    if (!apiKey) {
+      throw new Error('OpenAI API key not available')
+    }
     
     // Initialize OpenAI client
     const openai = new OpenAI({
@@ -48,8 +63,26 @@ export async function transcribeAudio(audioBlob: Blob): Promise<TranscriptionRes
       dangerouslyAllowBrowser: true
     })
 
-    // Convert blob to File object for OpenAI API
-    const audioFile = new File([audioBlob], 'audio.webm', {
+    // Validate audio blob first
+    if (!audioBlob || audioBlob.size === 0) {
+      throw new Error('Invalid audio data: empty or corrupted audio file')
+    }
+
+    if (audioBlob.size < 100) {
+      throw new Error('Audio file too small. Please record for at least 1 second.')
+    }
+
+    // Convert blob to File object for OpenAI API with proper extension
+    let fileName = 'audio.webm'
+    if (audioBlob.type.includes('mp4')) {
+      fileName = 'audio.mp4'
+    } else if (audioBlob.type.includes('wav')) {
+      fileName = 'audio.wav'
+    } else if (audioBlob.type.includes('ogg')) {
+      fileName = 'audio.ogg'
+    }
+
+    const audioFile = new File([audioBlob], fileName, {
       type: audioBlob.type
     })
 
@@ -68,9 +101,22 @@ export async function transcribeAudio(audioBlob: Blob): Promise<TranscriptionRes
 
     console.log('Transcription successful:', transcription)
 
+    // Validate transcription result
+    if (!transcription || typeof transcription !== 'string') {
+      throw new Error('Invalid transcription response from OpenAI')
+    }
+
+    const transcribedText = transcription.trim()
+    
+    if (!transcribedText) {
+      throw new Error('Transcription returned empty result. The audio may be unclear or contain no speech.')
+    }
+
+    console.log('✅ Cloud transcription successful:', transcribedText.length, 'characters')
+
     return {
       success: true,
-      text: transcription.trim()
+      text: transcribedText
     }
 
   } catch (error: any) {
