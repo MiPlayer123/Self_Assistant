@@ -1,3 +1,10 @@
+const isDev = process.env.NODE_ENV !== 'production';
+if (!isDev) {
+  console.log = () => {};
+  console.warn = () => {};
+  console.info = () => {};
+}
+
 console.log("Preload script starting...")
 import { contextBridge, ipcRenderer } from "electron"
 const { shell } = require("electron")

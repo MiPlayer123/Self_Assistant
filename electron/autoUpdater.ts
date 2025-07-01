@@ -5,6 +5,11 @@ import log from "electron-log"
 export function initAutoUpdater() {
   console.log("Initializing auto-updater...")
 
+  if (app.isPackaged) {
+    log.transports.file.level = 'warn'
+    log.transports.console.level = false
+  }
+
   // Skip update checks in development
   if (!app.isPackaged) {
     console.log("Development mode detected: registering stub update handlers and skipping real auto-updater")
