@@ -15,9 +15,20 @@ const isDev = !app.isPackaged
 
 // Performance optimization: Disable console logging in production
 if (!isDev) {
-  console.log = () => {}
-  console.warn = () => {}
-  console.info = () => {}
+  const noop = () => {}
+  console.log = noop
+  console.warn = noop
+  console.info = noop
+  console.debug = noop
+  console.trace = noop
+  console.time = noop
+  console.timeEnd = noop
+  console.group = noop
+  console.groupEnd = noop
+  console.groupCollapsed = noop
+  console.count = noop
+  console.countReset = noop
+  console.clear = noop
   // Keep console.error for debugging critical issues
 }
 
@@ -279,7 +290,14 @@ async function createWindow(): Promise<void> {
       preload: isDev
         ? path.join(__dirname, "../dist-electron/preload.js")
         : path.join(__dirname, "preload.js"),
-      scrollBounce: true
+      scrollBounce: true,
+      // Performance optimizations
+      spellcheck: true, // Disable spellcheck for better performance
+      enableWebSQL: false, // Disable WebSQL for security and performance
+      experimentalFeatures: false, // Disable experimental features
+      // Enable hardware acceleration
+      webgl: true,
+      plugins: false, // Disable plugins for security and performance
     },
     show: true,
     frame: false,
@@ -370,9 +388,16 @@ async function createWindow(): Promise<void> {
     state.mainWindow.setHasShadow(false)
   }
 
-  // Prevent the window from being captured by screen recording
-  state.mainWindow.webContents.setBackgroundThrottling(false)
-  state.mainWindow.webContents.setFrameRate(60)
+  // Performance optimization: Enable background throttling in production for better performance
+  // Only disable in development for debugging
+  if (isDev) {
+    state.mainWindow.webContents.setBackgroundThrottling(true)
+    state.mainWindow.webContents.setFrameRate(60)
+  } else {
+    // In production, enable throttling for better performance
+    state.mainWindow.webContents.setBackgroundThrottling(true)
+    // Don't force high frame rate in production
+  }
 
   // Set up window listeners
   state.mainWindow.on("move", handleWindowMove)
@@ -749,9 +774,14 @@ async function createButtonWindow(): Promise<void> {
     state.buttonWindow.setHasShadow(false)
   }
 
-  // Prevent the window from being captured by screen recording
-  state.buttonWindow.webContents.setBackgroundThrottling(false)
-  state.buttonWindow.webContents.setFrameRate(60)
+  // Performance optimization: Enable background throttling for button window
+  if (isDev) {
+    state.buttonWindow.webContents.setBackgroundThrottling(false)
+    state.buttonWindow.webContents.setFrameRate(60)
+  } else {
+    // Button window doesn't need high performance, enable throttling
+    state.buttonWindow.webContents.setBackgroundThrottling(true)
+  }
 
   state.buttonWindow.on("closed", () => {
     state.buttonWindow = null

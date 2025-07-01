@@ -6,9 +6,21 @@ import { ModelProvider } from "./contexts/ModelContext";
 
 // Performance optimization: Disable console logging in production
 if (import.meta.env.PROD) {
-  console.log = () => {}
-  console.warn = () => {}
-  console.info = () => {}
+  // More aggressive console disabling for production performance
+  const noop = () => {}
+  console.log = noop
+  console.warn = noop
+  console.info = noop
+  console.debug = noop
+  console.trace = noop
+  console.time = noop
+  console.timeEnd = noop
+  console.group = noop
+  console.groupEnd = noop
+  console.groupCollapsed = noop
+  console.count = noop
+  console.countReset = noop
+  console.clear = noop
   // Keep console.error for debugging critical issues
 }
 

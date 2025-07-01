@@ -14,7 +14,7 @@ import {
   QueryClientProvider,
   useQueryClient
 } from "@tanstack/react-query"
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useMemo } from "react"
 import { User } from "@supabase/supabase-js"
 import {
   Toast,
@@ -42,9 +42,11 @@ const queryClient = new QueryClient({
 
 // Root component that provides the QueryClient
 function App() {
-  // Check if this is the button window by looking at the URL query parameter or window size
-  const isButtonWindow = new URLSearchParams(window.location.search).has('button') || 
-                         (window.innerWidth === 68 && window.innerHeight === 68)
+  // Memoize expensive button window check to avoid recalculating on every render
+  const isButtonWindow = useMemo(() => {
+    return new URLSearchParams(window.location.search).has('button') || 
+           (window.innerWidth === 68 && window.innerHeight === 68)
+  }, []) // Empty dependency array since this should only be calculated once
 
   // If this is the button window, render just the button
   if (isButtonWindow) {
