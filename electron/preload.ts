@@ -55,6 +55,7 @@ interface ElectronAPI {
   installUpdate: () => void
   onUpdateAvailable: (callback: (info: any) => void) => () => void
   onUpdateDownloaded: (callback: (info: any) => void) => () => void
+  onDownloadProgress: (callback: (progress: any) => void) => () => void
   onCheckSubscriptionValidity: (callback: () => void) => () => void
 
   getPlatform: () => string
@@ -298,6 +299,13 @@ const electronAPI = {
     ipcRenderer.on("update-downloaded", subscription)
     return () => {
       ipcRenderer.removeListener("update-downloaded", subscription)
+    }
+  },
+  onDownloadProgress: (callback: (progress: any) => void) => {
+    const subscription = (_: any, progress: any) => callback(progress)
+    ipcRenderer.on("download-progress", subscription)
+    return () => {
+      ipcRenderer.removeListener("download-progress", subscription)
     }
   },
   onCheckSubscriptionValidity: (callback: () => void) => {
