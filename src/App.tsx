@@ -265,7 +265,7 @@ function App() {
               setToastState((prev) => ({ ...prev, open }))
             }
             variant={toastState.variant}
-            duration={1500}
+            duration={3000}
           >
             <ToastTitle>{toastState.title}</ToastTitle>
             <ToastDescription>{toastState.description}</ToastDescription>

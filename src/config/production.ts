@@ -1,10 +1,10 @@
 // Production SaaS Configuration
 // These keys are embedded in the app and shared by all users
 export const PRODUCTION_CONFIG = {
-  // Supabase (public keys - safe to expose)
+  // Supabase (public keys loaded from environment variables)
   supabase: {
-    url: "https://awzpxrojtaqijoqrdzxo.supabase.co",
-    anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3enB4cm9qdGFxaWpvcXJkenhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MjA5MDUsImV4cCI6MjA2NjI5NjkwNX0.J6lC3nj2M-SFz53dVvG5ebEh8L0xDAhrpfEjqus9hT8"
+    url: import.meta.env.VITE_SUPABASE_URL,
+    anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY
   },
 
   // YOUR API Keys (embedded for SaaS model) 

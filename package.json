@@ -24,7 +24,7 @@
       "buildResources": "assets"
     },
     "asar": true,
-    "compression": "maximum",
+    "compression": "normal",
     "generateUpdatesFilesForAllChannels": true,
     "mac": {
       "category": "public.app-category.developer-tools",

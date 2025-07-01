@@ -7,7 +7,19 @@ export function initAutoUpdater() {
 
   // Skip update checks in development
   if (!app.isPackaged) {
-    console.log("Skipping auto-updater in development mode")
+    console.log("Development mode detected: registering stub update handlers and skipping real auto-updater")
+
+    // Stub handlers so renderer code can call them without errors
+    ipcMain.handle("start-update", async () => {
+      console.log("start-update stub invoked (dev mode)")
+      return { success: true }
+    })
+
+    ipcMain.handle("install-update", () => {
+      console.log("install-update stub invoked (dev mode)")
+      // No-op in development
+    })
+
     return
   }
 
@@ -58,6 +70,9 @@ export function initAutoUpdater() {
 
   autoUpdater.on("download-progress", (progressObj) => {
     console.log("Download progress:", progressObj)
+    BrowserWindow.getAllWindows().forEach((window) => {
+      window.webContents.send("download-progress", progressObj)
+    })
   })
 
   autoUpdater.on("update-downloaded", (info) => {

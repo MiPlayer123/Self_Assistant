@@ -50,6 +50,7 @@ export interface ElectronAPI {
   installUpdate: () => void
   onUpdateAvailable: (callback: (info: any) => void) => () => void
   onUpdateDownloaded: (callback: (info: any) => void) => () => void
+  onDownloadProgress: (callback: (progress: any) => void) => () => void
   onCheckSubscriptionValidity: (callback: () => void) => () => void
 
   getPlatform: () => string
