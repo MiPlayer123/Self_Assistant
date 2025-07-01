@@ -7,11 +7,21 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: '1.0.0'
+        description: 'Version number (e.g., v1.0.0)'
         required: true
         type: string
+      release_notes:
+        description: 'Custom release notes (optional - leave empty for auto-generated)'
+        required: false
+        type: string
+        default: ''
       skip_notarization:
         description: 'Set to true to skip macOS notarization during the build.'
+        required: false
+        type: boolean
+        default: false
+      skip_build:
+        description: 'Set to true to skip build stage and only run release (use existing artifacts).'
         required: false
         type: boolean
         default: false
@@ -19,6 +29,7 @@ on:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
+    if: github.event_name != 'workflow_dispatch' || github.event.inputs.skip_build != 'true'
     strategy:
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
@@ -108,7 +119,7 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    if: always() && (startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch') && (needs.build.result == 'success' || (github.event_name == 'workflow_dispatch' && github.event.inputs.skip_build == 'true'))
 
     steps:
       - name: Checkout code
@@ -116,8 +127,22 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check build skip status
+        run: |
+          if [ "${{ github.event.inputs.skip_build }}" = "true" ]; then
+            echo "🚀 SKIP_BUILD enabled - Using existing artifacts for release"
+            echo "📦 Looking for previously built artifacts..."
+          else
+            echo "🔨 BUILD completed - Using fresh artifacts for release"
+          fi
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
+
+      - name: List available artifacts
+        run: |
+          echo "📁 Available artifacts:"
+          find . -name "*.dmg" -o -name "*.exe" -o -name "*.AppImage" -o -name "*.zip" | sort
 
       - name: Create release in public repository
         env:
@@ -131,25 +156,53 @@ jobs:
             VERSION=${GITHUB_REF#refs/tags/}
           fi
           
-          # Create release notes
+          # Create release notes header
           echo "## Wagoo $VERSION" > release_notes.md
+          echo "" >> release_notes.md
+          
+          # Add custom release notes if provided
+          if [ -n "${{ github.event.inputs.release_notes }}" ]; then
+            echo "### Release Notes" >> release_notes.md
+            echo "${{ github.event.inputs.release_notes }}" >> release_notes.md
+            echo "" >> release_notes.md
+          fi
+          
+          # Add download instructions
+          echo "### Downloads" >> release_notes.md
           echo "" >> release_notes.md
           echo "Download the appropriate version for your platform:" >> release_notes.md
           echo "" >> release_notes.md
-          echo "- **macOS**: Download the .dmg file" >> release_notes.md
-          echo "- **Windows**: Download the .exe file" >> release_notes.md
-          echo "- **Linux**: Download the .AppImage file" >> release_notes.md
+          echo "- **macOS**: `Wagoo-arm64.dmg` (Apple Silicon) or `Wagoo-x64.dmg` (Intel)" >> release_notes.md
+          echo "- **Windows**: `Wagoo-Windows-$VERSION.exe`" >> release_notes.md
+          echo "- **Linux**: `Wagoo-Linux-$VERSION.AppImage`" >> release_notes.md
           echo "" >> release_notes.md
+          
+          # Add commit history or default message
           echo "### Changes" >> release_notes.md
-          git log --oneline --since="$(git describe --tags --abbrev=0 HEAD^)..HEAD" >> release_notes.md || echo "First release" >> release_notes.md
+          if [ -n "${{ github.event.inputs.release_notes }}" ]; then
+            # If custom notes provided, try to add commit history as supplementary info
+            echo "" >> release_notes.md
+            echo "<details>" >> release_notes.md
+            echo "<summary>Commit History</summary>" >> release_notes.md
+            echo "" >> release_notes.md
+            git log --oneline --since="$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null)" HEAD 2>/dev/null | sed 's/^/- /' >> release_notes.md || echo "- First release" >> release_notes.md
+            echo "" >> release_notes.md
+            echo "</details>" >> release_notes.md
+          else
+            # If no custom notes, show commit history as main content
+            git log --oneline --since="$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null)" HEAD 2>/dev/null | sed 's/^/- /' >> release_notes.md || echo "- First release" >> release_notes.md
+          fi
           
           # Allow glob patterns that match nothing to expand to nothing instead of erroring
           shopt -s nullglob
 
+          # Upload only the actual application files, avoiding duplicate metadata files
           gh release create "$VERSION" \
             --repo "$PUBLIC_REPO" \
             --title "Wagoo $VERSION" \
             --notes-file release_notes.md \
-            macos-build/* \
-            windows-build/* \
-            linux-build/* 
+            macos-build/*.dmg \
+            macos-build/*.zip \
+            windows-build/*.exe \
+            linux-build/*.AppImage \
+            macos-build/latest-mac.yml
