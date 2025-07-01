@@ -1,13 +1,14 @@
 {
   "name": "wagoo-v1",
-  "version": "1.0.8",
+  "version": "1.0.5",
   "main": "dist-electron/main.js",
   "scripts": {
     "clean": "rimraf dist dist-electron",
     "dev": "cross-env NODE_ENV=development npm run clean && concurrently \"tsc -w -p tsconfig.electron.json\" \"vite\" \"wait-on http://localhost:54321 && electron .\"",
     "build": "cross-env NODE_ENV=production rimraf dist dist-electron && vite build && tsc -p tsconfig.electron.json && electron-builder",
     "build:release": "cross-env NODE_ENV=production rimraf dist dist-electron && vite build && tsc -p tsconfig.electron.json && electron-builder --publish never",
-    "package:all": "npm run build:release -- --mac --win --linux"
+    "package:all": "npm run build:release -- --mac --win --linux",
+    "postinstall": "electron-builder install-app-deps"
   },
   "build": {
     "appId": "com.chunginlee.wagoo",
@@ -95,7 +96,10 @@
     ],
     "extraMetadata": {
       "main": "dist-electron/main.js"
-    }
+    },
+    "asarUnpack": [
+      "node_modules/node-llama-cpp/**"
+    ]
   },
   "keywords": [],
   "author": "Wagoo",
