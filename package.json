@@ -8,6 +8,7 @@
     "build": "cross-env NODE_ENV=production rimraf dist dist-electron && vite build && tsc -p tsconfig.electron.json && electron-builder",
     "build:release": "cross-env NODE_ENV=production rimraf dist dist-electron && vite build && tsc -p tsconfig.electron.json && electron-builder --publish never",
     "package:all": "npm run build:release -- --mac --win --linux",
+    "generate:update:yml": "node scripts/generate-update-yml.js",
     "postinstall": "electron-builder install-app-deps"
   },
   "build": {

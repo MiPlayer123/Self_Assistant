@@ -82,20 +82,28 @@ jobs:
           path: |
             release/*.dmg
             release/*.zip
+            release/*.yml
+            release/*.blockmap
 
       - name: Upload artifacts (Windows)
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
           name: windows-build
-          path: release/*.exe
+          path: |
+            release/*.exe
+            release/*.yml
+            release/*.blockmap
 
       - name: Upload artifacts (Linux)
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
           name: linux-build
-          path: release/*.AppImage
+          path: |
+            release/*.AppImage
+            release/*.yml
+            release/*.blockmap
 
   release:
     needs: build
@@ -142,4 +150,10 @@ jobs:
             --notes-file release_notes.md \
             macos-build/* \
             windows-build/* \
-            linux-build/* 
+            linux-build/* \
+            macos-build/*/*.yml \
+            macos-build/*/*.blockmap \
+            windows-build/*/*.yml \
+            windows-build/*/*.blockmap \
+            linux-build/*/*.yml \
+            linux-build/*/*.blockmap 

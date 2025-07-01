@@ -10,27 +10,17 @@ export function initAutoUpdater() {
     log.transports.console.level = false
   }
 
-  // Skip update checks in development
-  if (!app.isPackaged) {
-    console.log("Development mode detected: registering stub update handlers and skipping real auto-updater")
-
-    // Stub handlers so renderer code can call them without errors
-    ipcMain.handle("start-update", async () => {
-      console.log("start-update stub invoked (dev mode)")
-      return { success: true }
-    })
-
-    ipcMain.handle("install-update", () => {
-      console.log("install-update stub invoked (dev mode)")
-      // No-op in development
-    })
-
-    return
+  // Development mode - allow detection but skip actual updates
+  const isDev = !app.isPackaged
+  
+  if (isDev) {
+    console.log("Development mode detected: Will check for updates but skip downloading/installing")
   }
 
   if (!process.env.VITE_GH_TOKEN) {
-    console.error("VITE_GH_TOKEN environment variable is not set")
-    return
+    console.warn(
+      "VITE_GH_TOKEN environment variable is not set – updater will use anonymous GitHub requests"
+    )
   }
 
   // Configure auto updater to use public releases repository
@@ -42,8 +32,8 @@ export function initAutoUpdater() {
   })
 
   // Configure auto updater
-  autoUpdater.autoDownload = true
-  autoUpdater.autoInstallOnAppQuit = true
+  autoUpdater.autoDownload = !isDev  // Don't auto-download in dev mode
+  autoUpdater.autoInstallOnAppQuit = !isDev  // Don't auto-install in dev mode
   autoUpdater.allowDowngrade = true
   autoUpdater.allowPrerelease = true
 
@@ -62,6 +52,16 @@ export function initAutoUpdater() {
 
   autoUpdater.on("update-available", (info) => {
     console.log("Update available:", info)
+    
+    if (isDev) {
+      console.log("[DEV MODE] Update detected but skipping download. Version info:", {
+        currentVersion: app.getVersion(),
+        latestVersion: info.version,
+        releaseDate: info.releaseDate,
+        releaseName: info.releaseName
+      })
+    }
+    
     // Notify renderer process about available update
     BrowserWindow.getAllWindows().forEach((window) => {
       console.log("Sending update-available to window")
@@ -95,13 +95,22 @@ export function initAutoUpdater() {
 
   // Check for updates immediately
   console.log("Checking for updates...")
+  if (isDev) {
+    console.log("[DEV MODE] Checking GitHub releases at: https://github.com/MiPlayer123/wagoo-releases/releases")
+  }
   autoUpdater
     .checkForUpdates()
     .then((result) => {
       console.log("Update check result:", result)
+      if (isDev && result) {
+        console.log("[DEV MODE] Update check completed. Current version:", app.getVersion())
+      }
     })
     .catch((err) => {
       console.error("Error checking for updates:", err)
+      if (isDev) {
+        console.error("[DEV MODE] This might be due to missing releases or network issues")
+      }
     })
 
   // Set up update checking interval (every 1 hour)
@@ -126,6 +135,36 @@ export function initAutoUpdater() {
   // Handle IPC messages from renderer
   ipcMain.handle("start-update", async () => {
     console.log("Start update requested")
+    
+    if (isDev) {
+      console.log("[DEV MODE] Simulating update download (no actual download)")
+      // Simulate download progress in dev mode
+      setTimeout(() => {
+        BrowserWindow.getAllWindows().forEach((window) => {
+          window.webContents.send("download-progress", {
+            bytesPerSecond: 1000000,
+            percent: 50,
+            transferred: 50000000,
+            total: 100000000
+          })
+        })
+      }, 1000)
+      
+      setTimeout(() => {
+        BrowserWindow.getAllWindows().forEach((window) => {
+          window.webContents.send("download-progress", {
+            bytesPerSecond: 1000000,
+            percent: 100,
+            transferred: 100000000,
+            total: 100000000
+          })
+          window.webContents.send("update-downloaded", { version: "dev-test" })
+        })
+      }, 2000)
+      
+      return { success: true }
+    }
+    
     try {
       await autoUpdater.downloadUpdate()
       console.log("Update download completed")
@@ -138,6 +177,12 @@ export function initAutoUpdater() {
 
   ipcMain.handle("install-update", () => {
     console.log("Install update requested")
+    
+    if (isDev) {
+      console.log("[DEV MODE] Update installation requested but skipping (would quit and install in production)")
+      return
+    }
+    
     autoUpdater.quitAndInstall()
   })
 }
