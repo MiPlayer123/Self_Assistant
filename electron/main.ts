@@ -1,4 +1,4 @@
-import { app, BrowserWindow, screen, shell, ipcMain } from "electron"
+import { app, BrowserWindow, screen, shell, ipcMain, session } from "electron"
 import path from "path"
 import fs from "fs"
 import { initializeIpcHandlers } from "./ipcHandlers"
@@ -545,6 +545,27 @@ async function initializeApp() {
   try {
     loadEnvVariables()
     initializeHelpers()
+    
+    // Handle microphone permissions
+    app.commandLine.appendSwitch('enable-speech-dispatcher')
+    
+    // Set up permission handler for microphone access
+    session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
+      // Always grant microphone permissions
+      if (permission === 'media') {
+        callback(true)
+        return
+      }
+      
+      // Grant other necessary permissions
+      if (['notifications', 'fullscreen', 'pointerLock'].includes(permission)) {
+        callback(true)
+        return
+      }
+      
+      // Deny other permissions by default
+      callback(false)
+    })
     initializeIpcHandlers({
       getMainWindow,
       getButtonWindow,

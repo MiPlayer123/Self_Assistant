@@ -39,9 +39,8 @@ export function useAudioRecording(): UseAudioRecordingReturn {
       audioChunksRef.current = []
 
       // Create MediaRecorder
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4'
-      })
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4'
+      const mediaRecorder = new MediaRecorder(stream, { mimeType })
       
       mediaRecorderRef.current = mediaRecorder
 
@@ -50,6 +49,12 @@ export function useAudioRecording(): UseAudioRecordingReturn {
         if (event.data.size > 0) {
           audioChunksRef.current.push(event.data)
         }
+      }
+      
+      // Add error handler
+      mediaRecorder.onerror = (event: any) => {
+        console.error('[AudioRecording] MediaRecorder error:', event.error)
+        setError('Recording failed: ' + (event.error?.message || 'Unknown error'))
       }
 
       // Start recording
@@ -91,6 +96,11 @@ export function useAudioRecording(): UseAudioRecordingReturn {
         const audioBlob = new Blob(audioChunksRef.current, {
           type: mediaRecorder.mimeType
         })
+        
+        // Only log if blob is suspiciously small in production
+        if (import.meta.env.PROD && audioBlob.size < 1000) {
+          console.error('[AudioRecording] Warning: Small audio blob created:', audioBlob.size, 'bytes')
+        }
         
         setRecordingState('idle')
         resolve(audioBlob)

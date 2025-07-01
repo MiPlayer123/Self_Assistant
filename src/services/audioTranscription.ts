@@ -65,10 +65,12 @@ export async function transcribeAudio(audioBlob: Blob): Promise<TranscriptionRes
 
     // Validate audio blob first
     if (!audioBlob || audioBlob.size === 0) {
+      console.error('[Transcription] Invalid audio blob: empty or missing')
       throw new Error('Invalid audio data: empty or corrupted audio file')
     }
 
     if (audioBlob.size < 100) {
+      console.error('[Transcription] Audio blob too small:', audioBlob.size, 'bytes')
       throw new Error('Audio file too small. Please record for at least 1 second.')
     }
 
