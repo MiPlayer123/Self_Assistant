@@ -16,13 +16,13 @@ interface WagooChatAppProps {
   refreshUserData: () => Promise<void>
 }
 
-export function WagooChatApp({ user, profile, subscription, usageTracking, currentLanguage, setLanguage, refreshUserData }: WagooChatAppProps) {
+export function WagooChatApp({ user, profile, subscription, usageTracking, currentLanguage, setLanguage, refreshUserData: _refreshUserData }: WagooChatAppProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [showUserInfo, setShowUserInfo] = useState(false)
   // Removed showEmailDropdown state - using direct buttons now
   
   // Offline mode integration
-  const { isOnline, canUseOffline, subscriptionStatus, refresh: refreshOfflineMode } = useOfflineMode()
+  const { isOnline, canUseOffline, subscriptionStatus } = useOfflineMode()
   
   // Use cached subscription data when offline or as fallback
   const effectiveSubscription = subscription || subscriptionStatus || getCachedSubscription()
@@ -119,36 +119,13 @@ export function WagooChatApp({ user, profile, subscription, usageTracking, curre
     }
   }
 
-  const handleRefreshSubscription = async () => {
-    if (!isOnline) {
-      console.log('Cannot refresh subscription while offline')
-      return
-    }
-    
-    console.log('Refreshing subscription status...')
-    try {
-      await refreshUserData()
-      console.log('Subscription status refreshed successfully')
-    } catch (error) {
-      console.error('Failed to refresh subscription status:', error)
-    }
-    // No dropdown to close anymore
-  }
-
-  const handleOfflineRefresh = async () => {
-    console.log('Refreshing offline data...')
-    try {
-              // Force refresh the offline mode evaluation
-        refreshOfflineMode()
-      
-      // Force reload usage stats from cached subscription
-      await usageTracking.loadUsageStats()
-      console.log('Offline data refreshed successfully')
-      
-      // No dropdown to close anymore
-    } catch (error) {
-      console.error('Failed to refresh offline data:', error)
-    }
+  // Single refresh handler: fully reloads the renderer process so every
+  // provider (auth, model list, React-Query cache, etc.) starts from a clean
+  // slate. This is the quickest, most reliable way to ensure all data is
+  // up-to-date without wiring individual refresh calls.
+  const handleFullRefresh = () => {
+    console.log('Performing full application reload')
+    window.location.reload()
   }
 
   const handleViewShortcuts = async () => {
@@ -253,7 +230,7 @@ export function WagooChatApp({ user, profile, subscription, usageTracking, curre
                     Manage Subscription
                   </button>
                   <button
-                    onClick={handleRefreshSubscription}
+                    onClick={handleFullRefresh}
                     className="px-3 py-1.5 wagoo-button-ghost text-xs h-auto rounded-md flex items-center gap-1"
                   >
                     <span>↻</span>
@@ -262,7 +239,7 @@ export function WagooChatApp({ user, profile, subscription, usageTracking, curre
                 </>
               ) : (
                 <button
-                  onClick={handleOfflineRefresh}
+                  onClick={handleFullRefresh}
                   className="px-3 py-1.5 wagoo-button-ghost text-xs h-auto rounded-md flex items-center gap-1"
                 >
                   <span>↻</span>
