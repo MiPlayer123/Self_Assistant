@@ -151,8 +151,5 @@ jobs:
             --title "Wagoo $VERSION" \
             --notes-file release_notes.md \
             macos-build/* \
-            macos-build/*.yml macos-build/*.blockmap \
             windows-build/* \
-            windows-build/*.yml windows-build/*.blockmap \
-            linux-build/* \
-            linux-build/*.yml linux-build/*.blockmap 
+            linux-build/* 
