@@ -143,17 +143,16 @@ jobs:
           echo "### Changes" >> release_notes.md
           git log --oneline --since="$(git describe --tags --abbrev=0 HEAD^)..HEAD" >> release_notes.md || echo "First release" >> release_notes.md
           
-          # Create release in public repo
+          # Allow glob patterns that match nothing to expand to nothing instead of erroring
+          shopt -s nullglob
+
           gh release create "$VERSION" \
             --repo "$PUBLIC_REPO" \
             --title "Wagoo $VERSION" \
             --notes-file release_notes.md \
             macos-build/* \
+            macos-build/*.yml macos-build/*.blockmap \
             windows-build/* \
+            windows-build/*.yml windows-build/*.blockmap \
             linux-build/* \
-            macos-build/*/*.yml \
-            macos-build/*/*.blockmap \
-            windows-build/*/*.yml \
-            windows-build/*/*.blockmap \
-            linux-build/*/*.yml \
-            linux-build/*/*.blockmap 
+            linux-build/*.yml linux-build/*.blockmap 
