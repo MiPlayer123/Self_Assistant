@@ -196,6 +196,14 @@ const gotTheLock = app.requestSingleInstanceLock()
 if (!gotTheLock) {
   app.quit()
 } else {
+  // Handle deep links when the app is already running (macOS)
+  app.on('open-url', (event, url) => {
+    event.preventDefault()
+    if (state.mainWindow) {
+      handleAuthCallback(url, state.mainWindow)
+    }
+  })
+
   app.on("second-instance", (event, commandLine) => {
     // Someone tried to run a second instance, we should focus our window.
     if (state.mainWindow) {

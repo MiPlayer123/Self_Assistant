@@ -111,35 +111,139 @@ function App() {
 
   // Listen for PKCE code callback
   useEffect(() => {
-    if (!import.meta.env.DEV) {
-      const handleAuthCallbackPKCE = async (data: { code: string }) => {
-        console.log("Production IPC: received code:", data)
-        try {
-          const { code } = data || {}
-          if (!code) {
-            console.error("No code in callback data")
-            return
-          }
-          const { error } = await supabase.auth.exchangeCodeForSession(code)
-          if (error) {
-            console.error("Error exchanging code for session:", error)
-          } else {
-            console.log("Production PKCE: Session exchanged successfully")
-          }
-        } catch (err) {
-          console.error("Production PKCE: Error in auth callback:", err)
+    let isProcessing = false // Prevent duplicate processing
+
+    const handleAuthCallbackPKCE = async (data: { code: string }) => {
+      // Prevent duplicate processing
+      if (isProcessing) {
+        console.log("Auth callback already being processed, ignoring duplicate")
+        return
+      }
+      
+      isProcessing = true
+      console.log("IPC: received auth callback:", data)
+      
+      try {
+        const { code } = data || {}
+        if (!code) {
+          console.error("No code in callback data")
+          return
         }
-      }
 
-      console.log("PROD: Setting up PKCE-based IPC listener")
-      window.electron?.ipcRenderer?.on("auth-callback", handleAuthCallbackPKCE)
+        // The 'code' from the web app is a Base64 encoded JSON string of the session.
+        console.log("Attempting to decode Base64 session data...")
+        const sessionDataString = atob(code)
+        const sessionData = JSON.parse(sessionDataString)
+        console.log("Parsed session data keys:", Object.keys(sessionData))
 
-      return () => {
-        window.electron?.ipcRenderer?.removeListener(
-          "auth-callback",
-          handleAuthCallbackPKCE
-        )
+        if (sessionData.access_token && sessionData.refresh_token) {
+          console.log("Session tokens found, implementing cross-origin auth...")
+
+          // The key issue: tokens from the website domain won't work directly in Electron
+          // We need to use the refresh token to get new tokens for this origin
+          
+          try {
+            // First, clear any existing session locally only
+            // Don't use signOut here as it might interfere with the new session
+            const storageKey = 'wagoo-auth-token' // Matches the storageKey in supabase.ts
+            localStorage.removeItem(storageKey)
+            const supabaseKeys = Object.keys(localStorage).filter(key => 
+              key.startsWith('sb-') || key.includes('supabase')
+            )
+            supabaseKeys.forEach(key => localStorage.removeItem(key))
+            
+            // Store the session in the format Supabase expects
+            const sessionToStore = {
+              currentSession: {
+                access_token: sessionData.access_token,
+                refresh_token: sessionData.refresh_token,
+                expires_in: sessionData.expires_in,
+                expires_at: sessionData.expires_at,
+                token_type: sessionData.token_type,
+                user: sessionData.user
+              },
+              expiresAt: sessionData.expires_at
+            }
+            
+            localStorage.setItem(storageKey, JSON.stringify(sessionToStore))
+            console.log("Stored session in localStorage")
+            
+            // Now immediately try to refresh the session
+            // This will exchange the refresh token for new tokens valid for this origin
+            console.log("Refreshing session to get origin-valid tokens...")
+            const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession({
+              refresh_token: sessionData.refresh_token
+            })
+            
+            if (refreshError) {
+              console.error("Session refresh failed:", refreshError)
+              
+              // Fallback: Try setting the session directly one more time
+              console.log("Trying direct session set as fallback...")
+              const { data: directSession, error: directError } = await supabase.auth.setSession({
+                access_token: sessionData.access_token,
+                refresh_token: sessionData.refresh_token
+              })
+              
+              if (directError) {
+                console.error("Direct session set also failed:", directError)
+                
+                // Final fallback: Manually trigger auth state change
+                console.log("Manually triggering auth state change...")
+                // Get the internal auth client and notify it of the session
+                const authClient = (supabase.auth as any)
+                if (authClient && authClient._notifyAllSubscribers) {
+                  authClient._notifyAllSubscribers('SIGNED_IN', {
+                    access_token: sessionData.access_token,
+                    refresh_token: sessionData.refresh_token,
+                    expires_in: sessionData.expires_in,
+                    expires_at: sessionData.expires_at,
+                    token_type: sessionData.token_type,
+                    user: sessionData.user
+                  })
+                  console.log("Manually notified auth subscribers")
+                }
+              } else {
+                console.log("Direct session set succeeded!")
+              }
+            } else {
+              console.log("Session refresh succeeded! New session established:", {
+                user: refreshData.session?.user?.email,
+                expires_at: refreshData.session?.expires_at
+              })
+              
+              // The auth state change should be triggered automatically
+              // The useSupabaseAuth hook will pick this up
+            }
+            
+          } catch (error) {
+            console.error("Cross-origin auth implementation failed:", error)
+          }
+        } else {
+          console.error("Missing required tokens in session data")
+          console.error("Available keys:", Object.keys(sessionData))
+        }
+      } catch (err: unknown) {
+        console.error("Error in auth callback:", err)
+        if (err instanceof Error) {
+          console.error("Error stack:", err.stack)
+        }
+      } finally {
+        // Reset processing flag after a delay to allow for successful auth
+        setTimeout(() => {
+          isProcessing = false
+        }, 2000)
       }
+    }
+
+    console.log("Setting up auth IPC listener")
+    window.electron?.ipcRenderer?.on("auth-callback", handleAuthCallbackPKCE)
+
+    return () => {
+      window.electron?.ipcRenderer?.removeListener(
+        "auth-callback",
+        handleAuthCallbackPKCE
+      )
     }
   }, [])
 
@@ -174,255 +278,80 @@ function App() {
 }
 
 function AuthForm() {
-  const auth = useSupabaseAuth()
   const [isLoading, setIsLoading] = useState(false)
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
   const [error, setError] = useState("")
-  const [shake, setShake] = useState(false)
-  const [passwordError, setPasswordError] = useState("")
-  const [isSignUp, setIsSignUp] = useState(false)
 
-  const validatePassword = (value: string) => {
-    if (isSignUp && value.length < 6) {
-      setPasswordError("Password must be at least 6 characters")
-      return false
-    }
-    setPasswordError("")
-    return true
-  }
+  async function handleBrowserLogin() {
+    setIsLoading(true)
+    setError("")
 
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setPassword(value)
-    if (value && isSignUp) validatePassword(value)
-    else setPasswordError("")
-  }
+    try {
+      const loginUrl =
+        "https://www.wagoo.ai/login?redirectTo=wagoo://auth/callback"
 
-  async function handleEmailAuth(e: React.FormEvent) {
-    e.preventDefault()
-    if (isSignUp && !validatePassword(password)) {
-      setShake(true)
-      setTimeout(() => setShake(false), 500)
+      const electronOpenExternalUrl = (window as any).electronAPI?.openExternalUrl
+      const electronOpenExternal = (window as any).electronAPI?.openExternal
+
+      // Prefer the async helper used elsewhere in the app, fall back to the sync shell helper
+      if (typeof electronOpenExternalUrl === "function") {
+        await electronOpenExternalUrl(loginUrl)
+      } else if (typeof electronOpenExternal === "function") {
+        electronOpenExternal(loginUrl)
+      } else if (typeof window.open === "function") {
+        // Fallback for the plain browser environment
+        window.open(loginUrl, "_blank")
+      } else {
+        // Absolute last-resort fallback
+        window.location.href = loginUrl
+      }
+    } catch (e) {
+      console.error("Failed to open browser:", e)
+      setError("Could not open browser. Please try again.")
+      setIsLoading(false)
       return
     }
 
-    setIsLoading(true)
-    setError("")
-    try {
-      if (isSignUp) {
-        const { data: signUpData, error: signUpError } =
-          await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-              // Mock: disabled redirect for testing
-              emailRedirectTo: window.location.origin
-            }
-          })
-        if (signUpError) throw signUpError
-
-        if (signUpData?.session) {
-          await supabase.auth.setSession({
-            access_token: signUpData.session.access_token,
-            refresh_token: signUpData.session.refresh_token
-          })
-          return
-        }
-
-        // If no session (email confirmation required), show message and switch to sign in
-        setError("Please check your email to confirm your account")
-        setTimeout(() => {
-          setIsSignUp(false)
-        }, 2000)
-      } else {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        })
-        if (error) {
-          if (error.message.includes("Invalid login credentials")) {
-            setError("Invalid email or password")
-          } else if (error.message.includes("Email not confirmed")) {
-            setError("Please verify your email address")
-          } else {
-            setError(error.message)
-          }
-          setShake(true)
-          setTimeout(() => setShake(false), 500)
-          return
-        }
-
-        if (data?.session) {
-          await supabase.auth.setSession({
-            access_token: data.session.access_token,
-            refresh_token: data.session.refresh_token
-          })
-        }
-      }
-    } catch (error) {
-      console.error(`Error ${isSignUp ? "signing up" : "signing in"}:`, error)
-      setError("Something went wrong, try again later")
-      setShake(true)
-      setTimeout(() => setShake(false), 500)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  async function handleGoogleAuth() {
-    setIsLoading(true)
-    setError("")
-    console.log("Starting Google authentication...")
-    
-    try {
-      await auth.signInWithGoogle()
-      // The auth state change will be handled by the useSupabaseAuth hook
-      // So we don't need to do anything else here
-    } catch (error) {
-      console.error(`Error with Google auth:`, error)
-      setError("Something went wrong with Google authentication")
-      setShake(true)
-      setTimeout(() => setShake(false), 500)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const toggleMode = async () => {
-    if (!isSignUp) {
-      // User wants to sign up - open wagoo.ai in default browser
-      try {
-        if (window.electronAPI?.openSubscriptionPortal) {
-          await window.electronAPI.openSubscriptionPortal({ id: 'temp', email: 'temp' })
-        } else {
-          // Fallback for web version or if electronAPI is not available
-          window.open('https://wagoo.ai', '_blank')
-        }
-      } catch (error) {
-        console.log('Electron method failed, using fallback...')
-        window.open('https://wagoo.ai', '_blank')
-      }
-    } else {
-      // User wants to switch back to sign in
-      setIsSignUp(false)
-      setError("")
-      setPasswordError("")
-      setEmail("")
-      setPassword("")
-    }
+    // Keep spinner until deep-link returns or user navigates back.
   }
 
   return (
-    <div className="min-h-screen bg-black">
-      <div className="flex flex-col items-center justify-center min-h-screen px-4">
-        <div className="w-full max-w-md space-y-8 p-4 sm:p-8">
-          <div className="flex flex-col items-center justify-center space-y-6">
-            <h2 className="text-2xl font-semibold text-white">
-              {isSignUp ? "Create your account" : "Log in to Wagoo"}
-            </h2>
-
-            <div className="w-full max-w-sm space-y-4">
-              <button
-                onClick={handleGoogleAuth}
-                disabled={isLoading}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#1A1A1A] hover:bg-[#242424] text-white rounded-2xl border border-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-              >
-                <svg className="h-5 w-5" viewBox="0 0 24 24">
-                  <path
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                    fill="#4285F4"
-                  />
-                  <path
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                    fill="#34A853"
-                  />
-                  <path
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                    fill="#FBBC05"
-                  />
-                  <path
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                    fill="#EA4335"
-                  />
-                </svg>
-                Google
-              </button>
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-white/10"></div>
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-black px-2 text-[#989898]">
-                    Or continue with email
-                  </span>
-                </div>
-              </div>
-
-              <form onSubmit={handleEmailAuth} className="space-y-3">
-                <div className="space-y-1">
-                  <input
-                    type="email"
-                    placeholder="Email address"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className={`w-full px-4 py-3 text-white rounded-2xl border focus:outline-none text-sm font-medium placeholder:text-[#989898] placeholder:font-medium transition-colors frosted-glass ${
-                      error
-                        ? "border-red-500 focus:border-red-500"
-                        : "border-white/10 focus:border-white/20"
-                    } ${shake ? "shake" : ""}`}
-                    required
-                  />
-                  {error && (
-                    <p className="text-sm text-red-500 px-1">{error}</p>
-                  )}
-                </div>
-                <div className="space-y-1">
-                  <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={handlePasswordChange}
-                    className={`w-full px-4 py-3 text-white rounded-2xl border focus:outline-none text-sm font-medium placeholder:text-[#989898] placeholder:font-medium transition-colors frosted-glass ${
-                      passwordError
-                        ? "border-red-500 focus:border-red-500"
-                        : "border-white/10 focus:border-white/20"
-                    } ${shake ? "shake" : ""}`}
-                    required
-                  />
-                  {passwordError && (
-                    <p className="text-sm text-red-500 px-1">{passwordError}</p>
-                  )}
-                </div>
-                <button
-                  type="submit"
-                  disabled={isLoading || !email || !password || !!passwordError}
-                  className="relative w-full px-4 py-3 rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium auth-button"
-                >
-                  {isLoading
-                    ? isSignUp
-                      ? "Creating account..."
-                      : "Signing in..."
-                    : isSignUp
-                    ? "Create account"
-                    : "Sign in"}
-                </button>
-              </form>
-
-              <button
-                onClick={toggleMode}
-                className="block w-full border border-white/10 rounded-2xl p-4 hover:bg-[#1A1A1A] transition-colors group"
-              >
-                <p className="text-center text-sm text-[#989898]">
-                  {isSignUp
-                    ? "Already have an account? Sign in →"
-                    : "Don't have an account? Sign up →"}
-                </p>
-              </button>
-            </div>
-          </div>
-        </div>
+    <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="flex flex-col items-center gap-6 w-full max-w-sm px-4">
+        <h2 className="text-2xl font-semibold text-white">Log in to Wagoo</h2>
+        {error && <p className="text-sm text-red-500">{error}</p>}
+        <button
+          onClick={handleBrowserLogin}
+          disabled={isLoading}
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isLoading ? (
+            <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          ) : (
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2a10 10 0 100 20 10 10 0 000-20z" stroke="currentColor" strokeWidth="2" />
+            </svg>
+          )}
+          <span>
+            {isLoading ? "Opening browser…" : "Click to log in with browser"}
+          </span>
+        </button>
+        {/* Optional cancel button shown only while waiting for browser to open */}
+        {isLoading && (
+          <button
+            type="button"
+            onClick={() => {
+              // Allow the user to abort the waiting state
+              setIsLoading(false)
+            }}
+            className="mt-2 text-xs text-gray-400 hover:text-gray-200 underline focus:outline-none"
+          >
+            Cancel
+          </button>
+        )}
+        <p className="text-xs text-white/40 text-center max-w-xs">
+          We'll open your default browser so you can sign in with any method. Once
+          finished, you'll be redirected back to the app automatically.
+        </p>
       </div>
     </div>
   )

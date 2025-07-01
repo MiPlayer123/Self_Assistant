@@ -26,25 +26,48 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
 
 // Helper functions for common operations
 export const signInWithGoogle = async () => {
-  console.log("Attempting Google OAuth sign-in...")
+  console.log("Attempting Google OAuth sign-in (browser flow)...")
   try {
+    // Determine redirect target: use custom protocol when Electron API is available, otherwise fallback to current origin (web dev/test)
+    const electronAPI = (window as any).electronAPI
+    const canDeepLink = typeof window !== 'undefined' && electronAPI && typeof electronAPI.openExternal === 'function'
+    const redirectTo = canDeepLink ? 'wagoo://auth/callback' : `${window.location.origin}`
+
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}`,
+        redirectTo,
+        skipBrowserRedirect: true, // we will open the URL ourselves
         queryParams: {
           access_type: 'offline',
-          prompt: 'consent',
+          prompt: 'consent'
         }
       }
     })
-    
+
     if (error) {
       console.error("Google sign-in error:", error)
       throw error
     }
-    
-    console.log("Google OAuth initiated:", data)
+
+    const authUrl = data?.url
+    if (!authUrl) {
+      throw new Error('Supabase did not return an auth URL')
+    }
+
+    // Open in default browser
+    if (canDeepLink) {
+      try {
+        electronAPI.openExternal(authUrl)
+      } catch (err) {
+        console.warn('electronAPI.openExternal unavailable, falling back to window.location.href')
+        window.location.href = authUrl
+      }
+    } else {
+      window.location.href = authUrl
+    }
+
+    console.log("Google OAuth flow launched in browser")
     return { data, error: null }
   } catch (error) {
     console.error("Sign-in failed:", error)
@@ -53,16 +76,61 @@ export const signInWithGoogle = async () => {
 }
 
 export const signOut = async () => {
-  console.log("Signing out...")
+  console.log("Signing out (local only - no global token invalidation)...")
   try {
-    const { error } = await supabase.auth.signOut()
-    if (error) {
-      console.error("Sign-out error:", error)
-      throw error
+    // Don't call supabase.auth.signOut() as it invalidates tokens globally
+    // Instead, just clear local storage and reset auth state locally
+    
+    // Clear all auth-related localStorage
+    const storageKey = 'wagoo-auth-token'
+    localStorage.removeItem(storageKey)
+    
+    // Clear all Supabase-related keys to ensure clean state
+    const supabaseKeys = Object.keys(localStorage).filter(key => 
+      key.startsWith('sb-') || key.includes('supabase')
+    )
+    supabaseKeys.forEach(key => {
+      console.log(`Clearing localStorage key: ${key}`)
+      localStorage.removeItem(key)
+    })
+    
+    // Clear other app-specific auth data
+    localStorage.removeItem('wagoo_subscription_status')
+    localStorage.removeItem('wagoo_user_data')
+    
+    console.log("Local storage cleared successfully")
+    
+    // Manually reset the Supabase auth client state without API call
+    try {
+      const authClient = (supabase.auth as any)
+      if (authClient && authClient._removeSession) {
+        authClient._removeSession()
+      }
+      
+      // Trigger SIGNED_OUT event manually to update UI
+      if (authClient && authClient._notifyAllSubscribers) {
+        authClient._notifyAllSubscribers('SIGNED_OUT', null)
+        console.log("Manually triggered SIGNED_OUT event")
+      }
+    } catch (clientError) {
+      console.warn("Could not manually reset auth client, but continuing:", clientError)
     }
-      return { error: null }
+    
+    // Force page reload after a brief delay to ensure clean auth state
+    setTimeout(() => {
+      console.log("Reloading app to complete sign out")
+      window.location.reload()
+    }, 500)
+    
+    return { error: null }
   } catch (error) {
-    console.error("Sign-out failed:", error)
+    console.error("Local sign-out failed:", error)
+    
+    // Fallback: force reload even if there was an error
+    setTimeout(() => {
+      window.location.reload()
+    }, 1000)
+    
     return { error }
   }
 }

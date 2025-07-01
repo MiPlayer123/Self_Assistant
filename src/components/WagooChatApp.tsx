@@ -79,11 +79,15 @@ export function WagooChatApp({ user, profile, subscription, usageTracking, curre
       // Only attempt Supabase sign out if online
       if (isOnline) {
         console.log('📡 Calling supabase.auth.signOut()...')
-        const { error } = await (await import('../lib/supabase')).supabase.auth.signOut()
+        const { signOut } = await import('../lib/supabase')
+        const { error } = await signOut()
+        
         if (error) {
+          // The signOut function now handles 403 errors internally
+          // so this should rarely happen
           console.error('❌ Sign out error:', error)
         } else {
-          console.log('✅ Successfully signed out from Supabase')
+          console.log('✅ Successfully signed out')
         }
       } else {
         console.log('🔌 Offline - clearing local auth state without Supabase call')

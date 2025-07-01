@@ -25,9 +25,9 @@ export default function SubscribePage({ user }: SubscribePageProps) {
 
   const handleSignOut = async () => {
     try {
-      const { error: signOutError } = await supabase.auth.signOut()
+      const { error: signOutError } = await supabase.auth.signOut({ scope: 'local' })
       if (signOutError) throw signOutError
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Error signing out:", err)
       setError("Failed to sign out. Please try again.")
       setTimeout(() => setError(null), 3000)

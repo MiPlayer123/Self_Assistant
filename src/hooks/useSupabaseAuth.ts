@@ -99,20 +99,23 @@ export const useSupabaseAuth = () => {
       
       let userProfile = profile
 
-      // If profile doesn't exist, create it
+      // If the profile is not found, the new DB trigger should be creating it.
+      // We can add a small delay and retry to give the trigger time to complete.
       if (profileError || !profile) {
-        console.log('Profile not found, creating new user profile...')
-        const { profile: newProfile, error: createProfileError } = await createUserProfile(user)
-        
-        if (createProfileError) {
-          console.error('Failed to create user profile:', createProfileError)
-          throw createProfileError
+        console.log('Profile not found, retrying after a short delay for DB trigger...')
+        await new Promise(resolve => setTimeout(resolve, 1500)); // wait 1.5 seconds
+        const { profile: refetchedProfile, error: refetchError } = await getUserProfile(user.id)
+
+        if (refetchError || !refetchedProfile) {
+           console.error('Failed to fetch profile even after retry:', refetchError)
+           throw new Error('Could not retrieve user profile after sign-in.');
         }
-        
-        console.log('Profile created successfully:', newProfile)
-        userProfile = newProfile
-      } else {
-        console.log('Profile found:', userProfile)
+        console.log('Profile found after retry:', refetchedProfile);
+        userProfile = refetchedProfile
+      }
+
+      if (!userProfile) {
+        throw new Error('User profile is missing and could not be created or fetched.')
       }
 
       // Get user subscription
@@ -290,9 +293,28 @@ export const useSupabaseAuth = () => {
             error: null
           })
         } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-          // Token was refreshed, just update session without reloading user data
+          // Token was refreshed - for cross-origin auth, we need to load user data
           console.log('Token refreshed for user:', session.user.email)
-          setAuthState(prev => ({ ...prev, session }))
+          
+          // Check if we already have user data loaded
+          setAuthState(prev => {
+            // First, always update the session and user from the refreshed token
+            const updatedState = { 
+              ...prev, 
+              session,
+              user: session.user // Important: set user from session immediately
+            }
+            
+            if (prev.user?.id === session.user.id && prev.profile && prev.subscription && !prev.loading) {
+              console.log('User data already loaded for token refresh')
+              return updatedState
+            }
+            
+            // Load profile and subscription data if we don't have it (happens with cross-origin auth)
+            console.log('Loading user profile/subscription after token refresh (cross-origin auth)')
+            loadUserData(session.user)
+            return updatedState
+          })
         }
       }
     )
