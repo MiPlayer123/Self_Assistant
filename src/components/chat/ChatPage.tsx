@@ -52,6 +52,9 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onM
   // Platform-specific shortcuts for tooltips
   const resetShortcut = isMacOS ? 'Ctrl+R' : 'Alt+R'
 
+  // Sentinel ID returned by ModelPicker when there are no local models available / selected
+  const NO_LOCAL_MODEL_ID = 'local-none-selected'
+
   // Handler for selecting a local model
   const handleSelectLocalModel = (modelFilename: string) => {
     setSelectedModelId(`local-${modelFilename}`); // Prepend 'local-' to distinguish local models
@@ -89,6 +92,26 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onM
   // Initialize chat model (only once)
   useEffect(() => {
     const initializeModel = async () => {
+      // If the user selected the sentinel "no-model" option, clean up any previously loaded
+      // local model and short-circuit initialisation so that the UI remains disabled.
+      if (selectedModelId === NO_LOCAL_MODEL_ID) {
+        // If a local model was previously loaded, unload it to free resources
+        if (previousModelIdRef.current && previousModelIdRef.current.startsWith('local-') && previousModelIdRef.current !== NO_LOCAL_MODEL_ID) {
+          try {
+            await (window as any).electronAPI?.cleanupLocalModel?.()
+          } catch (err) {
+            console.warn('Failed to unload previous local model:', err)
+          }
+        }
+
+        chatModelRef.current = null
+        previousModelIdRef.current = NO_LOCAL_MODEL_ID
+        setIsModelLoading(false)
+        setModelLoadingProgress(0)
+        setModelLoadingMessage('')
+        return // Skip normal initialisation logic
+      }
+
       try {
         const previousModelId = previousModelIdRef.current
         const isCurrentLocal = selectedModelId.startsWith('local-')
@@ -119,12 +142,27 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onM
         }
         
         chatModelRef.current = await getChatModel(selectedModelId)
-        console.log(`Chat model initialized successfully with model: ${selectedModelId}`)
-        
+        console.log(`Chat model instance created for: ${selectedModelId}`)
+
+        // Eager-load local model weights so the user sees progress immediately
+        if (isCurrentLocal && chatModelRef.current) {
+          const localModel = chatModelRef.current as any
+          const alreadyLoaded: boolean = await localModel.isModelLoaded?.()
+          if (!alreadyLoaded) {
+            console.log('Local model not yet loaded – starting loadModel()')
+            const loadResult = await localModel.loadModel?.()
+            if (!loadResult?.success) {
+              throw new Error(loadResult?.error || 'Failed to load local model')
+            }
+          }
+        }
+
+        console.log(`Chat model ready: ${selectedModelId}`)
+
         // Update previous model tracking
         previousModelIdRef.current = selectedModelId
-        
-        // Clear loading state
+
+        // Clear loading state (for local models after weights are loaded, or instantly for cloud models)
         if (isCurrentLocal) {
           setModelLoadingProgress(100)
           setModelLoadingMessage('Model ready!')
@@ -133,6 +171,8 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onM
             setModelLoadingProgress(0)
             setModelLoadingMessage('')
           }, 500)
+        } else {
+          setIsModelLoading(false)
         }
       } catch (error) {
         console.error('Failed to initialize chat model:', error)
@@ -651,7 +691,7 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onM
           onTakeScreenshot={handleTakeScreenshot}
           isProcessing={state.isProcessing || isModelLoading}
           hasScreenshot={!!state.currentContext?.screenshot}
-          disabled={usageStats?.userTier === 'free' && usageStats?.remaining.chat_messages_count === 0}
+          disabled={(usageStats?.userTier === 'free' && usageStats?.remaining.chat_messages_count === 0) || selectedModelId === NO_LOCAL_MODEL_ID}
         />
       </div>
 

@@ -194,8 +194,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
               userSelect: 'text',
               WebkitUserSelect: 'text',
               MozUserSelect: 'text',
-              msUserSelect: 'text',
-              whiteSpace: 'pre-line' // Preserve line breaks but collapse multiple spaces
+              msUserSelect: 'text'
             }}
           >
             <ReactMarkdown
