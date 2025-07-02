@@ -574,6 +574,25 @@ async function initializeApp() {
     // Handle microphone permissions
     app.commandLine.appendSwitch('enable-speech-dispatcher')
     
+    // macOS-specific microphone permission request
+    if (process.platform === 'darwin') {
+      const { systemPreferences } = require('electron')
+      const microphoneStatus = systemPreferences.getMediaAccessStatus('microphone')
+      
+      if (microphoneStatus !== 'granted') {
+        systemPreferences.askForMediaAccess('microphone').then((granted) => {
+          if (!granted && !isDev) {
+            // Only log critical errors in production
+            console.error('[Wagoo] Microphone access denied by user')
+          }
+        }).catch((error) => {
+          if (!isDev) {
+            console.error('[Wagoo] Failed to request microphone access:', error)
+          }
+        })
+      }
+    }
+    
     // Set up permission handler for microphone access
     session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
       // Always grant microphone permissions

@@ -1,5 +1,6 @@
 import OpenAI from 'openai'
 import { getApiKey } from '../models/ModelManager'
+import { PRODUCTION_CONFIG } from '../config/production'
 import { transcribeAudioWithWhisperCpp, isWhisperCppAvailable } from './whisperCppTranscription'
 
 export interface TranscriptionResult {
@@ -51,9 +52,29 @@ export async function transcribeAudio(audioBlob: Blob): Promise<TranscriptionRes
   try {
     console.log('☁️ Starting cloud transcription with OpenAI Whisper...')
     
-    // Get OpenAI API key using existing infrastructure
-    const apiKey = await getApiKey('openai')
+    // Get OpenAI API key - try production config first, then IPC
+    let apiKey: string | undefined
+    
+    // In production, use embedded API key from build time
+    if (import.meta.env.PROD) {
+      apiKey = PRODUCTION_CONFIG.apiKeys.openai
+      if (!apiKey || apiKey.includes('WILL_BE_INSERTED_HERE')) {
+        console.error('[Transcription] OpenAI API key not embedded in production build')
+        apiKey = undefined
+      }
+    }
+    
+    // Fall back to IPC method (for dev or if production key missing)
     if (!apiKey) {
+      try {
+        apiKey = await getApiKey('openai')
+      } catch (error) {
+        console.error('[Transcription] Failed to get OpenAI API key via IPC:', error)
+      }
+    }
+    
+    if (!apiKey) {
+      console.error('[Transcription] OpenAI API key not available')
       throw new Error('OpenAI API key not available')
     }
     
@@ -72,6 +93,11 @@ export async function transcribeAudio(audioBlob: Blob): Promise<TranscriptionRes
     if (audioBlob.size < 100) {
       console.error('[Transcription] Audio blob too small:', audioBlob.size, 'bytes')
       throw new Error('Audio file too small. Please record for at least 1 second.')
+    }
+    
+    // Add production debug for audio issues
+    if (import.meta.env.PROD && audioBlob.size < 1000) {
+      console.error('[Transcription] Warning: Small audio blob in production:', audioBlob.size, 'bytes, type:', audioBlob.type)
     }
 
     // Convert blob to File object for OpenAI API with proper extension
