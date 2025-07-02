@@ -7,8 +7,12 @@
     "dev": "cross-env NODE_ENV=development npm run clean && concurrently \"tsc -w -p tsconfig.electron.json\" \"vite\" \"wait-on http://localhost:54321 && electron .\"",
     "build": "cross-env NODE_ENV=production rimraf dist dist-electron && vite build && tsc -p tsconfig.electron.json && electron-builder",
     "build:release": "cross-env NODE_ENV=production rimraf dist dist-electron && vite build && tsc -p tsconfig.electron.json && electron-builder --publish never",
-    "package:all": "npm run build:release -- --mac --win --linux",
+    "build:mac": "npm run build:release -- --mac",
+    "build:win": "npm run build:release -- --win",
+    "build:linux": "npm run build:release -- --linux",
+    "package:all": "npm run build:mac && npm run build:win && npm run build:linux",
     "generate:update:yml": "node scripts/generate-update-yml.js",
+    "generate:all-update-files": "node scripts/generate-all-update-files.js",
     "postinstall": "electron-builder install-app-deps"
   },
   "build": {
@@ -62,7 +66,10 @@
     },
     "win": {
       "target": [
-        "nsis"
+        {
+          "target": "nsis",
+          "arch": ["x64", "ia32"]
+        }
       ],
       "icon": "assets/icons/win/icon.ico",
       "artifactName": "${productName}-Windows-${version}.${ext}",
@@ -74,11 +81,22 @@
       },
       "signAndEditExecutable": false,
       "verifyUpdateCodeSignature": false,
-      "forceCodeSigning": false
+      "forceCodeSigning": false,
+      "nsis": {
+        "oneClick": false,
+        "allowElevation": true,
+        "allowToChangeInstallationDirectory": true,
+        "createDesktopShortcut": true,
+        "createStartMenuShortcut": true,
+        "deleteAppDataOnUninstall": false
+      }
     },
     "linux": {
       "target": [
-        "AppImage"
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        }
       ],
       "icon": "assets/icons/png/icon-256x256.png",
       "artifactName": "${productName}-Linux-${version}.${ext}",
@@ -87,7 +105,8 @@
         "schemes": [
           "wagoo"
         ]
-      }
+      },
+      "category": "Utility"
     },
     "extraResources": [
       {

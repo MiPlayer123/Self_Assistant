@@ -96,6 +96,60 @@ jobs:
             release/*.yml
             release/*.blockmap
 
+      - name: Generate Windows update file
+        if: matrix.os == 'windows-latest'
+        run: |
+          # Generate latest.yml for Windows
+          cd release
+          if ls *.exe 1> /dev/null 2>&1; then
+            EXE_FILE=$(ls *.exe | head -1)
+            VERSION=$(node -p "require('../package.json').version")
+            SHA512=$(openssl dgst -sha512 -binary "$EXE_FILE" | openssl base64 -A)
+            SIZE=$(stat -c%s "$EXE_FILE" 2>/dev/null || stat -f%z "$EXE_FILE")
+            RELEASE_DATE=$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")
+            
+            cat > latest.yml << EOF
+          version: $VERSION
+          files:
+            - url: $EXE_FILE
+              sha512: $SHA512
+              size: $SIZE
+          path: $EXE_FILE
+          sha512: $SHA512
+          releaseDate: "$RELEASE_DATE"
+          EOF
+            echo "Generated latest.yml for Windows"
+          else
+            echo "No Windows executable found"
+          fi
+
+      - name: Generate Linux update file
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          # Generate latest-linux.yml for Linux
+          cd release
+          if ls *.AppImage 1> /dev/null 2>&1; then
+            APPIMAGE_FILE=$(ls *.AppImage | head -1)
+            VERSION=$(node -p "require('../package.json').version")
+            SHA512=$(openssl dgst -sha512 -binary "$APPIMAGE_FILE" | openssl base64 -A)
+            SIZE=$(stat -c%s "$APPIMAGE_FILE")
+            RELEASE_DATE=$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")
+            
+            cat > latest-linux.yml << EOF
+          version: $VERSION
+          files:
+            - url: $APPIMAGE_FILE
+              sha512: $SHA512
+              size: $SIZE
+          path: $APPIMAGE_FILE
+          sha512: $SHA512
+          releaseDate: "$RELEASE_DATE"
+          EOF
+            echo "Generated latest-linux.yml for Linux"
+          else
+            echo "No Linux AppImage found"
+          fi
+
       - name: Upload artifacts (Windows)
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
@@ -205,4 +259,6 @@ jobs:
             macos-build/*.zip \
             windows-build/*.exe \
             linux-build/*.AppImage \
-            macos-build/latest-mac.yml
+            macos-build/latest-mac.yml \
+            windows-build/latest.yml \
+            linux-build/latest-linux.yml
