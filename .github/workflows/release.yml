@@ -98,6 +98,7 @@ jobs:
 
       - name: Generate Windows update file
         if: matrix.os == 'windows-latest'
+        shell: bash
         run: |
           # Generate latest.yml for Windows
           cd release
@@ -125,6 +126,7 @@ jobs:
 
       - name: Generate Linux update file
         if: matrix.os == 'ubuntu-latest'
+        shell: bash
         run: |
           # Generate latest-linux.yml for Linux
           cd release
