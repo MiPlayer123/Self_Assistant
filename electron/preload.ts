@@ -64,6 +64,7 @@ interface ElectronAPI {
   onUpdateDownloaded: (callback: (info: any) => void) => () => void
   onDownloadProgress: (callback: (progress: any) => void) => () => void
   onCheckSubscriptionValidity: (callback: () => void) => () => void
+  getAppVersion: () => Promise<string>
 
   getPlatform: () => string
   sampleBackgroundColor: (x: number, y: number) => Promise<{ 
@@ -361,6 +362,8 @@ const electronAPI = {
   isUpdateAvailable: () => ipcRenderer.invoke('is-update-available'),
   downloadUpdate: () => ipcRenderer.invoke('download-update'),
   openExternalUrl: (url: string) => ipcRenderer.invoke('open-external-url', url),
+  // App version
+  getAppVersion: () => ipcRenderer.invoke('get-app-version'),
   // Wayland screen-capture utility
   getScreenSources: () => ipcRenderer.invoke('get-screen-sources')
 } as ElectronAPI

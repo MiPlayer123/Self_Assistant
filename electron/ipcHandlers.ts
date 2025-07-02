@@ -1,6 +1,6 @@
 // ipcHandlers.ts
 
-import { ipcMain, shell } from "electron"
+import { ipcMain, shell, app } from "electron"
 // import { createClient } from "@supabase/supabase-js" // Temporarily disabled
 import { randomBytes } from "crypto"
 import { IIpcHandlerDeps } from "./main"
@@ -180,6 +180,11 @@ export function initializeIpcHandlers(deps: IIpcHandlerDeps): void {
   ipcMain.handle("get-env-var", (event, varName: string) => {
     console.log(`[IPC] Request for env var: ${varName}, value: ${process.env[varName] ? "Exists" : "Missing"}`);
     return process.env[varName]
+  })
+
+  // App version handler
+  ipcMain.handle("get-app-version", () => {
+    return app.getVersion()
   })
 
   // Window management handlers

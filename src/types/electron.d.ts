@@ -53,6 +53,9 @@ export interface ElectronAPI {
   onDownloadProgress: (callback: (progress: any) => void) => () => void
   onCheckSubscriptionValidity: (callback: () => void) => () => void
 
+  // Retrieve the current desktop app version (e.g., "1.2.3")
+  getAppVersion: () => Promise<string>
+
   getPlatform: () => string
   sampleBackgroundColor: (x: number, y: number) => Promise<{ 
     success: boolean

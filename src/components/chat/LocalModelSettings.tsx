@@ -39,6 +39,9 @@ export const LocalModelSettings: React.FC<LocalModelSettingsProps> = ({ onSelect
   const [downloadingModel, setDownloadingModel] = useState<string | null>(null);
   const [downloadProgress, setDownloadProgress] = useState<number>(0);
   
+  // App version state
+  const [appVersion, setAppVersion] = useState<string>('');
+
   // Local dictation is now handled automatically - no download needed
   
   // Search settings state
@@ -52,6 +55,17 @@ export const LocalModelSettings: React.FC<LocalModelSettingsProps> = ({ onSelect
     const saved = localStorage.getItem('localDictationEnabled');
     return saved === 'true';
   });
+
+  // Fetch app version once on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).electronAPI?.getAppVersion) {
+      (window as any).electronAPI.getAppVersion().then((version: string) => {
+        if (version) setAppVersion(version);
+      }).catch(() => {
+        /* silent fail – not critical */
+      });
+    }
+  }, []);
 
   const fetchAvailableModels = async () => {
     try {
@@ -139,7 +153,12 @@ export const LocalModelSettings: React.FC<LocalModelSettingsProps> = ({ onSelect
   return (
     <Card className="local-model-settings bg-zinc-800/95 border-zinc-600">
       <CardHeader className="pb-4">
-        <CardTitle className="text-white">Local Model Settings</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-white">Local Model Settings</CardTitle>
+          {appVersion && (
+            <span className="text-xs text-gray-400">v{appVersion}</span>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
 

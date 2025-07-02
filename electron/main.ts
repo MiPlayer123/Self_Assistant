@@ -580,12 +580,12 @@ async function initializeApp() {
       const microphoneStatus = systemPreferences.getMediaAccessStatus('microphone')
       
       if (microphoneStatus !== 'granted') {
-        systemPreferences.askForMediaAccess('microphone').then((granted) => {
+        systemPreferences.askForMediaAccess('microphone').then((granted: boolean) => {
           if (!granted && !isDev) {
             // Only log critical errors in production
             console.error('[Wagoo] Microphone access denied by user')
           }
-        }).catch((error) => {
+        }).catch((error: unknown) => {
           if (!isDev) {
             console.error('[Wagoo] Failed to request microphone access:', error)
           }
