@@ -84,15 +84,15 @@
       },
       "signAndEditExecutable": false,
       "verifyUpdateCodeSignature": false,
-      "forceCodeSigning": false,
-      "nsis": {
-        "oneClick": false,
-        "allowElevation": true,
-        "allowToChangeInstallationDirectory": true,
-        "createDesktopShortcut": true,
-        "createStartMenuShortcut": true,
-        "deleteAppDataOnUninstall": false
-      }
+      "forceCodeSigning": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "deleteAppDataOnUninstall": false
     },
     "linux": {
       "target": [
