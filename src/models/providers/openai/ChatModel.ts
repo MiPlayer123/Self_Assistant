@@ -4,6 +4,7 @@ import { buildOpenAIMessages } from '../../../prompts/openai' // Import the new 
 import { shouldPerformSearch, performWebSearch } from '../../../utils/searchUtils'
 
 export class OpenAIChatModel implements IChatModel {
+  public supportsScreenshot = true;
   private openai: OpenAI;
   private config: ChatModelConfig; // Store the config
 

@@ -55,6 +55,9 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onM
   // Sentinel ID returned by ModelPicker when there are no local models available / selected
   const NO_LOCAL_MODEL_ID = 'local-none-selected'
 
+  // Disable screenshot functionality for local models
+  const screenshotDisabled = selectedModelId.startsWith('local-')
+
   // Handler for selecting a local model
   const handleSelectLocalModel = (modelFilename: string) => {
     setSelectedModelId(`local-${modelFilename}`); // Prepend 'local-' to distinguish local models
@@ -256,12 +259,14 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onM
 
   // Listen for screenshot button trigger from global shortcut
   useEffect(() => {
+    // Only register global shortcut if screenshots are enabled
+    if (screenshotDisabled) return
     const cleanup = (window as any).electronAPI?.onTriggerScreenshotButton?.(() => {
       handleTakeScreenshot()
     })
     
     return cleanup
-  }, [])
+  }, [screenshotDisabled])
 
   // Listen for reset trigger from global shortcut
   useEffect(() => {
@@ -329,15 +334,17 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onM
     // Ensure we scroll to bottom when user sends a message
     shouldAutoScrollRef.current = true
     
+    // Create the user message with screenshot context if available
     addMessage({
       role: 'user',
       content: message,
-      status: 'complete'
+      status: 'complete',
+      context: state.currentContext?.screenshot ? state.currentContext : undefined
     })
 
     let currentMessageContext = state.currentContext
 
-    if (state.isFirstMessage) {
+    if (state.isFirstMessage && !screenshotDisabled) {
       console.log('First message, checking if screenshot is required...')
       setIsFirstMessageAnalyzing(true) // Start showing analyzing message
       const checkedContextData = await takeScreenshotForCheck()
@@ -467,6 +474,7 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onM
   }
 
   const handleTakeScreenshot = async () => {
+    if (screenshotDisabled) return
     try {
       console.log('Taking screenshot...')
       const screenshotPath = await onTakeScreenshot()
@@ -691,6 +699,7 @@ export function ChatPage({ onTakeScreenshot, onGetImagePreview, onLogoClick, onM
           onTakeScreenshot={handleTakeScreenshot}
           isProcessing={state.isProcessing || isModelLoading}
           hasScreenshot={!!state.currentContext?.screenshot}
+          screenshotDisabled={screenshotDisabled}
           disabled={(usageStats?.userTier === 'free' && usageStats?.remaining.chat_messages_count === 0) || selectedModelId === NO_LOCAL_MODEL_ID}
         />
       </div>

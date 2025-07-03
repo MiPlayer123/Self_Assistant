@@ -3,6 +3,7 @@ import { GoogleGenAI } from '@google/genai';
 import { shouldPerformSearch, performWebSearch } from '../../../utils/searchUtils';
 
 export class GeminiChatModel implements IChatModel {
+  public supportsScreenshot = true;
   private client: GoogleGenAI;
   private config: ChatModelConfig;
 

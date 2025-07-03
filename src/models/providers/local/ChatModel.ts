@@ -2,6 +2,7 @@ import { ChatMessage, ContextData, IChatModel, ChatModelConfig } from '../../../
 import { shouldPerformSearch, performWebSearch } from '../../../utils/searchUtils';
 
 export class LocalChatModel implements IChatModel {
+  public supportsScreenshot = false;
   private config: ChatModelConfig;
 
   constructor(config: ChatModelConfig) {

@@ -10,6 +10,7 @@ interface ClaudeChatModelConfig {
 }
 
 export class ClaudeChatModel implements IChatModel {
+  public supportsScreenshot = true;
   private apiKey: string;
   private model: string;
   private temperature: number;

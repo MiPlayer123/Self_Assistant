@@ -10,6 +10,7 @@ interface ChatInputProps {
   isProcessing: boolean
   hasScreenshot: boolean
   disabled?: boolean
+  screenshotDisabled?: boolean
 }
 
 export function ChatInput({
@@ -17,7 +18,8 @@ export function ChatInput({
   onTakeScreenshot,
   isProcessing,
   hasScreenshot,
-  disabled = false
+  disabled = false,
+  screenshotDisabled = false
 }: ChatInputProps) {
   const [message, setMessage] = useState('')
   const textareaRef = React.useRef<HTMLTextAreaElement>(null)
@@ -138,13 +140,15 @@ export function ChatInput({
     <div className="wagoo-chat-input-container flex items-center justify-center py-3 px-4">
       <form onSubmit={handleSubmit} className="flex items-center gap-3 w-full max-w-2xl">
         {/* Screenshot button */}
-        <Tooltip content={hasScreenshot 
+        <Tooltip content={screenshotDisabled
+          ? 'Screenshot disabled for local model'
+          : hasScreenshot 
           ? `Screenshot attached • ${screenshotShortcut}` 
           : `Take screenshot • ${screenshotShortcut}`}>
           <button
             type="button"
             onClick={onTakeScreenshot}
-            disabled={isProcessing}
+            disabled={isProcessing || screenshotDisabled}
             className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-colors
               ${hasScreenshot ? 'text-white' : 'text-gray-300 hover:text-white'}
               disabled:opacity-50 disabled:cursor-not-allowed`}

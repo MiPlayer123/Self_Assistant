@@ -67,4 +67,5 @@ export interface IChatModel {
     onSearchStatusChange?: (isSearching: boolean) => void
   ): Promise<{ success: boolean; error?: string; data?: string; usage?: { promptTokens: number; completionTokens: number; totalTokens: number; }; }>;
   isScreenshotRequired(message: string, base64ImageData: string): Promise<boolean>;
+  supportsScreenshot: boolean;
 } 

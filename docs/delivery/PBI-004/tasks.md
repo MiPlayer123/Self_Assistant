@@ -14,4 +14,5 @@ This document lists all tasks associated with PBI-004.
 | [Offline Notification Component](./PBI-004-4.md) | PBI-004-4 | Review | Create notification component for subscribed users entering offline mode |
 | [App Flow Integration](./PBI-004-5.md) | PBI-004-5 | Review | Update main App component routing logic for offline scenarios |
 | [Subscription Cache Integration](./PBI-004-6.md) | PBI-004-6 | Review | Integrate subscription caching into auth hook for persistent offline access |
+| [Disable Local Screenshot](./PBI-004-7.md) | PBI-004-7 | InProgress | Disable screenshot attachments when using a local model and grey out UI |
 | [E2E CoS Test](./PBI-004-E2E-CoS-Test.md) | PBI-004-E2E | Proposed | End-to-end testing of offline access scenarios for both user types | 

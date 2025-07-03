@@ -243,10 +243,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
           {/* Screenshot preview if available */}
           {message.context?.screenshot && (
             <div className="mt-3">
-              <div className="text-xs opacity-75 mb-2">
-                📸 Screenshot included
-              </div>
-              <img
+              {/* <img
                 src={message.context.screenshot.preview}
                 alt="Screenshot"
                 className="max-w-full max-h-64 h-auto rounded-lg wagoo-border cursor-pointer hover:shadow-lg transition-shadow"
@@ -254,12 +251,12 @@ export function ChatMessage({ message }: ChatMessageProps) {
                   // Open screenshot in new window for full view
                   const newWindow = window.open()
                   if (newWindow && message.context?.screenshot) {
-                    newWindow.document.write(`<img src="${message.context.screenshot.preview}" style="max-width:100%;height:auto;" />`)
+                    newWindow.document.write(`<img src=\"${message.context.screenshot.preview}\" style=\"max-width:100%;height:auto;\" />`)
                   }
                 }}
-              />
+              /> */}
               <div className="text-xs wagoo-text-muted mt-1">
-                Click to view full size
+                📸 Screenshot attached
               </div>
             </div>
           )}
