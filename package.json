@@ -1,6 +1,6 @@
 {
   "name": "wagoo-v1",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "main": "dist-electron/main.js",
   "homepage": "https://wagoo.ai",
   "scripts": {
