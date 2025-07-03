@@ -100,7 +100,6 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "deleteAppDataOnUninstall": false,
-      "publisherName": "Wagoo",
       "menuCategory": "Wagoo",
       "shortcutName": "Wagoo",
       "uninstallDisplayName": "Wagoo"
