@@ -1,12 +1,13 @@
 {
   "name": "wagoo-v1",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "main": "dist-electron/main.js",
   "homepage": "https://wagoo.ai",
   "scripts": {
     "clean": "rimraf dist dist-electron",
     "dev": "cross-env NODE_ENV=development npm run clean && concurrently \"tsc -w -p tsconfig.electron.json\" \"vite\" \"wait-on http://localhost:54321 && electron .\"",
     "build": "cross-env NODE_ENV=production rimraf dist dist-electron && vite build && tsc -p tsconfig.electron.json && electron-builder",
+    "dist": "electron-builder",
     "build:release": "cross-env NODE_ENV=production rimraf dist dist-electron && vite build && tsc -p tsconfig.electron.json && electron-builder --publish never",
     "build:mac": "npm run build:release -- --mac",
     "build:win": "npm run build:release -- --win",
@@ -17,7 +18,7 @@
     "postinstall": "electron-builder install-app-deps"
   },
   "build": {
-    "appId": "com.chunginlee.wagoo",
+    "appId": "com.mikulvineet.wagoo",
     "productName": "Wagoo",
     "files": [
       "dist/**/*",
@@ -35,7 +36,9 @@
     "protocols": [
       {
         "name": "wagoo-protocol",
-        "schemes": ["wagoo"]
+        "schemes": [
+          "wagoo"
+        ]
       }
     ],
     "mac": {

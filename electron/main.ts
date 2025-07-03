@@ -658,6 +658,15 @@ async function initializeApp() {
     await createButtonWindow()
     state.shortcutsHelper?.registerGlobalShortcuts()
 
+    // Handle protocol URL at startup on Windows
+    if (process.platform === "win32") {
+      const url = process.argv.find(arg => arg.startsWith("wagoo://"));
+      if (url) {
+        console.log("Found protocol URL in process.argv at startup:", url);
+        handleAuthCallback(url, state.mainWindow);
+      }
+    }
+
     // Initialize auto-updater regardless of environment
     initAutoUpdater()
     console.log(
