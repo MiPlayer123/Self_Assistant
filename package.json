@@ -2,6 +2,7 @@
   "name": "wagoo-v1",
   "version": "1.0.17",
   "main": "dist-electron/main.js",
+  "homepage": "https://wagoo.ai",
   "scripts": {
     "clean": "rimraf dist dist-electron",
     "dev": "cross-env NODE_ENV=development npm run clean && concurrently \"tsc -w -p tsconfig.electron.json\" \"vite\" \"wait-on http://localhost:54321 && electron .\"",
@@ -31,6 +32,12 @@
     "asar": true,
     "compression": "normal",
     "generateUpdatesFilesForAllChannels": true,
+    "protocols": [
+      {
+        "name": "wagoo-protocol",
+        "schemes": ["wagoo"]
+      }
+    ],
     "mac": {
       "category": "public.app-category.developer-tools",
       "target": [
@@ -56,12 +63,6 @@
       "entitlementsInherit": "build/entitlements.mac.plist",
       "notarize": {
         "teamId": "MJQ4MNNJUR"
-      },
-      "protocols": {
-        "name": "wagoo-protocol",
-        "schemes": [
-          "wagoo"
-        ]
       }
     },
     "win": {
@@ -82,9 +83,12 @@
           "wagoo"
         ]
       },
-      "signAndEditExecutable": false,
+      "signAndEditExecutable": true,
       "verifyUpdateCodeSignature": false,
-      "forceCodeSigning": false
+      "forceCodeSigning": false,
+      "publisherName": "Wagoo",
+      "requestedExecutionLevel": "asInvoker",
+      "legalTrademarks": "Wagoo"
     },
     "nsis": {
       "oneClick": false,
@@ -92,7 +96,11 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "deleteAppDataOnUninstall": false
+      "deleteAppDataOnUninstall": false,
+      "publisherName": "Wagoo",
+      "menuCategory": "Wagoo",
+      "shortcutName": "Wagoo",
+      "uninstallDisplayName": "Wagoo"
     },
     "linux": {
       "target": [

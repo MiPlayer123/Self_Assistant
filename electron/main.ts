@@ -188,16 +188,21 @@ function initializeHelpers() {
 // Register the wagoo protocol
 if (process.platform === "darwin") {
   app.setAsDefaultProtocolClient("wagoo")
+} else if (process.platform === "win32") {
+  // Windows protocol registration
+  if (process.defaultApp) {
+    if (process.argv.length >= 2) {
+      app.setAsDefaultProtocolClient("wagoo", process.execPath, [
+        path.resolve(process.argv[1])
+      ])
+    }
+  } else {
+    app.setAsDefaultProtocolClient("wagoo")
+  }
 } else {
+  // Linux
   app.setAsDefaultProtocolClient("wagoo", process.execPath, [
     path.resolve(process.argv[1] || "")
-  ])
-}
-
-// Handle the protocol. In this case, we choose to show an Error Box.
-if (process.defaultApp && process.argv.length >= 2) {
-  app.setAsDefaultProtocolClient("wagoo", process.execPath, [
-    path.resolve(process.argv[1])
   ])
 }
 
@@ -568,6 +573,12 @@ function loadEnvVariables() {
 // Initialize application
 async function initializeApp() {
   try {
+    // Set app name and version for Windows
+    if (process.platform === "win32") {
+      app.setAppUserModelId("com.chunginlee.wagoo")
+      app.setName("Wagoo")
+    }
+    
     loadEnvVariables()
     initializeHelpers()
     
