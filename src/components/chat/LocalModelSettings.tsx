@@ -172,15 +172,53 @@ export const LocalModelSettings: React.FC<LocalModelSettingsProps> = ({ onSelect
                 <h5 className="font-medium text-white mb-1">{model.name}</h5>
                 <p className="text-sm text-gray-300 mb-1">{model.description}</p>
                 <p className="text-xs text-gray-400">Size: {model.size}</p>
+                {/* Show download progress inline with model info when downloading this model */}
+                {downloadingModel === model.uri && downloadProgress > 0 && (
+                  <div className="mt-2">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-blue-300">{downloadStatus}</span>
+                      <span className="text-xs text-blue-300">{downloadProgress}%</span>
+                    </div>
+                    <div className="w-full bg-zinc-600 rounded-full h-2">
+                      <div 
+                        className="bg-blue-500 h-2 rounded-full transition-all duration-300 ease-out"
+                        style={{ width: `${downloadProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
-              <Button
-                onClick={() => handleDownloadModel(model.uri)}
-                disabled={downloadingModel === model.uri || isLocalModelDownloaded}
-                className="bg-blue-500 hover:bg-blue-600 text-white shrink-0"
-                size="sm"
-              >
-                {downloadingModel === model.uri ? 'Downloading...' : isLocalModelDownloaded ? 'Downloaded' : 'Download'}
-              </Button>
+              <div className="flex flex-col items-end gap-2">
+                <Button
+                  onClick={() => handleDownloadModel(model.uri)}
+                  disabled={downloadingModel === model.uri || isLocalModelDownloaded}
+                  className={`${
+                    downloadingModel === model.uri 
+                      ? 'bg-blue-600/70 cursor-not-allowed' 
+                      : isLocalModelDownloaded 
+                        ? 'bg-green-600 hover:bg-green-700' 
+                        : 'bg-blue-500 hover:bg-blue-600'
+                  } text-white shrink-0 min-w-[100px] flex items-center justify-center gap-2`}
+                  size="sm"
+                >
+                  {downloadingModel === model.uri ? (
+                    <>
+                      <div className="animate-spin h-3 w-3 border border-white border-t-transparent rounded-full"></div>
+                      <span>Downloading</span>
+                    </>
+                  ) : isLocalModelDownloaded ? (
+                    <>
+                      <span>✓</span>
+                      <span>Downloaded</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>⬇</span>
+                      <span>Download</span>
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </Card>
         ))}
@@ -207,21 +245,7 @@ export const LocalModelSettings: React.FC<LocalModelSettingsProps> = ({ onSelect
         </Card>
       </div>
 
-      {/* Status Messages */}
-      {downloadStatus && (
-        <Card className="p-4 bg-zinc-700/80 border-zinc-600">
-          <p className="text-sm text-white mb-2">{downloadStatus}</p>
-          {downloadingModel && downloadProgress > 0 && (
-            <div className="w-full bg-zinc-600 rounded-full h-2">
-              <div 
-                className="bg-blue-500 h-2 rounded-full transition-all duration-300 ease-out"
-                style={{ width: `${downloadProgress}%` }}
-              />
-            </div>
-          )}
-        </Card>
-      )}
-
+      {/* Status Messages - Only show general status, not download progress (that's now inline) */}
       {error && (
         <Card className="p-4 bg-red-900/20 border-red-500/50">
           <p className="text-sm text-red-300">Error: {error}</p>

@@ -94,8 +94,10 @@ export function useOfflineMode(): OfflineMode {
       return { canUse: false, reason: 'free_user', subscription: cachedSubscription }
     }
 
-    // Check if subscription is active
-    if (cachedSubscription.status !== 'active') {
+    // Allow offline access for valid paid statuses
+    const validStatuses = ['active', 'cancelling']; // Add more statuses if needed
+    const status = cachedSubscription.status || '';
+    if (!validStatuses.includes(status)) {
       return { canUse: false, reason: 'expired_subscription', subscription: cachedSubscription }
     }
 
