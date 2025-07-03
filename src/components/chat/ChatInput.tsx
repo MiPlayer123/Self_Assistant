@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useAudioRecording } from '../../hooks/useAudioRecording'
 import { transcribeAudio } from '../../services/audioTranscription'
 import { isMacOS } from '../../utils/platform'
 import { Tooltip } from '../ui/Tooltip'
+import { useToast } from '../../contexts/toast'
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void
@@ -23,6 +24,7 @@ export function ChatInput({
 }: ChatInputProps) {
   const [message, setMessage] = useState('')
   const textareaRef = React.useRef<HTMLTextAreaElement>(null)
+  const { showToast } = useToast()
   
   // Audio recording functionality
   const { 
@@ -32,6 +34,14 @@ export function ChatInput({
     error: recordingError, 
     clearError 
   } = useAudioRecording()
+  
+  // Display recording errors as toasts
+  useEffect(() => {
+    if (recordingError) {
+      showToast('Microphone Error', recordingError, 'error')
+      clearError()
+    }
+  }, [recordingError, showToast, clearError])
 
   // Platform-specific shortcuts for tooltips
   const screenshotShortcut = isMacOS ? 'Ctrl+H' : 'Alt+H'
@@ -193,6 +203,8 @@ export function ChatInput({
             ? 'Stop recording' 
             : recordingState === 'processing'
             ? 'Processing audio...'
+            : recordingError
+            ? 'Microphone permission required'
             : 'Start voice recording'
         }>
           <button

@@ -605,7 +605,7 @@ async function initializeApp() {
     }
     
     // Set up permission handler for microphone access
-    session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
+    session.defaultSession.setPermissionRequestHandler((webContents, permission, callback, details) => {
       // Always grant microphone permissions
       if (permission === 'media') {
         callback(true)

@@ -22,6 +22,7 @@ This document provides a comprehensive list of all keyboard shortcuts available 
 
 | Action | macOS | Windows/Linux | Description |
 |--------|-------|---------------|-------------|
+| **Quit App** | `Cmd + Q` or `Ctrl + Q` | `Alt + Q` | Completely quits the Wagoo application |
 | **Reset/Clear** | `Ctrl + R` | `Alt + R` | Cancels ongoing requests and clears all screenshot queues |
 | **Toggle Window** | `Ctrl + B` | `Alt + B` | Shows/hides the Wagoo window (works even when hidden) |
 | **Hide Floating Button** | `Ctrl + Shift + B` | `Alt + Shift + B` | Toggles floating glass button visibility |
@@ -41,6 +42,7 @@ This document provides a comprehensive list of all keyboard shortcuts available 
 - **When Window is Visible**: All shortcuts are active and functional
 - **When Window is Hidden**: All shortcuts are disabled except for `Toggle Window`
 - **Exception**: `Ctrl/Alt + B` (Toggle Window) always works to bring back the window
+- **Note**: `Cmd+Q/Ctrl+Q/Alt+Q` (Quit App) only works when the window is visible for safety
 
 ### 🎯 Quick Reference
 
@@ -51,6 +53,7 @@ Send Message:        Ctrl+Enter (Mac) / Alt+Enter (Win/Linux)
 Toggle Window:       Ctrl+B (Mac) / Alt+B (Win/Linux)
 Hide Float Button:   Ctrl+Shift+B (Mac) / Alt+Shift+B (Win/Linux)
 Reset Everything:    Ctrl+R (Mac) / Alt+R (Win/Linux)
+Quit App:            Cmd+Q or Ctrl+Q (Mac) / Alt+Q (Win/Linux)
 ```
 
 #### Window Positioning

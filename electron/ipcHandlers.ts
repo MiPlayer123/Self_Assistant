@@ -182,6 +182,33 @@ export function initializeIpcHandlers(deps: IIpcHandlerDeps): void {
     return process.env[varName]
   })
 
+  // Microphone permission handler
+  ipcMain.handle("check-microphone-permission", async () => {
+    if (process.platform === 'darwin') {
+      const { systemPreferences } = require('electron')
+      const status = systemPreferences.getMediaAccessStatus('microphone')
+      
+      if (status === 'not-determined' || status === 'denied') {
+        const granted = await systemPreferences.askForMediaAccess('microphone')
+        return { 
+          status: granted ? 'granted' : 'denied',
+          granted 
+        }
+      }
+      
+      return { 
+        status,
+        granted: status === 'granted' 
+      }
+    }
+    
+    // For non-macOS platforms, assume granted
+    return { 
+      status: 'granted',
+      granted: true 
+    }
+  })
+
   // App version handler
   ipcMain.handle("get-app-version", () => {
     return app.getVersion()

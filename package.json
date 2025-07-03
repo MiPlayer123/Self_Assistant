@@ -63,6 +63,9 @@
       "entitlementsInherit": "build/entitlements.mac.plist",
       "notarize": {
         "teamId": "MJQ4MNNJUR"
+      },
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "Wagoo needs access to your microphone to transcribe voice input for AI conversations."
       }
     },
     "win": {

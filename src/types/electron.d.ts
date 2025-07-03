@@ -83,6 +83,8 @@ export interface ElectronAPI {
   isUpdateAvailable: () => Promise<boolean>
   downloadUpdate: () => Promise<void>
   openExternalUrl: (url: string) => Promise<void>
+  // Microphone permission check
+  checkMicrophonePermission: () => Promise<{ status: string; granted: boolean }>
 }
 
 declare global {

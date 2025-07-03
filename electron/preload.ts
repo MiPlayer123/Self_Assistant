@@ -95,6 +95,8 @@ interface ElectronAPI {
   openExternalUrl: (url: string) => Promise<void>
   // Wayland screen-capture utility
   getScreenSources: () => Promise<{ success: boolean; data?: string[]; error?: string }>
+  // Microphone permission check
+  checkMicrophonePermission: () => Promise<{ status: string; granted: boolean }>
 }
 
 export const PROCESSING_EVENTS = {
@@ -365,7 +367,9 @@ const electronAPI = {
   // App version
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
   // Wayland screen-capture utility
-  getScreenSources: () => ipcRenderer.invoke('get-screen-sources')
+  getScreenSources: () => ipcRenderer.invoke('get-screen-sources'),
+  // Microphone permission check
+  checkMicrophonePermission: () => ipcRenderer.invoke('check-microphone-permission')
 } as ElectronAPI
 
 // Expose the API to the renderer process

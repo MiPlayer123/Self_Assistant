@@ -26,6 +26,17 @@ export function useAudioRecording(): UseAudioRecordingReturn {
     try {
       setError(null)
       
+      // Check microphone permission first (macOS specific)
+      if (window.electronAPI?.checkMicrophonePermission) {
+        const permissionResult = await window.electronAPI.checkMicrophonePermission()
+        
+        if (!permissionResult.granted) {
+          setError('Microphone permission denied. Please grant microphone access in System Preferences.')
+          setRecordingState('idle')
+          return
+        }
+      }
+      
       // Request microphone permission
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
