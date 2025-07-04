@@ -97,6 +97,8 @@ interface ElectronAPI {
   getScreenSources: () => Promise<{ success: boolean; data?: string[]; error?: string }>
   // Microphone permission check
   checkMicrophonePermission: () => Promise<{ status: string; granted: boolean }>
+  // Deep link handler
+  onDeepLink: (callback: (url: string) => void) => () => void
 }
 
 export const PROCESSING_EVENTS = {
@@ -369,7 +371,20 @@ const electronAPI = {
   // Wayland screen-capture utility
   getScreenSources: () => ipcRenderer.invoke('get-screen-sources'),
   // Microphone permission check
-  checkMicrophonePermission: () => ipcRenderer.invoke('check-microphone-permission')
+  checkMicrophonePermission: () => ipcRenderer.invoke('check-microphone-permission'),
+  // Deep link handler
+  onDeepLink: (callback: (url: string) => void) => {
+    console.log('[preload] setting up deep-link listener');
+    const subscription = (_: any, url: string) => {
+      console.log('[preload] received deep-link IPC message:', url);
+      callback(url);
+    };
+    ipcRenderer.on('deep-link', subscription);
+    return () => {
+      console.log('[preload] removing deep-link listener');
+      ipcRenderer.removeListener('deep-link', subscription);
+    };
+  }
 } as ElectronAPI
 
 // Expose the API to the renderer process

@@ -10,6 +10,8 @@ import { ShortcutsHelper } from "./shortcuts"
 import { initAutoUpdater } from "./autoUpdater"
 import * as dotenv from "dotenv"
 
+
+
 // Constants
 const isDev = !app.isPackaged
 
@@ -72,6 +74,72 @@ const state = {
     DEBUG_ERROR: "debug-error"
   } as const
 }
+
+// -------------- deep-link patch START --------------
+/**
+ * Registers wagoo:// so Windows re-launches THE SAME
+ * command that npm run dev started (electron.exe <main.js> …)
+ */
+function registerWagooProtocol() {
+  app.removeAsDefaultProtocolClient("wagoo");
+
+  const exe   = process.execPath;
+  const entry = process.argv[1] ? path.resolve(process.argv[1]) : "";
+
+  // Always include "%1" as the last argument in dev mode
+  const ok = process.defaultApp
+    ? app.setAsDefaultProtocolClient("wagoo", exe, [entry, "%1"])
+    : app.setAsDefaultProtocolClient("wagoo");
+
+  console.log("[deep-link] protocol registered?", ok,
+              "\n         exe :", exe,
+              "\n         arg :", entry,
+              "\n         extra :", "%1");
+}
+
+/** Pull first wagoo:// link from any argv list */
+function extractLink(argv: string[]): string | null {
+  console.log("[deep-link] extractLink called with argv:", argv);
+  const link = argv.find(a => a.startsWith("wagoo://")) || null;
+  if (link) {
+    console.log("[deep-link] extracted link:", link);
+  } else {
+    console.log("[deep-link] no wagoo:// link found in argv");
+  }
+  return link;
+}
+
+// Single instance lock for deep linking
+console.log("[deep-link] requesting single instance lock...");
+const gotLock = app.requestSingleInstanceLock();
+if (!gotLock) {
+  console.log("[deep-link] single instance lock failed, quitting...");
+  app.quit();
+  process.exit();
+}
+console.log("[deep-link] single instance lock acquired successfully");
+
+// [deep-link] TOP-LEVEL: process.argv on launch:
+console.log("[deep-link] TOP-LEVEL: process.argv:", process.argv);
+
+console.log("[deep-link] checking process.argv for startup deep links...");
+let deepLinkOnLaunch = extractLink(process.argv);
+
+app.on("second-instance", (_event, argv) => {
+  console.log("[deep-link] second-instance event fired. argv:", argv);
+  const link = extractLink(argv);
+  if (link && state.mainWindow) {
+    console.log("[deep-link] sending to renderer:", link);
+    state.mainWindow.webContents.send("deep-link", link);
+    state.mainWindow.restore();
+    state.mainWindow.focus();
+  } else if (link && !state.mainWindow) {
+    console.log("[deep-link] deep link found but mainWindow is null");
+  } else if (!link) {
+    console.log("[deep-link] no deep link found in second-instance argv");
+  }
+});
+// -------------- deep-link patch END --------------
 
 // Add interfaces for helper classes
 export interface IProcessingHelperDeps {
@@ -185,77 +253,48 @@ function initializeHelpers() {
 
 // Auth callback handler
 
-// Register the wagoo protocol
-if (process.platform === "darwin") {
-  app.setAsDefaultProtocolClient("wagoo")
-} else if (process.platform === "win32") {
-  // Windows protocol registration
-  if (process.defaultApp) {
-    if (process.argv.length >= 2) {
-      app.setAsDefaultProtocolClient("wagoo", process.execPath, [
-        path.resolve(process.argv[1])
-      ])
-    }
-  } else {
-    app.setAsDefaultProtocolClient("wagoo")
-  }
-} else {
-  // Linux
-  app.setAsDefaultProtocolClient("wagoo", process.execPath, [
-    path.resolve(process.argv[1] || "")
-  ])
-}
 
-// Force Single Instance Lock
-const gotTheLock = app.requestSingleInstanceLock()
-
-if (!gotTheLock) {
-  app.quit()
-} else {
-  // Handle deep links when the app is already running (macOS)
-  app.on('open-url', (event, url) => {
-    event.preventDefault()
-    if (state.mainWindow) {
-      handleAuthCallback(url, state.mainWindow)
-    }
-  })
-
-  app.on("second-instance", (event, commandLine) => {
-    // Someone tried to run a second instance, we should focus our window.
-    if (state.mainWindow) {
-      if (state.mainWindow.isMinimized()) state.mainWindow.restore()
-      state.mainWindow.focus()
-
-      // Protocol handler for state.mainWindow32
-      // argv: An array of the second instance's (command line / deep linked) arguments
-      if (process.platform === "win32") {
-        // Keep only command line / deep linked arguments
-        const deeplinkingUrl = commandLine.pop()
-        if (deeplinkingUrl) {
-          handleAuthCallback(deeplinkingUrl, state.mainWindow)
-        }
-      }
-    }
-  })
-}
 
 async function handleAuthCallback(url: string, win: BrowserWindow | null) {
   try {
+    console.log("=== AUTH CALLBACK HANDLER ===")
     console.log("Auth callback received:", url)
+    console.log("Target window:", win ? "exists" : "null")
+    
     const urlObj = new URL(url)
+    console.log("Parsed URL:", urlObj.toString())
+    console.log("URL search params:", urlObj.searchParams.toString())
+    
     const code = urlObj.searchParams.get("code")
+    console.log("Extracted code:", code ? "exists" : "null")
 
     if (!code) {
       console.error("Missing code in callback URL")
+      console.log("Available search params:", Array.from(urlObj.searchParams.entries()))
       return
     }
 
+    console.log("Code extracted from URL, sending to renderer...")
+    
     if (win) {
-      // Send the code to the renderer for PKCE exchange
-      win.webContents.send("auth-callback", { code })
+      // Check if window is ready to receive messages
+      if (win.webContents.isLoading()) {
+        console.log("Window is still loading, waiting...")
+        win.webContents.once('did-finish-load', () => {
+          console.log("Window finished loading, now sending auth callback")
+          win.webContents.send("auth-callback", { code })
+        })
+      } else {
+        // Send the code to the renderer for PKCE exchange
+        win.webContents.send("auth-callback", { code })
+        console.log("Auth callback sent to renderer process")
+      }
+    } else {
+      console.error("No window available to send auth callback")
     }
   } catch (error) {
     console.error("Error handling auth callback:", error)
+    console.error("Error details:", error instanceof Error ? error.message : error)
   }
 }
 
@@ -658,14 +697,26 @@ async function initializeApp() {
     await createButtonWindow()
     state.shortcutsHelper?.registerGlobalShortcuts()
 
-    // Handle protocol URL at startup on Windows
-    if (process.platform === "win32") {
-      const url = process.argv.find(arg => arg.startsWith("wagoo://"));
-      if (url) {
-        console.log("Found protocol URL in process.argv at startup:", url);
-        handleAuthCallback(url, state.mainWindow);
-      }
+    // -------------- deep-link patch START --------------
+    // Register protocol after windows are created
+    console.log("[deep-link] registering wagoo protocol...");
+    registerWagooProtocol();
+
+    // Handle startup deep link if present
+    console.log("[deep-link] checking for startup deep link:", deepLinkOnLaunch);
+    if (deepLinkOnLaunch && state.mainWindow) {
+      console.log("[deep-link] handling startup deep link:", deepLinkOnLaunch);
+      state.mainWindow.webContents.once("did-finish-load", () => {
+        console.log("[deep-link] window finished loading, sending startup deep link to renderer");
+        state.mainWindow?.webContents.send("deep-link", deepLinkOnLaunch);
+        deepLinkOnLaunch = null;
+      });
+    } else if (deepLinkOnLaunch && !state.mainWindow) {
+      console.log("[deep-link] startup deep link found but mainWindow is null");
+    } else if (!deepLinkOnLaunch) {
+      console.log("[deep-link] no startup deep link found");
     }
+    // -------------- deep-link patch END --------------
 
     // Initialize auto-updater regardless of environment
     initAutoUpdater()
@@ -680,43 +731,15 @@ async function initializeApp() {
   }
 }
 
-// Handle the auth callback in development
-app.on("open-url", (event, url) => {
-  console.log("open-url event received:", url)
-  event.preventDefault()
-  if (url.startsWith("wagoo://")) {
-    handleAuthCallback(url, state.mainWindow)
+
+
+// Window lifecycle handlers
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
+    app.quit()
+    state.mainWindow = null
   }
 })
-
-// Handle the auth callback in production (Windows/Linux)
-app.on("second-instance", (event, commandLine) => {
-  console.log("second-instance event received:", commandLine)
-      const url = commandLine.find((arg) => arg.startsWith("wagoo://"))
-  if (url) {
-    handleAuthCallback(url, state.mainWindow)
-  }
-
-  // Focus or create the main window
-  if (!state.mainWindow) {
-    createWindow()
-  } else {
-    if (state.mainWindow.isMinimized()) state.mainWindow.restore()
-    state.mainWindow.focus()
-  }
-})
-
-// Prevent multiple instances of the app
-if (!app.requestSingleInstanceLock()) {
-  app.quit()
-} else {
-  app.on("window-all-closed", () => {
-    if (process.platform !== "darwin") {
-      app.quit()
-      state.mainWindow = null
-    }
-  })
-}
 
 app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) {
@@ -959,4 +982,14 @@ export {
   getHasDebugged
 }
 
-app.whenReady().then(initializeApp)
+// -------------- deep-link patch START --------------
+// Initialize the app when ready
+console.log("[deep-link] setting up app.whenReady() handler...");
+app.whenReady().then(() => {
+  console.log("[deep-link] app.whenReady() called, initializing app...");
+  initializeApp();
+}).catch((error) => {
+  console.error("[deep-link] error in app.whenReady():", error);
+});
+// -------------- deep-link patch END --------------
+

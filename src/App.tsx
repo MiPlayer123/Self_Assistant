@@ -116,14 +116,15 @@ function App() {
     let isProcessing = false // Prevent duplicate processing
 
     const handleAuthCallbackPKCE = async (data: { code: string }) => {
+      console.log("🔐 AUTH: handleAuthCallbackPKCE called with data:", data);
       // Prevent duplicate processing
       if (isProcessing) {
-        console.log("Auth callback already being processed, ignoring duplicate")
+        console.log("🔐 AUTH: Auth callback already being processed, ignoring duplicate")
         return
       }
       
       isProcessing = true
-      console.log("IPC: received auth callback:", data)
+      console.log("🔐 AUTH: IPC: received auth callback:", data)
       
       try {
         const { code } = data || {}
@@ -241,11 +242,40 @@ function App() {
     console.log("Setting up auth IPC listener")
     window.electron?.ipcRenderer?.on("auth-callback", handleAuthCallbackPKCE)
 
+    // >>> deep-link start
+    // Set up deep link handler
+    console.log('Setting up deep link handler...');
+    const cleanupDeepLink = window.electronAPI?.onDeepLink((url: string) => {
+      console.log('🎯 RENDERER: Received deep link:', url);
+      // Parse the URL and extract the code
+      try {
+        const urlObj = new URL(url);
+        const code = urlObj.searchParams.get('code');
+        if (code) {
+          console.log('🎯 RENDERER: Extracted code from deep link, processing...');
+          handleAuthCallbackPKCE({ code });
+        } else {
+          console.error('🎯 RENDERER: No code found in deep link URL');
+          console.log('🎯 RENDERER: Available search params:', Array.from(urlObj.searchParams.entries()));
+        }
+      } catch (error) {
+        console.error('🎯 RENDERER: Error parsing deep link URL:', error);
+      }
+    });
+    console.log('Deep link handler setup complete');
+    // <<< deep-link end
+
     return () => {
       window.electron?.ipcRenderer?.removeListener(
         "auth-callback",
         handleAuthCallbackPKCE
       )
+      // >>> deep-link start
+      // Clean up deep link handler
+      if (cleanupDeepLink) {
+        cleanupDeepLink();
+      }
+      // <<< deep-link end
     }
   }, [])
 

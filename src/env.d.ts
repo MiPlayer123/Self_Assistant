@@ -72,6 +72,8 @@ interface ElectronAPI {
   // Generic listener methods for streaming support
   addListener: (channel: string, callback: (data: any) => void) => () => void
   removeListener: (channel: string, callback: (data: any) => void) => void
+  // Deep link handler
+  onDeepLink: (callback: (url: string) => void) => () => void
 }
 
 interface Window {
