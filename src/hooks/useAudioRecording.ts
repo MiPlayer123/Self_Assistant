@@ -31,13 +31,13 @@ export function useAudioRecording(): UseAudioRecordingReturn {
         const permissionResult = await window.electronAPI.checkMicrophonePermission()
         
         if (!permissionResult.granted) {
-          setError('Microphone permission denied. Please grant microphone access in System Preferences.')
+          setError('Microphone permission denied. Please grant microphone access in System Preferences -> Security & Privacy -> Microphone, then restart the app.')
           setRecordingState('idle')
           return
         }
       }
       
-      // Request microphone permission
+      // Request microphone permission from the browser
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -75,7 +75,7 @@ export function useAudioRecording(): UseAudioRecordingReturn {
     } catch (err: any) {
       console.error('Error starting recording:', err)
       if (err.name === 'NotAllowedError') {
-        setError('Microphone permission denied. Please allow microphone access.')
+        setError('Microphone permission denied. Please grant microphone access in System Preferences -> Security & Privacy -> Microphone, then restart the app.')
       } else if (err.name === 'NotFoundError') {
         setError('No microphone found. Please check your audio devices.')
       } else {

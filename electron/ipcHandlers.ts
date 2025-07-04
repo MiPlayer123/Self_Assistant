@@ -185,20 +185,33 @@ export function initializeIpcHandlers(deps: IIpcHandlerDeps): void {
   // Microphone permission handler
   ipcMain.handle("check-microphone-permission", async () => {
     if (process.platform === 'darwin') {
-      const { systemPreferences } = require('electron')
-      const status = systemPreferences.getMediaAccessStatus('microphone')
-      
-      if (status === 'not-determined' || status === 'denied') {
-        const granted = await systemPreferences.askForMediaAccess('microphone')
-        return { 
-          status: granted ? 'granted' : 'denied',
-          granted 
+      try {
+        const { systemPreferences } = require('electron')
+        const status = systemPreferences.getMediaAccessStatus('microphone')
+        
+        console.log('[IPC] Current microphone status:', status)
+        
+        if (status === 'not-determined' || status === 'denied') {
+          console.log('[IPC] Requesting microphone access...')
+          const granted = await systemPreferences.askForMediaAccess('microphone')
+          console.log('[IPC] Microphone access granted:', granted)
+          return { 
+            status: granted ? 'granted' : 'denied',
+            granted 
+          }
         }
-      }
-      
-      return { 
-        status,
-        granted: status === 'granted' 
+        
+        return { 
+          status,
+          granted: status === 'granted' 
+        }
+      } catch (error) {
+        console.error('[IPC] Error checking microphone permission:', error)
+        return {
+          status: 'denied',
+          granted: false,
+          error: error.message
+        }
       }
     }
     

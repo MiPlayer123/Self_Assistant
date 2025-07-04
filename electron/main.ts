@@ -591,16 +591,21 @@ async function initializeApp() {
       const microphoneStatus = systemPreferences.getMediaAccessStatus('microphone')
       
       if (microphoneStatus !== 'granted') {
-        systemPreferences.askForMediaAccess('microphone').then((granted: boolean) => {
+        // In production, be more proactive about requesting permissions
+        try {
+          const granted = await systemPreferences.askForMediaAccess('microphone')
           if (!granted && !isDev) {
-            // Only log critical errors in production
             console.error('[Wagoo] Microphone access denied by user')
+          } else if (granted) {
+            console.log('[Wagoo] Microphone access granted')
           }
-        }).catch((error: unknown) => {
+        } catch (error) {
           if (!isDev) {
             console.error('[Wagoo] Failed to request microphone access:', error)
           }
-        })
+        }
+      } else {
+        console.log('[Wagoo] Microphone access already granted')
       }
     }
     
