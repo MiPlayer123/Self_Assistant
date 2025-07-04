@@ -82,19 +82,31 @@ const state = {
  */
 function registerWagooProtocol() {
   app.removeAsDefaultProtocolClient("wagoo");
-
   const exe   = process.execPath;
   const entry = process.argv[1] ? path.resolve(process.argv[1]) : "";
-
-  // Always include "%1" as the last argument in dev mode
-  const ok = process.defaultApp
-    ? app.setAsDefaultProtocolClient("wagoo", exe, [entry, "%1"])
-    : app.setAsDefaultProtocolClient("wagoo");
-
-  console.log("[deep-link] protocol registered?", ok,
-              "\n         exe :", exe,
-              "\n         arg :", entry,
-              "\n         extra :", "%1");
+  if (process.platform === "win32") {
+    // Windows: always include "%1" as the last argument in dev mode
+    const ok = process.defaultApp
+      ? app.setAsDefaultProtocolClient("wagoo", exe, [entry, "%1"])
+      : app.setAsDefaultProtocolClient("wagoo");
+    console.log("[deep-link] protocol registered?", ok,
+                "\n         exe :", exe,
+                "\n         arg :", entry,
+                "\n         extra :", "%1");
+  } else if (process.platform === "darwin") {
+    // macOS: just use the protocol name
+    const ok = app.setAsDefaultProtocolClient("wagoo");
+    console.log("[deep-link] protocol registered?", ok,
+                "\n         exe :", exe,
+                "\n         arg :", entry);
+  } else {
+    // Linux or other: fallback to default
+    const ok = app.setAsDefaultProtocolClient("wagoo", exe, [entry, "%1"]);
+    console.log("[deep-link] protocol registered?", ok,
+                "\n         exe :", exe,
+                "\n         arg :", entry,
+                "\n         extra :", "%1");
+  }
 }
 
 /** Pull first wagoo:// link from any argv list */
@@ -253,9 +265,6 @@ function initializeHelpers() {
 
 // Auth callback handler
 
-<<<<<<< HEAD
-
-=======
 // Register the wagoo protocol
 if (process.platform === "darwin") {
   app.setAsDefaultProtocolClient("wagoo")
@@ -326,7 +335,6 @@ if (!gotTheLock) {
     }
   })
 }
->>>>>>> b7ea3ea1a92c5291f4a4e4519edc7c7617c76ced
 
 async function handleAuthCallback(url: string, win: BrowserWindow | null) {
   try {
@@ -775,26 +783,6 @@ async function initializeApp() {
     await createButtonWindow()
     state.shortcutsHelper?.registerGlobalShortcuts()
 
-<<<<<<< HEAD
-    // -------------- deep-link patch START --------------
-    // Register protocol after windows are created
-    console.log("[deep-link] registering wagoo protocol...");
-    registerWagooProtocol();
-
-    // Handle startup deep link if present
-    console.log("[deep-link] checking for startup deep link:", deepLinkOnLaunch);
-    if (deepLinkOnLaunch && state.mainWindow) {
-      console.log("[deep-link] handling startup deep link:", deepLinkOnLaunch);
-      state.mainWindow.webContents.once("did-finish-load", () => {
-        console.log("[deep-link] window finished loading, sending startup deep link to renderer");
-        state.mainWindow?.webContents.send("deep-link", deepLinkOnLaunch);
-        deepLinkOnLaunch = null;
-      });
-    } else if (deepLinkOnLaunch && !state.mainWindow) {
-      console.log("[deep-link] startup deep link found but mainWindow is null");
-    } else if (!deepLinkOnLaunch) {
-      console.log("[deep-link] no startup deep link found");
-=======
     // Handle protocol URL at startup on Windows - Fixed version
     if (process.platform === "win32") {
       console.log("Windows startup process.argv:", process.argv)
@@ -810,7 +798,6 @@ async function initializeApp() {
       } else {
         console.log("No wagoo:// protocol found in process.argv at startup")
       }
->>>>>>> b7ea3ea1a92c5291f4a4e4519edc7c7617c76ced
     }
     // -------------- deep-link patch END --------------
 
@@ -827,9 +814,6 @@ async function initializeApp() {
   }
 }
 
-<<<<<<< HEAD
-
-=======
 // Handle the auth callback in development - Enhanced version
 app.on("open-url", (event, url) => {
   console.log("open-url event received:", url)
@@ -853,7 +837,7 @@ app.on("second-instance", (event, commandLine) => {
     console.log("Found protocol URL in second-instance:", protocolUrl)
     handleAuthCallback(protocolUrl, state.mainWindow)
   }
->>>>>>> b7ea3ea1a92c5291f4a4e4519edc7c7617c76ced
+})
 
 // Window lifecycle handlers
 app.on("window-all-closed", () => {
