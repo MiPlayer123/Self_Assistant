@@ -189,15 +189,25 @@ function initializeHelpers() {
 if (process.platform === "darwin") {
   app.setAsDefaultProtocolClient("wagoo")
 } else if (process.platform === "win32") {
-  // Windows protocol registration
+  // Windows protocol registration - Fixed version
   if (process.defaultApp) {
+    // Development mode - when running with electron.exe
     if (process.argv.length >= 2) {
       app.setAsDefaultProtocolClient("wagoo", process.execPath, [
         path.resolve(process.argv[1])
       ])
     }
   } else {
+    // Production mode - when running as built exe
     app.setAsDefaultProtocolClient("wagoo")
+  }
+  
+  // Additional Windows-specific setup for protocol handling
+  if (isDev) {
+    // In development, we need to handle the protocol differently
+    console.log("Windows development mode: Protocol registration attempted")
+    console.log("Process execPath:", process.execPath)
+    console.log("Process argv:", process.argv)
   }
 } else {
   // Linux
@@ -226,13 +236,20 @@ if (!gotTheLock) {
       if (state.mainWindow.isMinimized()) state.mainWindow.restore()
       state.mainWindow.focus()
 
-      // Protocol handler for state.mainWindow32
-      // argv: An array of the second instance's (command line / deep linked) arguments
+      // Protocol handler for Windows - Fixed version
       if (process.platform === "win32") {
-        // Keep only command line / deep linked arguments
-        const deeplinkingUrl = commandLine.pop()
-        if (deeplinkingUrl) {
-          handleAuthCallback(deeplinkingUrl, state.mainWindow)
+        console.log("Windows second-instance event:", commandLine)
+        
+        // Look for wagoo:// protocol in all command line arguments
+        const protocolUrl = commandLine.find((arg) => 
+          arg && typeof arg === 'string' && arg.startsWith("wagoo://")
+        )
+        
+        if (protocolUrl) {
+          console.log("Found protocol URL in commandLine:", protocolUrl)
+          handleAuthCallback(protocolUrl, state.mainWindow)
+        } else {
+          console.log("No wagoo:// protocol found in commandLine:", commandLine)
         }
       }
     }
@@ -663,12 +680,20 @@ async function initializeApp() {
     await createButtonWindow()
     state.shortcutsHelper?.registerGlobalShortcuts()
 
-    // Handle protocol URL at startup on Windows
+    // Handle protocol URL at startup on Windows - Fixed version
     if (process.platform === "win32") {
-      const url = process.argv.find(arg => arg.startsWith("wagoo://"));
-      if (url) {
-        console.log("Found protocol URL in process.argv at startup:", url);
-        handleAuthCallback(url, state.mainWindow);
+      console.log("Windows startup process.argv:", process.argv)
+      
+      // Look for wagoo:// protocol in all process arguments
+      const protocolUrl = process.argv.find(arg => 
+        arg && typeof arg === 'string' && arg.startsWith("wagoo://")
+      )
+      
+      if (protocolUrl) {
+        console.log("Found protocol URL in process.argv at startup:", protocolUrl)
+        handleAuthCallback(protocolUrl, state.mainWindow)
+      } else {
+        console.log("No wagoo:// protocol found in process.argv at startup")
       }
     }
 
@@ -685,21 +710,28 @@ async function initializeApp() {
   }
 }
 
-// Handle the auth callback in development
+// Handle the auth callback in development - Enhanced version
 app.on("open-url", (event, url) => {
   console.log("open-url event received:", url)
   event.preventDefault()
-  if (url.startsWith("wagoo://")) {
+  if (url && url.startsWith("wagoo://")) {
+    console.log("Handling protocol URL via open-url:", url)
     handleAuthCallback(url, state.mainWindow)
   }
 })
 
-// Handle the auth callback in production (Windows/Linux)
+// Handle the auth callback in production (Windows/Linux) - Enhanced version
 app.on("second-instance", (event, commandLine) => {
   console.log("second-instance event received:", commandLine)
-      const url = commandLine.find((arg) => arg.startsWith("wagoo://"))
-  if (url) {
-    handleAuthCallback(url, state.mainWindow)
+  
+  // Look for wagoo:// protocol in command line arguments
+  const protocolUrl = commandLine.find((arg) => 
+    arg && typeof arg === 'string' && arg.startsWith("wagoo://")
+  )
+  
+  if (protocolUrl) {
+    console.log("Found protocol URL in second-instance:", protocolUrl)
+    handleAuthCallback(protocolUrl, state.mainWindow)
   }
 
   // Focus or create the main window
