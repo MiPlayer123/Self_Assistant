@@ -40,6 +40,126 @@ const queryClient = new QueryClient({
   }
 })
 
+// New function to exchange short codes for session data
+async function exchangeCodeForSession(tempCode: string): Promise<{
+  access_token?: string;
+  refresh_token?: string; 
+  expires_in?: number;
+  expires_at?: number;
+  token_type?: string;
+  user?: any;
+  error?: string;
+}> {
+  try {
+    console.log("🔄 Exchanging temporary code for session...")
+    
+    const response = await fetch('https://awzpxrojtaqijoqrdzxo.supabase.co/functions/v1/exchange-desktop-temp-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ temp_code: tempCode })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success && result.access_token) {
+      console.log("✅ Code exchange successful")
+      return {
+        access_token: result.access_token,
+        refresh_token: result.refresh_token,
+        expires_in: result.expires_in,
+        expires_at: result.expires_at,
+        token_type: result.token_type || 'bearer',
+        user: result.user
+      };
+    } else {
+      console.error("❌ Code exchange failed:", result.error)
+      return { error: result.error || 'Code exchange failed' };
+    }
+  } catch (error) {
+    console.error("❌ Network error during code exchange:", error)
+    return { error: 'Network error during authentication' };
+  }
+}
+
+// Extracted session setup logic for reuse
+async function setupSupabaseSession(sessionData: {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+  expires_at?: number;
+  token_type?: string;
+  user: any;
+}) {
+  console.log("🔐 Setting up Supabase session...")
+  
+  // Clear any existing session locally
+  const storageKey = 'wagoo-auth-token'
+  localStorage.removeItem(storageKey)
+  const supabaseKeys = Object.keys(localStorage).filter(key => 
+    key.startsWith('sb-') || key.includes('supabase')
+  )
+  supabaseKeys.forEach(key => localStorage.removeItem(key))
+  
+  // Store the session in the format Supabase expects
+  const sessionToStore = {
+    currentSession: {
+      access_token: sessionData.access_token,
+      refresh_token: sessionData.refresh_token,
+      expires_in: sessionData.expires_in,
+      expires_at: sessionData.expires_at,
+      token_type: sessionData.token_type || 'bearer',
+      user: sessionData.user
+    },
+    expiresAt: sessionData.expires_at
+  }
+  
+  localStorage.setItem(storageKey, JSON.stringify(sessionToStore))
+  console.log("Stored session in localStorage")
+  
+  // Try to refresh the session to get origin-valid tokens
+  console.log("Refreshing session to get origin-valid tokens...")
+  const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession({
+    refresh_token: sessionData.refresh_token
+  })
+  
+  if (refreshError) {
+    console.error("Session refresh failed:", refreshError)
+    
+    // Fallback: Try setting the session directly
+    console.log("Trying direct session set as fallback...")
+    const { data: directSession, error: directError } = await supabase.auth.setSession({
+      access_token: sessionData.access_token,
+      refresh_token: sessionData.refresh_token
+    })
+    
+    if (directError) {
+      console.error("Direct session set also failed:", directError)
+      
+      // Final fallback: Manually trigger auth state change
+      console.log("Manually triggering auth state change...")
+      const authClient = (supabase.auth as any)
+      if (authClient && authClient._notifyAllSubscribers) {
+        authClient._notifyAllSubscribers('SIGNED_IN', {
+          access_token: sessionData.access_token,
+          refresh_token: sessionData.refresh_token,
+          expires_in: sessionData.expires_in,
+          expires_at: sessionData.expires_at,
+          token_type: sessionData.token_type || 'bearer',
+          user: sessionData.user
+        })
+        console.log("Manually notified auth subscribers")
+      }
+    } else {
+      console.log("Direct session set succeeded!")
+    }
+  } else {
+    console.log("Session refresh succeeded! New session established:", {
+      user: refreshData.session?.user?.email,
+      expires_at: refreshData.session?.expires_at
+    })
+  }
+}
+
 // Root component that provides the QueryClient
 function App() {
   // Memoize expensive button window check to avoid recalculating on every render
@@ -133,98 +253,47 @@ function App() {
           return
         }
 
-        // The 'code' from the web app is a Base64 encoded JSON string of the session.
-        console.log("Attempting to decode Base64 session data...")
-        const sessionDataString = atob(code)
-        const sessionData = JSON.parse(sessionDataString)
-        console.log("Parsed session data keys:", Object.keys(sessionData))
-
-        if (sessionData.access_token && sessionData.refresh_token) {
-          console.log("Session tokens found, implementing cross-origin auth...")
-
-          // The key issue: tokens from the website domain won't work directly in Electron
-          // We need to use the refresh token to get new tokens for this origin
+        // Detect if this is NEW system (short code) or OLD system (base64 encoded)
+        const isShortCode = code.length < 100 // Short codes are typically 20-50 chars
+        
+        if (isShortCode) {
+          // NEW SYSTEM: Exchange short code for session
+          console.log("🆕 Processing short code via API exchange...")
+          const sessionData = await exchangeCodeForSession(code)
           
-          try {
-            // First, clear any existing session locally only
-            // Don't use signOut here as it might interfere with the new session
-            const storageKey = 'wagoo-auth-token' // Matches the storageKey in supabase.ts
-            localStorage.removeItem(storageKey)
-            const supabaseKeys = Object.keys(localStorage).filter(key => 
-              key.startsWith('sb-') || key.includes('supabase')
-            )
-            supabaseKeys.forEach(key => localStorage.removeItem(key))
-            
-            // Store the session in the format Supabase expects
-            const sessionToStore = {
-              currentSession: {
-                access_token: sessionData.access_token,
-                refresh_token: sessionData.refresh_token,
-                expires_in: sessionData.expires_in,
-                expires_at: sessionData.expires_at,
-                token_type: sessionData.token_type,
-                user: sessionData.user
-              },
-              expiresAt: sessionData.expires_at
-            }
-            
-            localStorage.setItem(storageKey, JSON.stringify(sessionToStore))
-            console.log("Stored session in localStorage")
-            
-            // Now immediately try to refresh the session
-            // This will exchange the refresh token for new tokens valid for this origin
-            console.log("Refreshing session to get origin-valid tokens...")
-            const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession({
-              refresh_token: sessionData.refresh_token
-            })
-            
-            if (refreshError) {
-              console.error("Session refresh failed:", refreshError)
-              
-              // Fallback: Try setting the session directly one more time
-              console.log("Trying direct session set as fallback...")
-              const { data: directSession, error: directError } = await supabase.auth.setSession({
-                access_token: sessionData.access_token,
-                refresh_token: sessionData.refresh_token
-              })
-              
-              if (directError) {
-                console.error("Direct session set also failed:", directError)
-                
-                // Final fallback: Manually trigger auth state change
-                console.log("Manually triggering auth state change...")
-                // Get the internal auth client and notify it of the session
-                const authClient = (supabase.auth as any)
-                if (authClient && authClient._notifyAllSubscribers) {
-                  authClient._notifyAllSubscribers('SIGNED_IN', {
-                    access_token: sessionData.access_token,
-                    refresh_token: sessionData.refresh_token,
-                    expires_in: sessionData.expires_in,
-                    expires_at: sessionData.expires_at,
-                    token_type: sessionData.token_type,
-                    user: sessionData.user
-                  })
-                  console.log("Manually notified auth subscribers")
-                }
-              } else {
-                console.log("Direct session set succeeded!")
-              }
-            } else {
-              console.log("Session refresh succeeded! New session established:", {
-                user: refreshData.session?.user?.email,
-                expires_at: refreshData.session?.expires_at
-              })
-              
-              // The auth state change should be triggered automatically
-              // The useSupabaseAuth hook will pick this up
-            }
-            
-          } catch (error) {
-            console.error("Cross-origin auth implementation failed:", error)
+          if (sessionData.error) {
+            console.error("Short code exchange failed:", sessionData.error)
+            return
           }
+          
+          if (sessionData.access_token && sessionData.refresh_token && sessionData.user) {
+            console.log("Session tokens found, setting up auth...")
+            await setupSupabaseSession({
+              access_token: sessionData.access_token,
+              refresh_token: sessionData.refresh_token,
+              expires_in: sessionData.expires_in || 3600,
+              expires_at: sessionData.expires_at,
+              token_type: sessionData.token_type,
+              user: sessionData.user
+            })
+          } else {
+            console.error("Missing required tokens in exchanged session data")
+          }
+          
         } else {
-          console.error("Missing required tokens in session data")
-          console.error("Available keys:", Object.keys(sessionData))
+          // OLD SYSTEM: Base64 decode (backward compatibility)
+          console.log("🔄 Processing legacy base64 encoded session data...")
+          const sessionDataString = atob(code)
+          const sessionData = JSON.parse(sessionDataString)
+          console.log("Parsed session data keys:", Object.keys(sessionData))
+
+          if (sessionData.access_token && sessionData.refresh_token) {
+            console.log("Session tokens found, implementing cross-origin auth...")
+            await setupSupabaseSession(sessionData)
+          } else {
+            console.error("Missing required tokens in session data")
+            console.error("Available keys:", Object.keys(sessionData))
+          }
         }
       } catch (err: unknown) {
         console.error("Error in auth callback:", err)
@@ -319,7 +388,7 @@ function AuthForm() {
 
     try {
       const loginUrl =
-        "https://www.wagoo.ai/login?redirectTo=wagoo://auth/callback"
+        "http://localhost:5173/login?redirectTo=wagoo://auth/callback"
 
       const electronOpenExternalUrl = (window as any).electronAPI?.openExternalUrl
       const electronOpenExternal = (window as any).electronAPI?.openExternal
