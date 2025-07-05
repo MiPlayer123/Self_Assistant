@@ -28,10 +28,11 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
 export const signInWithGoogle = async () => {
   console.log("Attempting Google OAuth sign-in (browser flow)...")
   try {
-    // Determine redirect target: use custom protocol when Electron API is available, otherwise fallback to current origin (web dev/test)
+    // Determine redirect target: use short code flow when Electron API is available, otherwise fallback to current origin (web dev/test)
     const electronAPI = (window as any).electronAPI
     const canDeepLink = typeof window !== 'undefined' && electronAPI && typeof electronAPI.openExternal === 'function'
-    const redirectTo = canDeepLink ? 'wagoo://auth/callback' : `${window.location.origin}`
+    
+    const redirectTo = canDeepLink ? 'wagoo://auth/callback' : 'http://localhost:5173'
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -72,6 +73,50 @@ export const signInWithGoogle = async () => {
   } catch (error) {
     console.error("Sign-in failed:", error)
     return { data: null, error }
+  }
+}
+
+// New function to handle short code authentication
+export const authenticateWithShortCode = async (tempCode: string) => {
+  console.log("Authenticating with short code:", tempCode)
+  
+  try {
+    const response = await fetch('https://awzpxrojtaqijoqrdzxo.supabase.co/functions/v1/exchange-desktop-temp-code', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ temp_code: tempCode })
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      console.error("Short code authentication failed:", response.status, errorData)
+      throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    
+    if (!data.success) {
+      console.error("Short code authentication failed:", data.error)
+      throw new Error(data.error || 'Authentication failed')
+    }
+
+    console.log("Short code authentication successful for user:", data.user_id)
+    
+    // Return the user ID for further processing
+    return { 
+      success: true, 
+      user_id: data.user_id,
+      error: null 
+    }
+  } catch (error) {
+    console.error("Short code authentication error:", error)
+    return { 
+      success: false, 
+      user_id: null,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }
   }
 }
 

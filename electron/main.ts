@@ -84,15 +84,30 @@ function registerWagooProtocol() {
   app.removeAsDefaultProtocolClient("wagoo");
   const exe   = process.execPath;
   const entry = process.argv[1] ? path.resolve(process.argv[1]) : "";
+  
   if (process.platform === "win32") {
-    // Windows: always include "%1" as the last argument in dev mode
+    // Set explicit AppUserModelID to avoid conflicts with old installations
+    app.setAppUserModelId("com.wagoo.app");
+    
+    // Clear any old UserChoice association in development
+    if (process.defaultApp) {
+      try {
+        const { execSync } = require('child_process');
+        execSync('reg delete "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\Shell\\Associations\\UrlAssociations\\wagoo\\UserChoice" /f 2>nul', { stdio: 'ignore' });
+        console.log("[deep-link] cleared old UserChoice association");
+      } catch (error) {
+        // Ignore errors if key doesn't exist
+      }
+    }
+    
+    // Windows: Electron automatically adds "%1" for us, so don't include it manually
     const ok = process.defaultApp
-      ? app.setAsDefaultProtocolClient("wagoo", exe, [entry, "%1"])
+      ? app.setAsDefaultProtocolClient("wagoo", exe, [entry])
       : app.setAsDefaultProtocolClient("wagoo");
     console.log("[deep-link] protocol registered?", ok,
                 "\n         exe :", exe,
                 "\n         arg :", entry,
-                "\n         extra :", "%1");
+                "\n         appId: com.wagoo.app");
   } else if (process.platform === "darwin") {
     // macOS: just use the protocol name
     const ok = app.setAsDefaultProtocolClient("wagoo");
@@ -100,12 +115,11 @@ function registerWagooProtocol() {
                 "\n         exe :", exe,
                 "\n         arg :", entry);
   } else {
-    // Linux or other: fallback to default
-    const ok = app.setAsDefaultProtocolClient("wagoo", exe, [entry, "%1"]);
+    // Linux or other: Electron automatically adds "%1" for us
+    const ok = app.setAsDefaultProtocolClient("wagoo", exe, [entry]);
     console.log("[deep-link] protocol registered?", ok,
                 "\n         exe :", exe,
-                "\n         arg :", entry,
-                "\n         extra :", "%1");
+                "\n         arg :", entry);
   }
 }
 
@@ -142,13 +156,52 @@ app.on("second-instance", (_event, argv) => {
   const link = extractLink(argv);
   if (link && state.mainWindow) {
     console.log("[deep-link] sending to renderer:", link);
-    state.mainWindow.webContents.send("deep-link", link);
-    state.mainWindow.restore();
-    state.mainWindow.focus();
+    // Wait for window to be ready before sending deep link
+    if (state.mainWindow.webContents.isLoading()) {
+      console.log("[deep-link] window still loading, waiting...");
+      state.mainWindow.webContents.once('did-finish-load', () => {
+        console.log("[deep-link] window finished loading, now sending deep link");
+        state.mainWindow?.webContents.send("deep-link", link);
+        state.mainWindow?.restore();
+        state.mainWindow?.focus();
+      });
+    } else {
+      state.mainWindow.webContents.send("deep-link", link);
+      state.mainWindow.restore();
+      state.mainWindow.focus();
+    }
   } else if (link && !state.mainWindow) {
     console.log("[deep-link] deep link found but mainWindow is null");
   } else if (!link) {
     console.log("[deep-link] no deep link found in second-instance argv");
+  }
+});
+
+// macOS specific handler
+app.on("open-url", (event, url) => {
+  console.log("[deep-link] open-url event received:", url);
+  event.preventDefault();
+  if (url && url.startsWith("wagoo://")) {
+    console.log("[deep-link] handling wagoo:// URL via open-url:", url);
+    if (state.mainWindow) {
+      // Wait for window to be ready before sending deep link
+      if (state.mainWindow.webContents.isLoading()) {
+        console.log("[deep-link] window still loading, waiting...");
+        state.mainWindow.webContents.once('did-finish-load', () => {
+          console.log("[deep-link] window finished loading, now sending deep link");
+          state.mainWindow?.webContents.send("deep-link", url);
+          state.mainWindow?.restore();
+          state.mainWindow?.focus();
+        });
+      } else {
+        state.mainWindow.webContents.send("deep-link", url);
+        state.mainWindow.restore();
+        state.mainWindow.focus();
+      }
+    } else {
+      console.log("[deep-link] mainWindow not ready, storing URL for later");
+      deepLinkOnLaunch = url;
+    }
   }
 });
 // -------------- deep-link patch END --------------
@@ -265,76 +318,9 @@ function initializeHelpers() {
 
 // Auth callback handler
 
-// Register the wagoo protocol
-if (process.platform === "darwin") {
-  app.setAsDefaultProtocolClient("wagoo")
-} else if (process.platform === "win32") {
-  // Windows protocol registration - Fixed version
-  if (process.defaultApp) {
-    // Development mode - when running with electron.exe
-    if (process.argv.length >= 2) {
-      app.setAsDefaultProtocolClient("wagoo", process.execPath, [
-        path.resolve(process.argv[1])
-      ])
-    }
-  } else {
-    // Production mode - when running as built exe
-    app.setAsDefaultProtocolClient("wagoo")
-  }
-  
-  // Additional Windows-specific setup for protocol handling
-  if (isDev) {
-    // In development, we need to handle the protocol differently
-    console.log("Windows development mode: Protocol registration attempted")
-    console.log("Process execPath:", process.execPath)
-    console.log("Process argv:", process.argv)
-  }
-} else {
-  // Linux
-  app.setAsDefaultProtocolClient("wagoo", process.execPath, [
-    path.resolve(process.argv[1] || "")
-  ])
-}
 
-// Force Single Instance Lock
-const gotTheLock = app.requestSingleInstanceLock()
 
-if (!gotTheLock) {
-  app.quit()
-} else {
-  // Handle deep links when the app is already running (macOS)
-  app.on('open-url', (event, url) => {
-    event.preventDefault()
-    if (state.mainWindow) {
-      handleAuthCallback(url, state.mainWindow)
-    }
-  })
 
-  app.on("second-instance", (event, commandLine) => {
-    // Someone tried to run a second instance, we should focus our window.
-    if (state.mainWindow) {
-      if (state.mainWindow.isMinimized()) state.mainWindow.restore()
-      state.mainWindow.focus()
-
-      // Protocol handler for Windows - Fixed version
-      if (process.platform === "win32") {
-        console.log("Windows second-instance event:", commandLine)
-        
-        // Look for wagoo:// protocol in all command line arguments
-        const protocolUrl = commandLine.find((arg) => 
-          arg && typeof arg === 'string' && arg.startsWith("wagoo://")
-        )
-        
-        if (protocolUrl) {
-          console.log("Found protocol URL in commandLine:", protocolUrl)
-          handleAuthCallback(protocolUrl, state.mainWindow)
-        } else {
-          console.log("No wagoo:// protocol found in commandLine:", commandLine)
-        }
-      }
-    }
-  })
-}
 
 async function handleAuthCallback(url: string, win: BrowserWindow | null) {
   try {
@@ -346,6 +332,7 @@ async function handleAuthCallback(url: string, win: BrowserWindow | null) {
     console.log("Parsed URL:", urlObj.toString())
     console.log("URL search params:", urlObj.searchParams.toString())
     
+    // Handle both the old format (wagoo://auth/callback?code=...) and new format (wagoo://auth?code=...)
     const code = urlObj.searchParams.get("code")
     console.log("Extracted code:", code ? "exists" : "null")
 
@@ -783,23 +770,37 @@ async function initializeApp() {
     await createButtonWindow()
     state.shortcutsHelper?.registerGlobalShortcuts()
 
-    // Handle protocol URL at startup on Windows - Fixed version
-    if (process.platform === "win32") {
-      console.log("Windows startup process.argv:", process.argv)
-      
-      // Look for wagoo:// protocol in all process arguments
-      const protocolUrl = process.argv.find(arg => 
-        arg && typeof arg === 'string' && arg.startsWith("wagoo://")
-      )
-      
-      if (protocolUrl) {
-        console.log("Found protocol URL in process.argv at startup:", protocolUrl)
-        handleAuthCallback(protocolUrl, state.mainWindow)
+    // Handle deep links that arrived before window was ready
+    if (deepLinkOnLaunch && state.mainWindow) {
+      console.log("[deep-link] processing stored deep link:", deepLinkOnLaunch);
+      // Wait for window to be ready before sending deep link
+      if (state.mainWindow.webContents.isLoading()) {
+        console.log("[deep-link] window still loading, waiting...");
+        state.mainWindow.webContents.once('did-finish-load', () => {
+          console.log("[deep-link] window finished loading, now sending deep link");
+          state.mainWindow?.webContents.send("deep-link", deepLinkOnLaunch);
+        });
       } else {
-        console.log("No wagoo:// protocol found in process.argv at startup")
+        state.mainWindow.webContents.send("deep-link", deepLinkOnLaunch);
+      }
+      deepLinkOnLaunch = null;
+    }
+    
+    // Handle startup deep links (when app is launched with wagoo:// URL)
+    const startupDeepLink = extractLink(process.argv);
+    if (startupDeepLink && state.mainWindow) {
+      console.log("[deep-link] processing startup deep link:", startupDeepLink);
+      // Wait for window to be ready before sending deep link
+      if (state.mainWindow.webContents.isLoading()) {
+        console.log("[deep-link] window still loading, waiting...");
+        state.mainWindow.webContents.once('did-finish-load', () => {
+          console.log("[deep-link] window finished loading, now sending startup deep link");
+          state.mainWindow?.webContents.send("deep-link", startupDeepLink);
+        });
+      } else {
+        state.mainWindow.webContents.send("deep-link", startupDeepLink);
       }
     }
-    // -------------- deep-link patch END --------------
 
     // Initialize auto-updater regardless of environment
     initAutoUpdater()
@@ -814,30 +815,7 @@ async function initializeApp() {
   }
 }
 
-// Handle the auth callback in development - Enhanced version
-app.on("open-url", (event, url) => {
-  console.log("open-url event received:", url)
-  event.preventDefault()
-  if (url && url.startsWith("wagoo://")) {
-    console.log("Handling protocol URL via open-url:", url)
-    handleAuthCallback(url, state.mainWindow)
-  }
-})
 
-// Handle the auth callback in production (Windows/Linux) - Enhanced version
-app.on("second-instance", (event, commandLine) => {
-  console.log("second-instance event received:", commandLine)
-  
-  // Look for wagoo:// protocol in command line arguments
-  const protocolUrl = commandLine.find((arg) => 
-    arg && typeof arg === 'string' && arg.startsWith("wagoo://")
-  )
-  
-  if (protocolUrl) {
-    console.log("Found protocol URL in second-instance:", protocolUrl)
-    handleAuthCallback(protocolUrl, state.mainWindow)
-  }
-})
 
 // Window lifecycle handlers
 app.on("window-all-closed", () => {
@@ -1092,7 +1070,12 @@ export {
 // Initialize the app when ready
 console.log("[deep-link] setting up app.whenReady() handler...");
 app.whenReady().then(() => {
-  console.log("[deep-link] app.whenReady() called, initializing app...");
+  console.log("[deep-link] app.whenReady() called, registering protocol...");
+  
+  // Register the protocol handler
+  registerWagooProtocol();
+  
+  console.log("[deep-link] initializing app...");
   initializeApp();
 }).catch((error) => {
   console.error("[deep-link] error in app.whenReady():", error);

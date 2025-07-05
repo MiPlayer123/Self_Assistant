@@ -8,6 +8,7 @@ import { OfflineNotification } from "./components/OfflineNotification"
 import { useSupabaseAuth } from "./hooks/useSupabaseAuth"
 import { useUsageTracking } from "./hooks/useUsageTracking"
 import { useOfflineMode } from "./hooks/useOfflineMode"
+import { authenticateWithShortCode } from "./lib/supabase"
 
 import {
   QueryClient,
@@ -115,16 +116,77 @@ function App() {
   useEffect(() => {
     let isProcessing = false // Prevent duplicate processing
 
-    const handleAuthCallbackPKCE = async (data: { code: string }) => {
-      console.log("🔐 AUTH: handleAuthCallbackPKCE called with data:", data);
-      // Prevent duplicate processing
-      if (isProcessing) {
-        console.log("🔐 AUTH: Auth callback already being processed, ignoring duplicate")
-        return
+      const handleAuthToken = async (token: string) => {
+    console.log("🔐 AUTH: handleAuthToken called with token:", token);
+    try {
+      // Fetch the auth data from the bridge page's localStorage
+      // In a real implementation, you'd fetch this from your backend
+      const authDataKey = 'wagoo_auth_' + token;
+      const authDataStr = localStorage.getItem(authDataKey);
+      
+      if (!authDataStr) {
+        console.error("🔐 AUTH: No auth data found for token:", token);
+        return;
       }
       
-      isProcessing = true
-      console.log("🔐 AUTH: IPC: received auth callback:", data)
+      const authData = JSON.parse(authDataStr);
+      console.log("🔐 AUTH: Retrieved auth data:", { 
+        type: authData.type,
+        code: authData.code ? 'exists' : 'null',
+        access_token: authData.access_token ? 'exists' : 'null'
+      });
+      
+      // Clean up the localStorage
+      localStorage.removeItem(authDataKey);
+      
+      if (authData.type === 'tokens' && authData.access_token && authData.refresh_token) {
+        // Handle direct tokens (user already authenticated)
+        console.log("🔐 AUTH: Processing direct tokens...");
+        await handleDirectTokens(authData.access_token, authData.refresh_token);
+      } else if (authData.type === 'code' && authData.code) {
+        // Handle OAuth code
+        console.log("🔐 AUTH: Processing OAuth code...");
+        await handleAuthCallbackPKCE({ code: authData.code });
+      } else {
+        console.error("🔐 AUTH: Invalid auth data type or missing data");
+      }
+      
+    } catch (error) {
+      console.error("🔐 AUTH: Error handling auth token:", error);
+    }
+  };
+
+  const handleDirectTokens = async (accessToken: string, refreshToken: string) => {
+    console.log("🔐 AUTH: handleDirectTokens called");
+    try {
+      // Set the session directly with the tokens
+      const { data: sessionData, error } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken
+      });
+
+      if (error) {
+        console.error("🔐 AUTH: Error setting session with tokens:", error);
+        return;
+      }
+
+      console.log("🔐 AUTH: Session set successfully with tokens");
+      
+    } catch (error) {
+      console.error("🔐 AUTH: Error in handleDirectTokens:", error);
+    }
+  };
+
+  const handleAuthCallbackPKCE = async (data: { code: string }) => {
+    console.log("🔐 AUTH: handleAuthCallbackPKCE called with data:", data);
+    // Prevent duplicate processing
+    if (isProcessing) {
+      console.log("🔐 AUTH: Auth callback already being processed, ignoring duplicate")
+      return
+    }
+    
+    isProcessing = true
+    console.log("🔐 AUTH: IPC: received auth callback:", data)
       
       try {
         const { code } = data || {}
@@ -239,6 +301,32 @@ function App() {
       }
     }
 
+    // New function to handle short code authentication
+    const handleShortCodeAuth = async (tempCode: string) => {
+      console.log("🔐 AUTH: handleShortCodeAuth called with temp_code:", tempCode);
+      
+      try {
+        const result = await authenticateWithShortCode(tempCode);
+        
+        if (result.success && result.user_id) {
+          console.log("🔐 AUTH: Short code authentication successful for user:", result.user_id);
+          
+          // TODO: Set up the user session with the user_id
+          // For now, we'll need to implement a way to get the user session from the user_id
+          // This might involve calling a Supabase function to get the user's session tokens
+          
+          showToast("Authentication Successful", "You have been successfully logged in.", "success");
+          
+        } else {
+          console.error("🔐 AUTH: Short code authentication failed:", result.error);
+          showToast("Authentication Failed", result.error || "Failed to authenticate. Please try again.", "error");
+        }
+      } catch (error) {
+        console.error("🔐 AUTH: Error in handleShortCodeAuth:", error);
+        showToast("Authentication Error", "An unexpected error occurred during authentication.", "error");
+      }
+    };
+
     console.log("Setting up auth IPC listener")
     window.electron?.ipcRenderer?.on("auth-callback", handleAuthCallbackPKCE)
 
@@ -247,15 +335,27 @@ function App() {
     console.log('Setting up deep link handler...');
     const cleanupDeepLink = window.electronAPI?.onDeepLink((url: string) => {
       console.log('🎯 RENDERER: Received deep link:', url);
-      // Parse the URL and extract the code
+      // Parse the URL and extract the temp_code or other parameters
       try {
         const urlObj = new URL(url);
+        const tempCode = urlObj.searchParams.get('temp_code');
         const code = urlObj.searchParams.get('code');
-        if (code) {
+        const token = urlObj.searchParams.get('token');
+        
+        if (tempCode) {
+          // Short code authentication flow
+          console.log('🎯 RENDERER: Extracted temp_code from deep link, processing short code auth...');
+          handleShortCodeAuth(tempCode);
+        } else if (code) {
+          // Direct OAuth code (legacy fallback)
           console.log('🎯 RENDERER: Extracted code from deep link, processing...');
           handleAuthCallbackPKCE({ code });
+        } else if (token) {
+          // Short token from web bridge (legacy fallback)
+          console.log('🎯 RENDERER: Extracted token from deep link, fetching code from bridge...');
+          handleAuthToken(token);
         } else {
-          console.error('🎯 RENDERER: No code found in deep link URL');
+          console.error('🎯 RENDERER: No temp_code, code, or token found in deep link URL');
           console.log('🎯 RENDERER: Available search params:', Array.from(urlObj.searchParams.entries()));
         }
       } catch (error) {
@@ -284,6 +384,8 @@ function App() {
     // Just mark as initialized since auth is handled by the AppContent component
     markInitialized()
   }, [markInitialized])
+
+
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -319,7 +421,7 @@ function AuthForm() {
 
     try {
       const loginUrl =
-        "https://www.wagoo.ai/login?redirectTo=wagoo://auth/callback"
+        "http://localhost:5173/login?redirectTo=wagoo://auth/callback"
 
       const electronOpenExternalUrl = (window as any).electronAPI?.openExternalUrl
       const electronOpenExternal = (window as any).electronAPI?.openExternal
